@@ -1,0 +1,6 @@
+[Event "Live Chess"]
+[White "opponent2"]
+[Black "coach_tester"]
+[Result "1-0"]
+
+1. e4 e5 2. Nf3 d6 3. Bc4 Bg4 4. Nc3 g6 5. Nxe5 Bxd1 6. Bxf7+ Ke7 7. Nd5# 1-0

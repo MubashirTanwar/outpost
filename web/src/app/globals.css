@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: #302e2b;
+  color: #fff;
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 text-lg font-extrabold text-white shadow-btn transition hover:bg-brand-light active:translate-y-[2px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[#3c3a37] px-4 py-2 text-sm font-bold text-soft shadow-btn2 transition hover:bg-[#4b4847] hover:text-white active:translate-y-[2px] active:shadow-none disabled:opacity-50;
+  }
+  .card {
+    @apply rounded-lg bg-panel;
+  }
+  .input {
+    @apply rounded-md border border-line bg-[#1f1e1b] px-3 py-2.5 text-white placeholder:text-muted focus:border-brand focus:outline-none;
+  }
+}
+
+.prose-coach h2 {
+  @apply mb-2 mt-1 text-lg font-extrabold;
+}
+.prose-coach h3 {
+  @apply mb-1.5 mt-4 font-bold text-brand-light;
+}
+.prose-coach p {
+  @apply mb-2 leading-relaxed text-soft;
+}
+.prose-coach ul,
+.prose-coach ol {
+  @apply mb-2 space-y-1 pl-5 text-soft;
+}
+.prose-coach ul {
+  @apply list-disc;
+}
+.prose-coach ol {
+  @apply list-decimal;
+}
+.prose-coach strong {
+  @apply text-white;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-pop {
+  animation: pop 0.25s ease-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+.animate-shake {
+  animation: shake 0.25s ease-in-out 2;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #4b4847;
+  border-radius: 4px;
+}

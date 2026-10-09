@@ -1,0 +1,6 @@
+[Event "Live Chess"]
+[White "opponent2"]
+[Black "coach_tester"]
+[Result "1-0"]
+
+1. e4 {[%clk 0:09:58]} e5 {[%clk 0:09:57]} 2. Nf3 {[%clk 0:09:55]} Nc6 {[%clk 0:09:50]} 3. Bc4 {[%clk 0:09:50]} Qg5 {[%clk 0:00:20]} 4. Nxg5 {[%clk 0:09:45]} 1-0

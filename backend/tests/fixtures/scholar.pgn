@@ -1,0 +1,9 @@
+[Event "Live Chess"]
+[Site "Chess.com"]
+[White "coach_tester"]
+[Black "opponent1"]
+[Result "1-0"]
+[ECO "C23"]
+[ECOUrl "https://www.chess.com/openings/Bishops-Opening-2...Nc6"]
+
+1. e4 {[%clk 0:09:58]} e5 {[%clk 0:09:57]} 2. Bc4 {[%clk 0:09:55]} Nc6 {[%clk 0:09:50]} 3. Qh5 {[%clk 0:09:50]} Nf6 {[%clk 0:09:40]} 4. Qxf7# {[%clk 0:09:45]} 1-0
