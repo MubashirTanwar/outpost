@@ -99,3 +99,15 @@ def test_api_smoke(monkeypatch, fake_engine, memory_store):
     assert client.post("/api/analyze", json={"fen": "nonsense"}).status_code == 400
     prof = client.get("/api/players/nobody/profile").json()
     assert prof["games_analyzed"] == 0
+
+
+def test_history_rows_have_chart_fields(monkeypatch, fake_engine, memory_store):
+    from app import main
+
+    monkeypatch.setattr(day_review, "get_engine", lambda: fake_engine)
+    day_review.run_day_review("coach_tester", "2025-10-09", games=_games(), depth=1)
+    rows = memory_store.list_games("coach_tester")
+    queen = next(r for r in rows if r["id"] == "g2")
+    assert queen["rating"] == 1200 and queen["blunders"] >= 1 and queen["accuracy"] is not None
+    client = TestClient(main.app)
+    assert len(client.get("/api/players/coach_tester/history?days=100000").json()["games"]) == 2

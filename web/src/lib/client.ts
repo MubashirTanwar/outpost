@@ -7,6 +7,7 @@
 import { api, getHealth, pollJob } from "./api";
 import { fetchDayGames, playerResult, tzOffset } from "./chesscom";
 import { reviewPgn } from "./review";
+import type { RawGame } from "./stats";
 import { getBrowserEngine } from "./stockfish";
 import { CLASSIFICATIONS, type Classification, type DayOverview, type GameMeta, type Puzzle, type Review } from "./types";
 
@@ -48,6 +49,25 @@ async function browserReview(game: GameMeta, progress?: Progress): Promise<Revie
   review.game = { ...game, pgn: undefined };
   saveLocal(review);
   return review;
+}
+
+/** Reviewed games for the progress page: the backend's history, or this browser's saved reviews. */
+export async function getHistory(username: string, days = 365): Promise<RawGame[]> {
+  if (await isBackendMode()) return (await api.history(username, days)).games;
+  const me = username.toLowerCase();
+  const out: RawGame[] = [];
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (!key.startsWith(LS_PREFIX)) continue;
+      const review: Review = JSON.parse(localStorage.getItem(key)!);
+      const g = review.game;
+      if (!g || ![g.white, g.black].some((n) => n.toLowerCase() === me)) continue;
+      const color = g.white.toLowerCase() === me ? "white" : "black";
+      const side = review.summary[color];
+      out.push({ ...g, player_color: color, accuracy: side.accuracy, counts: side.counts });
+    }
+  } catch {}
+  return out;
 }
 
 export async function isBackendMode(): Promise<boolean> {

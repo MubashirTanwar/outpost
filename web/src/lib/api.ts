@@ -72,6 +72,10 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ username, solved }),
     }),
+  history: (username: string, days: number) =>
+    request<{ games: (GameMeta & { rating?: number | null; blunders?: number; mistakes?: number; inaccuracies?: number })[] }>(
+      `/api/players/${encodeURIComponent(username)}/history?days=${days}`,
+    ),
   openings: () => request<{ openings: OpeningLine[] }>("/api/openings"),
   chat: (body: { username: string; message: string; fen?: string | null; history: { role: string; content: string }[] }) =>
     request<{ answer: string; source: string; used: string[] }>("/api/coach/chat", {

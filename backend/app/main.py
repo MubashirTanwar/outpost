@@ -178,7 +178,7 @@ def profile(username: str) -> dict:
 
 
 @app.get("/api/players/{username}/history")
-def history(username: str, days: int = 30) -> dict:
+def history(username: str, days: int = 365) -> dict:
     since = int(time.time()) - days * 86400
     return {"games": get_store().list_games(username, since=since)}
 

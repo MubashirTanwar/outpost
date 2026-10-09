@@ -103,11 +103,17 @@ class GraphStore(Protocol):
 
 def _game_row(game: dict, review: dict, color: str | None) -> dict:
     summary = review["summary"].get(color or "white", {})
+    counts = summary.get("counts", {})
     return {
         **{k: v for k, v in game.items() if k != "pgn"},
         "player_color": color,
         "accuracy": summary.get("accuracy"),
-        "counts": summary.get("counts", {}),
+        "counts": counts,
+        # Flat copies (Neo4j properties can't hold maps) for the progress charts.
+        "rating": game.get(f"{color}_rating") if color else None,
+        "blunders": counts.get("blunder", 0),
+        "mistakes": counts.get("mistake", 0),
+        "inaccuracies": counts.get("inaccuracy", 0),
     }
 
 

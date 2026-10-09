@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Bot, Crown, Home, LineChart, Puzzle, Swords, Volume2, VolumeX } from "lucide-react";
+import { BookOpen, Bot, Crown, Home, LineChart, Puzzle, Swords, TrendingUp, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -25,6 +25,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     { href: "/", label: "Home", icon: Home },
     { href: u ?? "/", label: "Review", icon: LineChart, needsUser: true },
     { href: u ? `${u}/puzzles` : "/", label: "Puzzles", icon: Puzzle, needsUser: true },
+    { href: u ? `${u}/progress` : "/", label: "Progress", icon: TrendingUp, needsUser: true },
     { href: "/courses", label: "Courses", icon: BookOpen },
     { href: "/endgames", label: "Endgames", icon: Crown },
     { href: "/analysis", label: "Analysis", icon: Swords },
