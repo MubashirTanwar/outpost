@@ -94,16 +94,20 @@ export default function AnalysisPage() {
         <div className="card p-4">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-lg font-extrabold">Analysis</h2>
-            <span className="text-xs text-muted">Stockfish 17.1 · depth {top?.depth ?? 0}</span>
+            <span className="text-xs tabular-nums text-muted">Stockfish 17.1 · depth {top?.depth ?? 0}</span>
           </div>
-          {lines.map((l, i) => (
-            <div key={i} className="flex gap-2 border-t border-line py-2 text-sm">
-              <span className="w-12 shrink-0 rounded bg-[#403d39] px-1 text-center font-bold">
-                {formatEval(turn * l.cp, l.mate !== null ? turn * l.mate : null)}
-              </span>
-              <span className="text-soft">{sanLine(fen, l.pv)}</span>
-            </div>
-          ))}
+          {/* Fixed one-line rows so live engine updates don't make the panel jump. */}
+          {[0, 1, 2].map((i) => {
+            const l = lines[i];
+            return (
+              <div key={i} className="flex h-9 items-center gap-2 overflow-hidden whitespace-nowrap border-t border-line text-sm">
+                <span className="w-12 shrink-0 rounded bg-[#403d39] px-1 text-center font-bold tabular-nums">
+                  {l ? formatEval(turn * l.cp, l.mate !== null ? turn * l.mate : null) : "…"}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-soft">{l ? sanLine(fen, l.pv) : ""}</span>
+              </div>
+            );
+          })}
           <div className="mt-3 flex gap-2">
             <button className="btn-secondary" onClick={() => setHistory((h) => (h.length > 1 ? h.slice(0, -1) : h))}>
               <Undo2 size={16} /> Undo

@@ -94,7 +94,7 @@ export function EngineLines({ fen, onLines, selected, onSelect }: { fen: string;
       <div className="flex items-center gap-2 border-b border-line px-3 py-2 text-xs font-bold text-muted">
         <Cpu size={14} />
         <span>Stockfish 17.1</span>
-        {enabled && <span className="text-soft">depth {depth || "…"}</span>}
+        {enabled && <span className="w-14 text-soft tabular-nums">depth {depth || "…"}</span>}
         <div className="ml-auto flex items-center gap-1">
           {[3, 5].map((n) => (
             <button
@@ -119,10 +119,11 @@ export function EngineLines({ fen, onLines, selected, onSelect }: { fen: string;
       </div>
       {enabled && (
         <div className="divide-y divide-line/60">
-          {(lines.length ? lines : Array.from({ length: multipv }, () => null)).map((l, i) => {
+          {/* Always exactly `multipv` one-line rows, so updates never change the panel's height. */}
+          {Array.from({ length: multipv }, (_, i) => lines[i] ?? null).map((l, i) => {
             if (!l)
               return (
-                <div key={i} className="h-8 animate-pulse px-3 py-2">
+                <div key={i} className="h-8 animate-pulse px-3 py-2.5">
                   <div className="h-3 w-3/4 rounded bg-[#3c3a37]" />
                 </div>
               );
@@ -134,12 +135,12 @@ export function EngineLines({ fen, onLines, selected, onSelect }: { fen: string;
               <button
                 key={i}
                 onClick={() => onSelect?.(i)}
-                className={`flex w-full items-start gap-2 px-3 py-1.5 text-left text-[13px] hover:bg-[#2d2b28] ${selected === i ? "bg-[#2d2b28]" : ""}`}
+                className={`flex h-8 w-full items-center gap-2 overflow-hidden whitespace-nowrap px-3 text-left text-[13px] hover:bg-[#2d2b28] ${selected === i ? "bg-[#2d2b28]" : ""}`}
               >
-                <span className={`mt-0.5 w-12 shrink-0 rounded px-1 text-center text-xs font-extrabold ${white ? "bg-white text-[#312e2b]" : "bg-[#403d39] text-white"}`}>
+                <span className={`w-12 shrink-0 rounded px-1 text-center text-xs font-extrabold tabular-nums ${white ? "bg-white text-[#312e2b]" : "bg-[#403d39] text-white"}`}>
                   {formatEval(cp, mate)}
                 </span>
-                <span className="line-clamp-2 text-soft">
+                <span className="min-w-0 flex-1 truncate text-soft">
                   <span className="text-muted">{moveNumberPrefix(fen)} </span>
                   <span className="font-bold text-white">{sans[0]}</span> {sans.slice(1).join(" ")}
                 </span>
