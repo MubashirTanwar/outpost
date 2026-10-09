@@ -23,7 +23,7 @@ from .engine import get_engine
 from .graph_store import get_store
 from .review import _san_line, review_pgn
 
-app = FastAPI(title="Chess Coach API", version="0.1.0")
+app = FastAPI(title="Outpost API", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in get_settings().cors_origins.split(",")],

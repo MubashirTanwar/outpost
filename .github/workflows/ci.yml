@@ -1,0 +1,49 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      neo4j:
+        image: neo4j:5.26-community
+        env:
+          NEO4J_AUTH: neo4j/chesscoach
+        ports: ["7687:7687"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update && sudo apt-get install -y stockfish
+      - run: pip install -r requirements-dev.txt
+      - name: Wait for Neo4j
+        run: for i in $(seq 1 30); do (echo > /dev/tcp/localhost/7687) 2>/dev/null && break; sleep 2; done
+      - run: pytest -q
+        env:
+          STOCKFISH_PATH: /usr/games/stockfish
+          NEO4J_TEST_URI: bolt://localhost:7687
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build

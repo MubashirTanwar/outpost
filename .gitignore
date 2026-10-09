@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.env
+
+# Node / Next
+node_modules/
+.next/
+web/public/stockfish/
+.env*.local
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+.DS_Store

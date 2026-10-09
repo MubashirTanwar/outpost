@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     ollama_model: str = "llama3.1"
 
     # chess.com asks API clients to identify themselves.
-    chesscom_user_agent: str = "chess-coach/0.1 (self-hosted analysis tool)"
+    chesscom_user_agent: str = "outpost/0.1 (self-hosted chess training)"
 
     cors_origins: str = "*"
 

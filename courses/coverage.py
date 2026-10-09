@@ -55,7 +55,7 @@ def main() -> int:
     ap.add_argument("--include-line-ends", action="store_true", help="also report moves after each line ends")
     args = ap.parse_args()
 
-    headers = {"User-Agent": "chess-coach course coverage check"}
+    headers = {"User-Agent": "outpost course coverage check"}
     if token := os.environ.get("LICHESS_TOKEN"):
         headers["Authorization"] = f"Bearer {token}"
     client = httpx.Client(headers=headers, timeout=30)

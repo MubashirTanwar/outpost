@@ -1,4 +1,32 @@
-# ChessCoach
+# Outpost
+
+Chess training with **Kittu**, a smug cat coach who roasts your moves (never you) and still teaches.
+
+![Kittu's reactions](docs/kittu-reactions.png)
+
+## Getting started
+
+**Option A, Docker (everything: Neo4j, API, web):**
+
+```bash
+git clone git@github.com:MubashirTanwar/outpost.git && cd outpost
+docker compose up --build                         # http://localhost:3000
+# free local AI coach:  docker compose --profile ollama up --build && docker compose exec ollama ollama pull llama3.1
+# Claude as the coach:  LLM_PROVIDER=anthropic ANTHROPIC_API_KEY=sk-ant-... docker compose up --build
+```
+
+**Option B, no Docker:**
+
+```bash
+./scripts/setup.sh        # Python venv + deps, npm deps, .env files; checks for Stockfish
+cd backend && .venv/bin/uvicorn app.main:app --reload     # API on :8000
+cd web && npm run dev                                      # web on :3000
+```
+
+Requirements: Python 3.11+, Node.js 24, Stockfish (`brew install stockfish` / `apt install stockfish`), and optionally Neo4j 5 (leave `NEO4J_URI` empty to use the in-memory graph).
+
+**Option C, Vercel (web only):** import this repo in Vercel and set **Root Directory** to `web`. With no `NEXT_PUBLIC_API_URL`, it runs in browser-only mode (see below).
+
 
 A free, self-hosted alternative to chess.com's premium features. Enter your chess.com username and get:
 
@@ -92,7 +120,6 @@ Progress is kept in your browser and, when the backend is running, synced to Neo
 ## Run it locally (full stack)
 
 ```bash
-cd chess-coach
 docker compose up --build                    # Neo4j + API + web, template coaching
 # or with a free local LLM:
 docker compose --profile ollama up --build
@@ -108,7 +135,7 @@ Open http://localhost:3000. Neo4j's browser is at http://localhost:7474 (user `n
 ```bash
 # Backend
 brew install stockfish          # or: apt install stockfish
-cd chess-coach/backend
+cd backend
 python -m venv .venv && . .venv/bin/activate
 pip install -r requirements-dev.txt
 cp .env.example .env            # set STOCKFISH_PATH, NEO4J_URI (blank = in-memory), LLM_PROVIDER
@@ -122,7 +149,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
 
 ## Deploy the frontend to Vercel
 
-1. Import the repo in Vercel and set **Root Directory** to `chess-coach/web`.
+1. Import the repo in Vercel and set **Root Directory** to `web`.
 2. Optionally set `NEXT_PUBLIC_API_URL` to a backend you host (any machine running the Docker image, or your own computer through a tunnel such as `cloudflared tunnel --url http://localhost:8000`). Set `CORS_ORIGINS` on the backend to your Vercel URL.
 
 With no backend, the Vercel deploy runs in **browser-only mode**. Game and day reviews run with Stockfish WASM in your browser and are stored in `localStorage`, and puzzles from your mistakes, the opening and endgame trainers and the analysis board all work. The AI coach and the cross-game pattern graph need the backend.
@@ -150,4 +177,4 @@ cd ../web && npm test && npm run typecheck && npm run build
 python ../courses/build.py --check       # course data valid and JSON up to date
 ```
 
-CI (`.github/workflows/chess-coach.yml`) runs all of these against real Stockfish and Neo4j.
+CI (`.github/workflows/ci.yml`) runs all of these against real Stockfish and Neo4j.
