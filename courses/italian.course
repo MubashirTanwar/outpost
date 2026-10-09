@@ -29,6 +29,14 @@ line: piano-qe7
 name: 4...Qe7
 moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Qe7 {Black overprotects e5 and prepares ...d6 without allowing d4 tricks.} 5.d3 {Same plan as ever.} Nf6 6.O-O d6 7.Re1 O-O 8.h3 a6 9.a4 Ba7 10.Nbd2 {Knight to f1 and g3 is next.}
 
+line: piano-bb6
+name: 4...Bb6: an early retreat
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Bb6 {Black steps back before d4 can hit the bishop.} 5.d3 {No need to change the plan.} Nf6 6.O-O d6 7.Re1 O-O 8.h3 {Keep the knight and bishop off g4.} h6 9.Nbd2 Re8 10.Nf1 {The knight tour, as always.}
+
+line: piano-castle-first
+name: 5...O-O move order
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 O-O 6.O-O d6 7.Re1 a6 8.a4 Ba7 9.h3 {Main-line position again.}
+
 chapter: two-knights
 title: Two Knights: 3...Nf6
 intro: 3...Nf6 attacks e4. Instead of the wild 4.Ng5 lines you calmly defend with 4.d3. Black's most popular answers are ...Bc5 (back into the Giuoco) and ...Be7. Against ...Be7 you meet the typical ...Na5 idea by keeping your bishop.
@@ -69,6 +77,10 @@ line: blackburne
 name: 3...Nd4: the Blackburne Shilling Gambit trap
 moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nd4 {A trap: it hopes for 4.Nxe5?? Qg5!, hitting e5 and g2 at once.} 4.Nxd4 {Just take the knight.} exd4 5.c3 {Open up the centre while Black is behind in development.} dxc3 6.Nxc3 d6 7.d4 {A big centre and much faster development. White is clearly better.} Nf6 8.O-O Be7 9.Re1
 
+line: rousseau
+name: 3...f5: the Rousseau Gambit
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 f5 {An aggressive try that weakens Black's king.} 4.d3 {Keep the centre solid; the c4 bishop now eyes a weakened g8.} Nf6 5.Nc3 Bb4 6.O-O {Develop and castle. Black's king will struggle to castle safely.}
+
 chapter: second-move
 title: Second-move alternatives
 intro: Some opponents don't play 2...Nc6. You'll learn a sensible line against the Philidor (2...d6), the Petrov (2...Nf6) and the risky Latvian Gambit (2...f5).
@@ -92,6 +104,10 @@ moves: 1.e4 e5 2.Nf3 Nf6 3.Nxe5 Nxe4 {A mistake: copying White doesn't work here
 line: latvian
 name: 2...f5 Latvian Gambit
 moves: 1.e4 e5 2.Nf3 f5 {A risky gambit.} 3.Nxe5 {Take the centre pawn.} Qf6 4.d4 d6 5.Nc4 fxe4 6.Nc3 Qg6 7.f3 {Break up Black's centre. White's development is far ahead.}
+
+line: petrov-bd6
+name: 2...Nf6 Petrov: 6...Bd6
+moves: 1.e4 e5 2.Nf3 Nf6 3.Nxe5 d6 4.Nf3 Nxe4 5.d4 d5 6.Bd3 Bd6 {The symmetrical setup.} 7.O-O O-O 8.c4 {Same idea: undermine the e4 knight's support.} c6 9.Re1 {Pressure on the pinned-looking knight.}
 
 quiz: piano-main 22
 q: You've played Nbd2 and Nf1. Where is the knight heading, and why?

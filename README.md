@@ -27,15 +27,17 @@ Requirements: Python 3.11+, Node.js 24, Stockfish (`brew install stockfish` / `a
 
 **Option C, Vercel (web only):** import this repo in Vercel and set **Root Directory** to `web`. With no `NEXT_PUBLIC_API_URL`, it runs in browser-only mode (see below).
 
+## What's inside
 
 A free, self-hosted alternative to chess.com's premium features. Enter your chess.com username and get:
 
 - **Day Review**: every game you played on a given day, analysed by Stockfish and reviewed move by move with chess.com-style classifications (Brilliant `!!`, Great `!`, Best, Excellent, Good, Book, Inaccuracy `?!`, Mistake `?`, Miss, Blunder `??`), accuracy scores, key moments, and a written lesson from an AI coach.
-- **Game Review**: a chess.com-style review screen with eval bar, advantage graph, move list with classification icons, best-move arrows, a "Retry" mode for your mistakes, and an AI "Explain" button.
-- **Your Puzzles**: every mistake you make becomes a puzzle, served with spaced repetition and filterable by theme (forks, hanging pieces, back-rank, missed mates…).
+- **Game Review**: a chess.com-style review screen with eval bar, advantage graph, move list with classification icons, best-move arrows, a "Retry" mode for your mistakes, and an AI "Explain" button. It also has live engine lines (top 3 or 5, with depth), and you can play your own moves on the board to explore variations.
+- **Linked lessons**: every game and move mentioned in the day's lesson is a link with a hover preview of the position (your move vs the best one).
+- **Your Puzzles**: every mistake you make becomes a puzzle, served with spaced repetition and filterable by theme (forks, hanging pieces, back-rank, missed mates…). Mates and tactics run several moves, your opponent always replies, and any move as good as the engine's counts.
 - **AI Coach chat**: ask about your weaknesses, openings, or a specific position.
-- **Opening courses (Chessly/Duolingo-style)**: six full repertoires (Italian, London and Queen's Gambit for White; Caro-Kann, French and Scandinavian for Black) with 92 lines and 23 hand-written quizzes. Each lesson is learned with hints, then played from memory. After that, spaced-repetition reviews, a drill shuffle and quizzes keep it fresh. Progress shows as XP, levels, a streak, a daily goal and achievements.
-- **Endgame trainer**: Lucena, Philidor, basic mates and more, played out against Stockfish.
+- **Opening courses (Chessly/Duolingo-style)**: six full repertoires (Italian, London and Queen's Gambit for White; Caro-Kann, French and Scandinavian for Black) with 118 lines and 23 hand-written quizzes. Each lesson is learned with hints, then played from memory. After that, spaced-repetition reviews, a drill shuffle and quizzes keep it fresh. Progress shows as XP, levels, a streak, a daily goal and achievements.
+- **Endgame Academy**: 4 stages (basic mates, king and pawn, rook endings, advanced), 13 lessons and 27 drills. Each lesson has theory cards with step-through demos, then several variations to play out against Stockfish for up to 3 stars.
 - **Analysis board**: Stockfish 17.1 running in your browser, with three lines.
 
 The UI copies the look of chess.com: dark theme, cream-and-brown board, animated pieces, and move/capture/check sounds. The sounds are synthesised in the browser and the piece set is the open-licensed one bundled with react-chessboard; chess.com's own artwork and audio are not included.
@@ -116,6 +118,17 @@ why: ...
 | Path | Each chapter is a Duolingo-style path. The next line unlocks when you finish the previous one, and each node shows new, learning (with a progress ring), mastered (crown) or due (clock). |
 
 Progress is kept in your browser and, when the backend is running, synced to Neo4j as `(:Player)-[:STUDIED {stage, due}]->(:CourseLine)`, so it follows you across devices. The day review then checks your real games against the courses you study. It tells you where *you* left the course ("you played 5.d4, the course plays 5.d3: review this line"), or where your *opponent* played a move the course doesn't cover yet.
+
+### Growing the courses with real-game data
+
+`courses/expand.py` drafts new lines from the Lichess opening explorer. For every opponent move in a course it finds the popular replies (default ≥5% of club games) that no line answers. It then extends each one with your most popular move that Stockfish rates within 0.4 pawns of its own choice. Drafts land in `courses/drafts/` for you to review, comment and paste in:
+
+```bash
+python courses/expand.py --course caro-kann        # or --all; add LICHESS_TOKEN=... if the explorer asks
+python courses/build.py --engine stockfish        # validate + engine-check after pasting lines in
+```
+
+The endgame course lives in `courses/endgames.endgame` and is built with `python courses/build_endgames.py` (add `--engine stockfish` to check every drill is really won or drawn).
 
 ## Run it locally (full stack)
 

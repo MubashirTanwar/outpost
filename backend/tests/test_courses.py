@@ -62,3 +62,43 @@ def test_progress_roundtrip(memory_store):
     assert client.put("/api/players/kim/progress", json=body).json() == {"ok": True}
     assert client.get("/api/players/KIM/progress").json()["progress"]["xp"] == 40
     assert client.put("/api/players/kim/progress", json={"lines": "nope"}).status_code == 400
+
+
+def test_expand_drafts_uncovered_popular_replies(tmp_path):
+    """courses/expand.py with a fake explorer and engine: popular uncovered replies become draft lines."""
+    if not COURSES_DIR.exists():
+        return
+    sys.path.insert(0, str(COURSES_DIR))
+    import chess
+
+    from build import build_course
+    from expand import ExplorerMove, draft_lines, render
+
+    src = tmp_path / "mini.course"
+    src.write_text(
+        "course: mini\nname: Mini\ncolor: white\ntagline: t\ndescription: d\n"
+        "chapter: c\ntitle: C\nintro: i\n"
+        "line: main\nname: Main\nmoves: 1.e4 e5 2.Nf3\n"
+    )
+    course = build_course(src)
+
+    def explore(fen):
+        b = chess.Board(fen)
+        table = {
+            # after 1.e4 Black plays e5 (covered) and c5 (not covered, 30%)
+            "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1": [("e7e5", 700), ("c7c5", 300)],
+            "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2": [("g1f3", 500), ("b1c3", 400)],
+        }
+        return [ExplorerMove(b.san(chess.Move.from_uci(u)), u, n) for u, n in table.get(fen, [])]
+
+    def evaluate(board, ucis):
+        return {u: 30 for u in ucis}
+
+    drafts = draft_lines(course, explore, evaluate, min_share=5, min_games=100, plies=6, tolerance=40, max_lines=5)
+    assert [d["sans"] for d in drafts] == [["c5", "Nf3"]]
+    text = render(course, drafts)
+    assert "30% of 1000 games" in text
+    from build import parse_moves
+
+    moves_line = next(l for l in text.splitlines() if l.startswith("moves: "))
+    assert [m["san"] for m in parse_moves(moves_line[7:], "draft")] == ["e4", "c5", "Nf3"]

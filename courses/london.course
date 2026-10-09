@@ -45,6 +45,18 @@ line: bg4
 name: ...Bg4: the queen is attacked
 moves: 1.d4 d5 2.Bf4 Nf6 3.e3 Bg4 {Careful: the bishop now hits your queen on d1 through the empty e2 square.} 4.Be2 {Block, and offer the trade.} Bxe2 5.Qxe2 e6 6.Nf3 c5 7.c3 Nc6 8.Nbd2 Bd6 9.Bg3 O-O 10.O-O {A comfortable London.}
 
+line: c6-bf5
+name: ...c6 and ...Bf5: the Slav setup
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 c6 {Black prepares ...Bf5 with ...c6 support.} 4.Nf3 Bf5 5.Bd3 {Offer the trade.} Bxd3 6.Qxd3 e6 7.Nbd2 Nbd7 8.O-O Be7 9.e4 {The central break: you're better developed.}
+
+line: e6-first
+name: 1...e6 move order
+moves: 1.d4 e6 2.Bf4 c5 3.e3 Nc6 4.c3 d5 5.Nd2 Nf6 6.Ngf3 Bd6 7.Bg3 O-O 8.Bd3 {The usual London position.}
+
+line: qb6-after-nf3
+name: ...Qb6 after Nf3
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 e6 4.Nf3 c5 5.c3 Qb6 {Hit b2 with the knight already on f3.} 6.Qb3 {Same recipe.} c4 7.Qc2 Nc6 8.Nbd2 {Next b3 or e4 to break the clamp.}
+
 chapter: indian
 title: Against 1...Nf6 and King's Indian setups
 intro: After 1...Nf6 you keep the same setup. Against ...g6 and ...Bg7 put your bishop on e2 and play h3, so the f4 bishop can retreat to h2 and survive ...Nh5 and ...e5. Against an early ...c5 with ...Qb6, know your one sharp answer.
@@ -76,6 +88,18 @@ moves: 1.d4 Nf6 2.Bf4 c5 3.e3 cxd4 4.exd4 {Recapture with the pawn: the e-file o
 line: dutch
 name: 1...f5: the Dutch
 moves: 1.d4 f5 {Black grabs e4.} 2.Bf4 Nf6 3.e3 e6 4.Nf3 b6 5.Bd3 {Aim at the weakened kingside.} Bb7 6.Nbd2 Be7 7.h3 O-O 8.O-O {Solid: c4 or Qe2 and e4 later.}
+
+line: queens-indian
+name: 2...b6: Queen's Indian setup
+moves: 1.d4 Nf6 2.Bf4 b6 {Black fianchettoes the light-squared bishop.} 3.e3 Bb7 4.Nd2 {The knight supports e4 against the b7 bishop.} e6 5.Ngf3 c5 6.c3 Be7 7.h3 {A retreat square for the f4 bishop.} O-O 8.Bd3
+
+line: leningrad
+name: 1...f5 with ...g6: the Leningrad Dutch
+moves: 1.d4 f5 2.Bf4 Nf6 3.e3 g6 {The Leningrad setup.} 4.Nf3 Bg7 5.Be2 O-O 6.h3 {Same idea as against the King's Indian.} d6 7.O-O
+
+line: benoni
+name: 1...c5: the Benoni
+moves: 1.d4 c5 {Black hits d4 at once.} 2.d5 {Take space: this is the best answer.} Nf6 3.Nc3 d6 4.e4 g6 5.Nf3 Bg7 6.Be2 {A classical big centre. Plans: O-O, Nd2 and f4 or a4.}
 
 quiz: main-b6 13
 q: Black played ...Bd6, offering a bishop trade. What's the London answer?

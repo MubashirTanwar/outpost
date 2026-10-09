@@ -29,6 +29,14 @@ line: tarrasch
 name: 3...c5: the Tarrasch
 moves: 1.d4 d5 2.c4 e6 3.Nc3 c5 {Black accepts an isolated pawn in return for free development.} 4.cxd5 exd5 5.Nf3 Nc6 6.g3 {Put the bishop on g2, aimed straight at the isolated d5 pawn.} Nf6 7.Bg2 Be7 8.O-O O-O 9.Bg5 {Remove a defender of d5.}
 
+line: qgd-b6
+name: 6...b6 without ...h6
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7 5.e3 O-O 6.Nf3 b6 {Black heads for ...Bb7 straight away.} 7.cxd5 {Fix Black's structure.} exd5 8.Bd3 Bb7 9.O-O {Plans: Rc1, Qe2 and a kingside build-up, or Ne5.}
+
+line: qgd-bb4
+name: 3...Bb4
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Bb4 {Black pins at once.} 4.cxd5 exd5 5.Bf4 {Develop actively outside the chain.} Nf6 6.e3 O-O 7.Bd3 c5 8.Nge2 {The knight goes to e2 so ...Bxc3 doesn't damage your pawns.}
+
 chapter: slav
 title: The Slav: 2...c6
 intro: Black keeps the c8 bishop free by supporting d5 with ...c6. You develop with Nf3 and Nc3. If Black takes on c4 you play a4 and win the pawn back with e3 and Bxc4, then build a big centre with e4.
@@ -48,6 +56,10 @@ moves: 1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 e6 {The Semi-Slav: very solid.} 5.e3 {The
 line: slav-bf5-early
 name: 3...Bf5 too early
 moves: 1.d4 d5 2.c4 c6 3.Nf3 Bf5 {Develops the bishop before ...Nf6.} 4.cxd5 cxd5 5.Qb3 {Hits b7 and d5. Black's bishop left the queenside short of defenders.} Qb6 6.Qxb6 axb6 7.Nc3 {A pleasant ending: Black's doubled b-pawns are a long-term weakness.}
+
+line: slav-bg4
+name: 5...Bg4
+moves: 1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 dxc4 5.a4 Bg4 {Black develops the bishop to g4 instead of f5.} 6.Ne5 {Hit the bishop and go after c4.} Bh5 7.f3 Nfd7 8.Nxc4 e5 9.dxe5 {You've won the pawn back with a strong centre.}
 
 chapter: qga
 title: Queen's Gambit Accepted: 2...dxc4
@@ -80,6 +92,10 @@ moves: 1.d4 d5 2.c4 Nc6 {Black blocks the c-pawn and plays for piece activity.} 
 line: baltic
 name: 2...Bf5: the Baltic
 moves: 1.d4 d5 2.c4 Bf5 {Black develops the bishop at once.} 3.cxd5 Bxb1 4.Qa4+ {Insert the check before recapturing.} c6 5.Rxb1 {Take the bishop back.} Qxd5 6.Nf3 Nd7 7.e3 {You have the bishop pair and an easy position.}
+
+line: symmetrical
+name: 2...c5: the Symmetrical
+moves: 1.d4 d5 2.c4 c5 {Black copies you.} 3.cxd5 {Take first.} Nf6 4.e4 {Gain time on the knight.} Nxe4 5.dxc5 {You're ahead in development and Black's knight is loose.}
 
 quiz: cambridge 8
 q: Black played 4...Nbd7. Can you win a pawn with 5.cxd5 exd5 6.Nxd5?

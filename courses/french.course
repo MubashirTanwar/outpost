@@ -73,6 +73,14 @@ line: classical-exd5
 name: 4.exd5: a quiet exchange
 moves: 1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.exd5 exd5 {An Exchange French with your knight already on f6.} 5.Bd3 Bd6 6.Nf3 O-O 7.O-O Bg4 {Pin the knight, as in the Exchange chapter.}
 
+line: classical-bg5-bxf6
+name: 4.Bg5 Be7 5.Bxf6
+moves: 1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5 Be7 5.Bxf6 {White gives up the bishop pair.} Bxf6 6.e5 Be7 7.Qg4 O-O {Castle: g7 is safe.} 8.Bd3 c5 {Hit the centre, as always.}
+
+line: classical-bd3
+name: 4.Bd3
+moves: 1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bd3 {Protects e4 but blocks the d-pawn's defender.} c5 {Strike d4 at once.} 5.exd5 cxd4 {Win the pawn back with an active position.}
+
 chapter: kia
 title: King's Indian Attack and early deviations
 intro: Some White players avoid d4 altogether with d3, Nd2, g3 and Bg2. Grab the centre with ...c5 and ...Nc6 and expand on the queenside with ...b5.
@@ -88,6 +96,14 @@ moves: 1.e4 e6 2.Nf3 d5 3.Nc3 {Delaying d4.} Nf6 {Same as against 3.Nc3: pressur
 line: two-nf3-e5
 name: 2.Nf3 d5 3.e5
 moves: 1.e4 e6 2.Nf3 d5 3.e5 {An Advance without d4.} c5 4.d4 cxd4 {The Advance 4.Nf3 line by transposition: take on d4 at once.}
+
+line: kia-g3-first
+name: 2.d3 with g3 first
+moves: 1.e4 e6 2.d3 d5 3.Nd2 Nf6 4.g3 c5 5.Bg2 Nc6 6.Ngf3 Be7 {The same position as the main KIA line.}
+
+line: chigorin-qe2
+name: 2.Qe2: the Chigorin
+moves: 1.e4 e6 2.Qe2 {Stops ...d5 because of exd5 with the queen on the e-file.} c5 {Take space on the other side.} 3.Nf3 Nc6 4.g3 d5 {Now ...d5 works.} 5.d3 Nf6 6.Bg2 Be7 7.O-O O-O {A KIA where Black has an easy game.}
 
 quiz: adv-main 6
 q: White played 3.e5. What's the French's key counter?

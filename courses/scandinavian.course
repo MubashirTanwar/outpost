@@ -29,6 +29,14 @@ line: bg4-trap
 name: 4.Bc4: avoid the ...Bg4 trap
 moves: 1.e4 d5 2.exd5 Qxd5 3.Nc3 Qa5 4.Bc4 Nf6 5.Nf3 c6 {Before ...Bf5 or ...Bg4, play ...c6. After 5...Bg4? 6.h3 Bh5 7.g4 Bg6 8.Ne5, the f7 square collapses.} 6.O-O Bf5 7.d3 e6 8.Bd2 Qc7 {The standard setup again.}
 
+line: main-nd5
+name: 8.Nd5: tactics against the queen
+moves: 1.e4 d5 2.exd5 Qxd5 3.Nc3 Qa5 4.d4 Nf6 5.Nf3 c6 6.Bc4 Bf5 7.Bd2 e6 8.Nd5 {Uncovers an attack on the a5 queen.} Qd8 {Simply step back.} 9.Nxf6+ Qxf6 {Your queen is active on f6 and the bishop pair is gone. Black is fine.}
+
+line: nf3-nc3
+name: 3.Nf3 Nf6 4.Nc3
+moves: 1.e4 d5 2.exd5 Qxd5 3.Nf3 Nf6 4.Nc3 Qa5 {Into the main line.} 5.d4 c6
+
 chapter: alternatives
 title: White's third-move alternatives
 intro: White doesn't have to play 3.Nc3. Against 3.Nf3 your bishop pins with ...Bg4. Against 3.d4 you can punish the queen's position at once with ...e5.
@@ -60,6 +68,10 @@ moves: 1.e4 d5 2.Nc3 {Defend e4 instead of trading.} d4 {Kick the knight and tak
 line: two-d3
 name: 2.exd5 Qxd5 3.Nc3 Qa5 4.d3?!
 moves: 1.e4 d5 2.exd5 Qxd5 3.Nc3 Qa5 4.d3 Nf6 5.Nf3 Bg4 {With d3 played there's no Bc4 trick: pin freely.} 6.Be2 Nc6 7.O-O e6 {Finish development first. Castling long right now walks into b4-b5 and Nd2 tricks against your queen.} 8.h3 Bh5 {Keep the pin. Next ...Be7 and ...O-O or ...O-O-O once the queen has a safe square.}
+
+line: blackmar
+name: 2.d4 dxe4: the Blackmar-Diemer
+moves: 1.e4 d5 2.d4 {The Blackmar-Diemer Gambit: White offers a pawn.} dxe4 3.Nc3 Nf6 4.f3 {White wants open lines.} e5 {Hit back in the centre!} 5.dxe5 Qxd1+ 6.Kxd1 Nfd7 {Black wins the pawn back with a great ending.}
 
 quiz: main-bc4 6
 q: White kicked your queen with 3.Nc3. Why put it on a5?
