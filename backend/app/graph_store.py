@@ -363,12 +363,19 @@ class Neo4jGraphStore:
                 """
                 MATCH (:Player {username: $user})-[r:PLAYED]->(g:Game)
                 WHERE ($since IS NULL OR g.end_time >= $since) AND ($until IS NULL OR g.end_time < $until)
-                RETURN g {.*, review: null} AS game, r.result AS result
+                RETURN g {.*, review: null} AS game, r.result AS result, r.color AS color,
+                       CASE WHEN g.blunders IS NULL THEN g.review END AS old_review
                 ORDER BY g.end_time DESC
                 """,
                 user=username.lower(), since=since, until=until,
             )
-            return [{**{k: v for k, v in rec["game"].items() if k != "review"}, "result": rec["result"]} for rec in result]
+            rows = []
+            for rec in result:
+                row = {**{k: v for k, v in rec["game"].items() if k != "review"}, "result": rec["result"]}
+                if rec["old_review"]:  # saved before the flat chart fields existed
+                    row = {**_game_row(row, json.loads(rec["old_review"]), row.get("player_color") or rec["color"]), **row}
+                rows.append(row)
+            return rows
 
     def weakness_profile(self, username: str) -> dict:
         user = username.lower()

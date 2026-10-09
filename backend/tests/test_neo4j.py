@@ -61,3 +61,16 @@ def test_neo4j_store_contract(monkeypatch, fake_engine, neo4j_store):
     with neo4j_store._driver.session() as s:
         rel = s.run("MATCH (:Player {username: 'coach_tester'})-[r:STUDIED]->(l:CourseLine) RETURN l.course AS c, r.stage AS stage").single()
     assert rel["c"] == "london" and rel["stage"] == 1
+
+
+def test_neo4j_history_backfills_old_rows(monkeypatch, fake_engine, neo4j_store):
+    monkeypatch.setattr(day_review, "get_engine", lambda: fake_engine)
+    day_review.run_day_review("coach_tester", "2025-10-09", games=_games(), depth=1)
+    fresh = {g["id"]: g for g in neo4j_store.list_games("coach_tester")}
+    # Games saved before the flat chart fields existed have none of them.
+    with neo4j_store._driver.session() as s:
+        s.run("MATCH (g:Game) REMOVE g.blunders, g.mistakes, g.inaccuracies, g.rating, g.player_color").consume()
+    old = {g["id"]: g for g in neo4j_store.list_games("coach_tester")}
+    for gid, g in fresh.items():
+        for key in ("blunders", "mistakes", "inaccuracies", "rating", "accuracy"):
+            assert old[gid][key] == g[key], (gid, key)
