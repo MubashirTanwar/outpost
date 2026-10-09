@@ -91,7 +91,7 @@ export function Board({ fen, orientation = "white", onMove, lastMove, arrows = [
   };
 
   return (
-    <div className="relative w-full select-none" style={{ aspectRatio: "1 / 1" }}>
+    <div className="relative w-full select-none" style={{ aspectRatio: "1 / 1" }} data-fen={fen}>
       <Chessboard
         id={id}
         position={fen}

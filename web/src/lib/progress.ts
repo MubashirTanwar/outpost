@@ -18,11 +18,18 @@ export interface QuizProgress {
   lastAt: number;
 }
 
+export interface DrillProgress {
+  stars: number; // best result so far, 1..3
+  attempts: number;
+  lastAt: number;
+}
+
 export interface Progress {
   version: 1;
   xp: number;
   lines: Record<string, LineProgress>; // key: "<courseId>/<lineId>"
   quizzes: Record<string, QuizProgress>;
+  drills: Record<string, DrillProgress>; // endgame drill id -> best stars
   days: Record<string, number>; // "YYYY-MM-DD" -> XP earned that day
   achievements: string[];
   dailyGoal: number;
@@ -38,7 +45,7 @@ export const MASTERED_STAGE = 4; // survived the one-week review
 export const XP = { learn: 20, reviewPerfect: 10, reviewMistakes: 4, quizCorrect: 5, quizWrong: 1 } as const;
 
 export function emptyProgress(): Progress {
-  return { version: 1, xp: 0, lines: {}, quizzes: {}, days: {}, achievements: [], dailyGoal: 50, updatedAt: 0 };
+  return { version: 1, xp: 0, lines: {}, quizzes: {}, drills: {}, days: {}, achievements: [], dailyGoal: 50, updatedAt: 0 };
 }
 
 export function lineKey(courseId: string, lineId: string) {
@@ -91,6 +98,18 @@ export function recordQuiz(p: Progress, quizId: string, correct: boolean, now: n
   const q: QuizProgress = { seen: prev.seen + 1, correct: prev.correct + (correct ? 1 : 0), lastAt: now };
   const xp = correct ? XP.quizCorrect : XP.quizWrong;
   return { progress: addXp({ ...p, quizzes: { ...p.quizzes, [quizId]: q } }, xp, now), xp };
+}
+
+/**
+ * A finished endgame drill. XP rewards improvement: full XP the first time, then only the
+ * stars you add on top of your previous best (plus a little for practising).
+ */
+export function recordDrill(p: Progress, drillId: string, stars: number, now: number): { progress: Progress; xp: number } {
+  const prev = p.drills?.[drillId];
+  const best = Math.max(prev?.stars ?? 0, stars);
+  const xp = prev ? 2 + 5 * Math.max(0, stars - prev.stars) : 5 + 5 * stars;
+  const drill: DrillProgress = { stars: best, attempts: (prev?.attempts ?? 0) + 1, lastAt: now };
+  return { progress: addXp({ ...p, drills: { ...(p.drills ?? {}), [drillId]: drill } }, xp, now), xp };
 }
 
 export type LineStatus = "new" | "learning" | "mastered";
@@ -154,6 +173,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "streak-30", title: "Unstoppable", text: "30-day streak", icon: "🏆" },
   { id: "quiz-25", title: "Quiz whiz", text: "Answer 25 quiz questions correctly", icon: "🧠" },
   { id: "course-complete", title: "Graduate", text: "Learn every line in a course", icon: "🎓" },
+  { id: "endgame-10", title: "Endgame grinder", text: "Finish 10 endgame drills", icon: "♔" },
+  { id: "three-stars", title: "Technique", text: "Get 3 stars on 15 endgame drills", icon: "⭐" },
 ];
 
 export function checkAchievements(p: Progress, courses: { id: string; lineIds: string[] }[], now: number): { progress: Progress; unlocked: Achievement[] } {
@@ -173,6 +194,8 @@ export function checkAchievements(p: Progress, courses: { id: string; lineIds: s
     "streak-30": s >= 30,
     "quiz-25": quizCorrect >= 25,
     "course-complete": courseDone,
+    "endgame-10": Object.keys(p.drills ?? {}).length >= 10,
+    "three-stars": Object.values(p.drills ?? {}).filter((d) => d.stars >= 3).length >= 15,
   };
   const unlocked = ACHIEVEMENTS.filter((a) => earned[a.id] && !have.has(a.id));
   if (!unlocked.length) return { progress: p, unlocked };
@@ -188,6 +211,9 @@ export function mergeProgress(a: Progress, b: Progress): Progress {
   for (const [k, v] of Object.entries(b.lines)) if (!lines[k] || v.lastAt > lines[k].lastAt) lines[k] = v;
   const quizzes: Record<string, QuizProgress> = { ...a.quizzes };
   for (const [k, v] of Object.entries(b.quizzes)) if (!quizzes[k] || v.lastAt > quizzes[k].lastAt) quizzes[k] = v;
+  const drills: Record<string, DrillProgress> = { ...(a.drills ?? {}) };
+  for (const [k, v] of Object.entries(b.drills ?? {}))
+    drills[k] = !drills[k] ? v : { stars: Math.max(drills[k].stars, v.stars), attempts: Math.max(drills[k].attempts, v.attempts), lastAt: Math.max(drills[k].lastAt, v.lastAt) };
   const days: Record<string, number> = { ...a.days };
   for (const [k, v] of Object.entries(b.days)) days[k] = Math.max(days[k] ?? 0, v);
   return {
@@ -195,6 +221,7 @@ export function mergeProgress(a: Progress, b: Progress): Progress {
     xp: Math.max(a.xp, b.xp),
     lines,
     quizzes,
+    drills,
     days,
     achievements: Array.from(new Set([...a.achievements, ...b.achievements])),
     dailyGoal: a.updatedAt >= b.updatedAt ? a.dailyGoal : b.dailyGoal,

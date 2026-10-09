@@ -271,8 +271,8 @@ export default function Dashboard({ params }: { params: { username: string } }) 
                   </PlanLink>
                 )}
                 {overview.plan.endgame && (
-                  <PlanLink href={`/endgames?drill=${overview.plan.endgame.id}`} icon={<Crown size={18} />}>
-                    Endgame drill: {overview.plan.endgame.name}
+                  <PlanLink href={`/endgames/${overview.plan.endgame.id}`} icon={<Crown size={18} />}>
+                    Endgame lesson: {overview.plan.endgame.title}
                   </PlanLink>
                 )}
                 {overview.plan.focus.map((f) => (

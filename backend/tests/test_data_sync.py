@@ -9,7 +9,7 @@ DATA = Path(__file__).parents[1] / "app" / "data"
 WEB_DATA = Path(__file__).parents[2] / "web" / "src" / "data"
 
 
-@pytest.mark.parametrize("name", ["openings.json", "endgames.json"])
+@pytest.mark.parametrize("name", ["openings.json", "endgame-course.json"])
 def test_web_data_matches_backend(name):
     if not WEB_DATA.exists():
         pytest.skip("web app not checked out")

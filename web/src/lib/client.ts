@@ -128,7 +128,7 @@ function buildLocalOverview(username: string, day: string, games: GameMeta[], re
           const motifs = m.motifs.filter((x) => !x.endsWith("_phase"));
           puzzles.push({
             id: `pz-${g.id}:${m.ply}`, game_id: g.id, fen: m.fen_before,
-            solution: motifs.some((x) => x === "missed_mate" || x === "missed_tactic") && m.best_pv.length >= 3 ? m.best_pv.slice(0, 3) : m.best_pv.slice(0, 1),
+            solution: puzzleSolution(m.best_pv, motifs),
             played: m.san, best_san: m.best_san ?? "", motifs: motifs.length ? motifs : ["positional"],
             theme: motifs[0] ?? "positional", win_loss: m.win_loss, phase: m.phase,
           });
@@ -176,6 +176,14 @@ function buildLocalOverview(username: string, day: string, games: GameMeta[], re
     lesson_source: "browser",
     plan: games.length ? { puzzles: puzzles.slice(0, 10), focus: [], opening: null, endgame: null, repertoire: [] } : null,
   };
+}
+
+/** Same rule as the backend: mates up to 5 plies, tactics 3, otherwise 1; always ends on your move. */
+function puzzleSolution(pv: string[], motifs: string[]): string[] {
+  const tactical = ["missed_tactic", "hanging_piece", "fork", "pin", "allowed_mate"];
+  let plies = motifs.includes("missed_mate") ? 5 : motifs.some((m) => tactical.includes(m)) ? 3 : 1;
+  plies = Math.min(plies, pv.length);
+  return pv.slice(0, plies % 2 === 1 ? plies : plies - 1);
 }
 
 const PZ_KEY = "cc-puzzles:";

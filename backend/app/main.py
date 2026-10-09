@@ -219,7 +219,7 @@ def openings() -> dict:
 
 @app.get("/api/endgames")
 def endgames() -> dict:
-    return {"endgames": coaching.endgames()}
+    return coaching.endgame_course()
 
 
 class AnalyzeRequest(BaseModel):

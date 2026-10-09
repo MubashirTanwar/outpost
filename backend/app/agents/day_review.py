@@ -236,7 +236,13 @@ def training_plan(state: DayState, config: RunnableConfig) -> DayState:
 
     endgame = None
     if state["patterns"]["phase_losses"].get("endgame"):
-        endgame = next((d for d in coaching.endgames() if d["level"] == "intermediate"), None)
+        # The lesson that matches your worst endgame moment today.
+        worst = max(
+            (m for g in state["games"] for m in state["reviews"][g["id"]]["moves"]
+             if m["color"] == (g.get("player_color") or "white") and m["phase"] == "endgame"),
+            key=lambda m: m["win_loss"], default=None,
+        )
+        endgame = coaching.endgame_lesson_for(worst["fen_before"] if worst else None)
     return {"plan": {"puzzles": puzzles, "focus": focus, "opening": opening_review, "endgame": endgame,
                      "repertoire": state["day_summary"].get("repertoire", [])}}
 

@@ -17,6 +17,13 @@ def test_course_json_is_built_and_valid():
     assert out.returncode == 0, out.stderr + out.stdout
 
 
+def test_endgame_course_is_built_and_valid():
+    if not COURSES_DIR.exists():
+        return
+    out = subprocess.run([sys.executable, str(COURSES_DIR / "build_endgames.py"), "--check"], capture_output=True, text=True)
+    assert out.returncode == 0, out.stderr + out.stdout
+
+
 def test_six_courses_three_per_side():
     cs = repertoire.courses()
     assert sorted(c.id for c in cs) == ["caro-kann", "french", "italian", "london", "queens-gambit", "scandinavian"]

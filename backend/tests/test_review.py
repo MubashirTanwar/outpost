@@ -63,12 +63,10 @@ def test_bundled_openings_are_legal():
         assert line["color"] in ("white", "black")
 
 
-def test_bundled_endgames_are_valid():
-    for drill in coaching.endgames():
-        board = chess.Board(drill["fen"])
-        assert board.is_valid(), drill["id"]
-        assert not board.is_game_over(), drill["id"]
-        assert ("white" if board.turn else "black") == drill["side"], drill["id"]
+def test_endgame_lesson_matching():
+    assert coaching.endgame_lesson_for("8/8/4k3/8/3PK3/8/8/2r1R3 w - - 0 1")["id"] == "philidor"
+    assert coaching.endgame_lesson_for("8/8/4k3/8/3PK3/8/8/8 w - - 0 1")["id"] == "opposition"
+    assert {l["id"] for l in coaching.endgames()} >= {"kq-k", "lucena", "philidor", "bn-mate"}
 
 
 def test_review_with_fake_engine_flags_scholars_mate_blunder(fake_engine):

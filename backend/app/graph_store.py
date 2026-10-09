@@ -32,13 +32,19 @@ def position_key(fen: str) -> str:
 
 
 def _puzzle_solution(move: dict) -> list[str]:
+    """The line the solver has to find. Always ends on the solver's move (odd length)."""
     pv = move.get("best_pv") or []
     if not pv:
         return []
-    # Forcing lines get a 3-ply puzzle (you, reply, you); otherwise just find the move.
-    if {"missed_mate", "missed_tactic"} & set(move.get("motifs", [])) and len(pv) >= 3:
-        return pv[:3]
-    return pv[:1]
+    motifs = set(move.get("motifs", []))
+    if "missed_mate" in motifs:
+        plies = 5  # the whole mating sequence, up to three of your moves
+    elif motifs & {"missed_tactic", "hanging_piece", "fork", "pin", "allowed_mate"}:
+        plies = 3  # you, their reply, your follow-up
+    else:
+        plies = 1  # positional: find the move (the app still plays their reply)
+    plies = min(plies, len(pv))
+    return pv[: plies if plies % 2 == 1 else plies - 1]
 
 
 def extract_records(username: str, game: dict, review: dict) -> dict:

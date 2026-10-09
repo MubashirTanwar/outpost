@@ -204,14 +204,13 @@ export interface OpeningLine {
   ideas: string[];
 }
 
+/** An endgame lesson recommended by the backend's day review. */
 export interface Endgame {
   id: string;
-  name: string;
+  title: string;
   level: string;
-  goal: "win" | "draw";
-  side: Color;
-  fen: string;
-  hint: string;
+  summary: string;
+  stage: string;
 }
 
 export interface EngineLine {

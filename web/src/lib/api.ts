@@ -1,4 +1,4 @@
-import type { DayOverview, Endgame, GameMeta, Job, OpeningLine, Profile, Puzzle, Review } from "./types";
+import type { DayOverview, GameMeta, Job, OpeningLine, Profile, Puzzle, Review } from "./types";
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
@@ -73,7 +73,6 @@ export const api = {
       body: JSON.stringify({ username, solved }),
     }),
   openings: () => request<{ openings: OpeningLine[] }>("/api/openings"),
-  endgames: () => request<{ endgames: Endgame[] }>("/api/endgames"),
   chat: (body: { username: string; message: string; fen?: string | null; history: { role: string; content: string }[] }) =>
     request<{ answer: string; source: string; used: string[] }>("/api/coach/chat", {
       method: "POST",

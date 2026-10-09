@@ -1,0 +1,154 @@
+# Endgame course. Built by courses/build_endgames.py.
+#
+# stage:  <id> / title / intro
+# lesson: <id> / title / level / summary
+# theory: a card of explanation (continues on following lines)
+# demo:   <FEN> | <moves in SAN with {comments}>   (attached to the previous theory card)
+# drill:  <FEN> | <goal> | <hint>
+#   goals: mate (deliver checkmate), promote (queen a pawn and stay winning),
+#          convert (reduce them to a bare king, or mate), draw (draw by rule, or survive)
+#   The side to move in the FEN is the side you play. Add "| known" for theoretical results that
+#   engines without endgame tablebases misjudge (skips the engine check).
+
+stage: mates
+title: Stage 1 · Basic checkmates
+intro: Every endgame you win ends here. Learn to mate with a queen, a rook, two rooks and two bishops quickly and without stalemating.
+
+lesson: kq-k
+title: Queen mate
+level: beginner
+summary: Box the king in with the queen, bring your king, and watch out for stalemate.
+theory: The queen does the herding. Put it a knight's move away from the enemy king: that shrinks the king's box without giving check. Each time the king steps back, follow it with the queen and keep the knight's-move distance.
+theory: Once the king is stuck on the edge, stop moving the queen and walk your own king over. The mate comes when your king guards the escape squares and the queen gives check on the edge.
+demo: 4k3/8/4K3/8/8/8/8/7Q w - - 0 1 | 1.Qh8# {Kings face each other, and the queen checks along the back rank. Every escape square is covered.}
+theory: Stalemate is the only way to throw this away. If the enemy king has no legal move and isn't in check, it's a draw. Before every queen move near the corner, check that the king still has a square.
+demo: k7/8/1K6/8/8/8/8/2Q5 w - - 0 1 | 1.Qc8# {Correct! Not 1.Qc7??, which leaves the king with no moves and no check: stalemate.}
+drill: 8/8/8/4k3/8/8/8/4KQ2 w - - 0 1 | mate | Start with Qf4 or Qg5 to cut the king off, then keep a knight's move away.
+drill: 8/8/3k4/8/8/8/8/Q3K3 w - - 0 1 | mate | The queen can box the king in from a distance. Then bring your king up the board.
+drill: k7/8/8/8/8/8/1K6/6Q1 w - - 0 1 | mate | The king is already in the corner. Careful: count its squares every move.
+
+lesson: kr-k
+title: Rook mate
+level: beginner
+summary: Cut the king off with the rook, use opposition, then check on the edge.
+theory: The rook cuts the board in two: the enemy king can't cross the rook's file or rank. Your king walks up to face the enemy king (the opposition), and when they stand directly opposite, the rook checks on the edge.
+demo: 3k4/R7/4K3/8/8/8/8/8 b - - 0 1 | 1...Ke8 {The king steps into the opposition…} 2.Ra8# {…and the rook mates on the back rank.}
+theory: When the kings aren't opposite, make a waiting move with the rook along its rank or file. The enemy king has to move and usually walks into the opposition.
+drill: 8/8/8/4k3/8/8/8/4K2R w - - 0 1 | mate | First cut the king off with the rook on a rank or file, then bring your king closer.
+drill: 8/8/2k5/8/8/8/8/R3K3 w - - 0 1 | mate | Put the rook on the d-file or the 5th rank to start shrinking the box.
+
+lesson: ladder
+title: Two-rook ladder mate
+level: beginner
+summary: Two rooks climb the board like a ladder. No king help needed.
+theory: Two rooks mate on their own. One rook stops the king crossing a rank, the other checks on the next rank; then they swap jobs, one rank at a time, until the king is on the edge.
+demo: 6k1/8/8/8/8/8/R7/1R4K1 w - - 0 1 | 1.Ra7 {This rook guards the 7th rank.} Kf8 2.Rb8# {The other rook checks on the 8th. Ladder complete.}
+theory: If the enemy king comes close to attack a rook, swing that rook to the far side of the board and carry on climbing.
+drill: 8/8/8/3k4/8/8/8/R3K2R w - - 0 1 | mate | Rook to the 4th rank, other rook checks on the 5th, and climb.
+drill: 8/8/8/8/4k3/8/8/1RR3K1 w - - 0 1 | mate | Start the ladder on the 3rd and 4th ranks.
+
+lesson: two-bishops
+title: Two bishops mate
+level: intermediate
+summary: Bishops side by side make a wall. Drive the king into any corner.
+theory: Two bishops next to each other cover a diagonal wall the king can't cross. Use them together with your king to push the enemy king to the edge and then into a corner. The final mate needs one bishop checking and the other covering the escape square.
+demo: 7k/8/6K1/3B4/8/8/8/2B5 w - - 0 1 | 1.Bb2# {The dark-squared bishop checks along the long diagonal; the light-squared bishop covers g8; your king covers g7 and h7.}
+drill: 8/8/8/4k3/8/8/8/2B1KB2 w - - 0 1 | mate | Bring the bishops to the centre first (Bd3, Bf4), then use the king.
+drill: 8/8/4k3/8/8/8/8/2B1KB2 w - - 0 1 | mate | Keep the bishops side by side and don't let them get attacked by the enemy king.
+
+stage: pawns
+title: Stage 2 · King and pawn endings
+intro: The most important endings in chess: everything simplifies into them. Opposition, key squares, the square rule, and breakthroughs decide whether a pawn up is a win or a draw.
+
+lesson: opposition
+title: Opposition
+level: beginner
+summary: When kings face each other, the side that does NOT have to move wins the fight.
+theory: Two kings standing on the same file with one square between them are "in opposition". The side that just moved into it has the opposition, so the other king has to give way. In pawn endings this decides everything.
+theory: With your king on the 6th rank in front of your pawn, you always win (except with a rook pawn). Watch: the king steps aside, and the pawn walks through.
+demo: 4k3/8/4K3/4P3/8/8/8/8 w - - 0 1 | 1.Kd6 {Step to the side and keep e7 under control.} Kd8 2.e6 Ke8 3.e7 Kf7 4.Kd7 {The queening square is covered. e8=Q next.}
+theory: Defending, you do the opposite: stay in front of the pawn and take the opposition whenever the attacking king comes close. When the pawn reaches the 7th with check, go straight back to the back rank, not to the side.
+drill: 4k3/8/4K3/4P3/8/8/8/8 w - - 0 1 | promote | King on the 6th in front of the pawn: step aside with Kd6 or Kf6.
+drill: 4k3/8/8/3K4/4P3/8/8/8 w - - 0 1 | promote | Get your king to a key square in front of the pawn first (d6, e6 or f6), then push.
+drill: 4k3/8/8/8/8/8/4P3/4K3 b - - 0 1 | draw | Come forward and stay in front of the pawn. Take the opposition when White's king approaches.
+
+lesson: key-squares
+title: Key squares and the rook pawn
+level: intermediate
+summary: Reach a key square and the pawn queens. With a rook pawn, the defender's corner is a fortress.
+theory: Every pawn has key squares: if your king reaches one, the pawn queens no matter whose move it is. For a pawn on the 4th or 5th rank, they're the three squares two ranks in front of it.
+theory: Rook pawns are different. If the defending king gets to the corner in front of the pawn, it's a draw: the attacker can't drive it out without stalemating.
+demo: 7k/8/8/6KP/8/8/8/8 b - - 0 1 | 1...Kg8 2.Kg6 Kh8 3.h6 Kg8 4.h7+ Kh8 {Nowhere left to make progress. Kh6 would be stalemate.}
+drill: 7k/8/8/6KP/8/8/8/8 b - - 0 1 | draw | Shuffle between g8 and h8 and never leave the corner.
+drill: 8/8/3k4/8/1K6/2P5/8/8 w - - 0 1 | promote | Your king must get in front of the pawn: head for b5 or c5 first.
+
+lesson: square
+title: The rule of the square
+level: beginner
+summary: Can the king catch the pawn? Draw the square and you'll know without calculating.
+theory: Draw a square from the pawn to its queening rank. If the defending king can step inside that square, it catches the pawn. If not, the pawn queens.
+demo: 8/5k2/8/8/P7/8/8/7K b - - 0 1 | 1...Ke7 {The king steps into the square a4-a8-e8-e4…} 2.a5 Kd7 3.a6 Kc7 4.a7 Kb7 {…and catches the pawn.}
+drill: 8/5k2/8/8/P7/8/8/7K b - - 0 1 | draw | Step into the square straight away: Ke7.
+drill: 8/8/8/8/P7/8/5k2/7K w - - 0 1 | promote | The black king is outside the square. Just run!
+
+lesson: breakthrough
+title: Pawn breakthroughs
+level: intermediate
+summary: Three pawns against three can break through. Sacrifice two to queen one.
+theory: When pawns face each other and the kings are far away, a sacrifice can open a path. In the classic a/b/c breakthrough, pushing the middle pawn first forces a queen whatever Black does.
+demo: 7k/ppp5/8/PPP5/8/8/8/7K w - - 0 1 | 1.b6 {Sacrifice the middle pawn.} cxb6 2.a6 {Sacrifice again!} bxa6 3.c6 {Now nothing can stop the c-pawn.} Kg7 4.c7 Kf7 5.c8=Q
+drill: 7k/ppp5/8/PPP5/8/8/8/7K w - - 0 1 | promote | Start with the middle pawn: b6!
+theory: An outside passed pawn wins because it drags the enemy king away. Push it to decoy the king, then eat the pawns on the other side with your own king.
+drill: 8/5kpp/8/P7/8/6PP/5K2/8 w - - 0 1 | promote | Push the a-pawn. Black's king has to chase it, and your king takes the kingside pawns.
+
+stage: rooks
+title: Stage 3 · Rook endgames
+intro: Half of all endgames are rook endgames. Two positions every player must know: Lucena (how to win) and Philidor (how to draw).
+
+lesson: lucena
+title: The Lucena position
+level: intermediate
+summary: Win rook + pawn vs rook by building a bridge.
+theory: The Lucena: your pawn is on the 7th, your king is in front of it, and the enemy king is cut off. The problem is getting your king out without being checked forever. The answer is to build a bridge: put your rook on the 4th rank so it can block the checks.
+demo: 1K1k4/1P6/8/8/8/8/r7/2R5 w - - 0 1 | 1.Rd1+ {First, push the enemy king one more file away.} Ke7 2.Rd4 {The bridge! The rook goes to the 4th rank.} Ra1 3.Kc7 Rc1+ 4.Kb6 Rb1+ 5.Kc6 Rc1+ 6.Kb5 Rb1+ 7.Rb4 {The rook blocks the check. The pawn queens.}
+drill: 1K1k4/1P6/8/8/8/8/r7/2R5 w - - 0 1 | promote | Rd1+ first, then Rd4 to build the bridge.
+drill: 4K3/4P1k1/8/8/8/8/r7/5R2 w - - 0 1 | promote | Same plan: check the king away from the pawn, then rook to the 4th rank.
+drill: 3K4/3P2k1/8/8/8/8/r7/4R3 w - - 0 1 | promote | Build the bridge on the 4th rank, then walk the king out.
+
+lesson: philidor
+title: The Philidor defence
+level: intermediate
+summary: Hold rook + pawn vs rook with the third-rank defence.
+theory: Defending, keep your king in front of the pawn and your rook on your 3rd rank (the 6th for Black). The attacking king can't come forward without walking into checks. Wait with the rook along that rank.
+theory: As soon as the pawn advances to your 3rd rank, the king can no longer hide in front of it. Now swing your rook to the far back rank and check from behind. White can never escape the checks.
+demo: 3k4/8/r7/3PK3/8/8/8/7R w - - 0 1 | 1.Rh7 Rb6 {Just wait along the 6th rank.} 2.d6 Rb1 {Now the pawn has advanced: rook to the back.} 3.Ke6 Re1+ 4.Kd5 Rd1+ 5.Ke6 Re1+ {Checks forever: a draw.}
+drill: 3k4/8/1r6/3PK3/8/8/8/7R b - - 0 1 | draw | Keep the rook on the 6th rank until the pawn moves to d6.
+drill: 4k3/8/r7/4PK2/8/8/8/1R6 b - - 0 1 | draw | Rook stays on the 6th rank; only when e6 comes do you go to the back rank.
+drill: 2k5/8/7r/2PK4/8/8/8/R7 b - - 0 1 | draw | Third-rank defence: the rook guards the 6th rank.
+
+stage: advanced
+title: Stage 4 · Advanced endings
+intro: The hard ones: the bishop and knight mate, queen against a far-advanced pawn, and the wrong-coloured bishop fortress.
+
+lesson: bn-mate
+title: Bishop and knight mate
+level: advanced
+summary: The hardest basic mate: drive the king to a corner of your bishop's colour.
+theory: You can only mate in a corner the bishop controls. If the king runs to the wrong corner, drive it along the edge to the right one with the "W manoeuvre": the knight hops in a W pattern while the bishop and king hold the edge.
+theory: Be patient. It can take up to 33 moves, and every move should take a square away from the enemy king.
+drill: 8/8/8/4k3/8/8/8/1N2KB2 w - - 0 1 | mate | Centralise everything first, then force the king to the edge. The light-squared bishop means a8 or h1 is the mating corner. | known
+
+lesson: queen-vs-pawn
+title: Queen against a pawn on the 7th
+level: advanced
+summary: Stair-step checks win against a centre pawn.
+theory: A pawn one step from queening, supported by its king, still loses to a queen if it's a centre or knight pawn. Use checks and pins to force the king in front of its own pawn, then bring your king one step closer each time.
+theory: Against a rook pawn or bishop pawn it's often a draw: the defending king hides in the corner and stalemate saves it.
+drill: K6Q/8/8/8/8/8/4p3/3k4 w - - 0 1 | convert | Check or pin until the king blocks its own pawn, then step your king closer.
+
+lesson: wrong-bishop
+title: The wrong rook-pawn bishop
+level: intermediate
+summary: A bishop that can't cover the queening square can't win with a rook pawn.
+theory: With bishop and rook pawn against a lone king, check the colour of the queening square. If the bishop doesn't control it and the defending king reaches the corner, it's a draw. The defender just shuffles in the corner.
+drill: 7k/8/5K2/7P/8/8/8/5B2 b - - 0 1 | draw | Stay on h8 and g8. Never leave the corner.

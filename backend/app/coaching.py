@@ -85,8 +85,32 @@ def openings() -> list[dict]:
 
 
 @lru_cache
+def endgame_course() -> dict:
+    return json.loads((DATA_DIR / "endgame-course.json").read_text())
+
+
 def endgames() -> list[dict]:
-    return json.loads((DATA_DIR / "endgames.json").read_text())
+    """Every endgame lesson, flattened, with its stage."""
+    return [
+        {"id": l["id"], "title": l["title"], "level": l["level"], "summary": l["summary"], "stage": s["title"]}
+        for s in endgame_course()["stages"]
+        for l in s["lessons"]
+    ]
+
+
+def endgame_lesson_for(fen: str | None) -> dict | None:
+    """Pick the lesson that matches the kind of endgame you went wrong in."""
+    lessons = {l["id"]: l for l in endgames()}
+    if not fen:
+        return lessons.get("opposition")
+    board = fen.split()[0].lower()
+    if "q" in board:
+        return lessons.get("queen-vs-pawn")
+    if "r" in board:
+        return lessons.get("philidor") if board.count("p") <= 2 else lessons.get("lucena")
+    if "b" in board or "n" in board:
+        return lessons.get("wrong-bishop")
+    return lessons.get("opposition") if board.count("p") <= 2 else lessons.get("breakthrough")
 
 
 def match_opening(eco: str | None, name: str | None, color: str | None = None) -> dict | None:

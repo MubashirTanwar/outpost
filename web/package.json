@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --experimental-strip-types src/lib/classify.test.ts src/lib/progress.test.ts"
+    "test": "node --test --experimental-strip-types src/lib/classify.test.ts src/lib/progress.test.ts src/lib/endgame-rules.test.ts"
   },
   "dependencies": {
     "chess.js": "1.4.0",

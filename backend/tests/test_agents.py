@@ -93,7 +93,7 @@ def test_api_smoke(monkeypatch, fake_engine, memory_store):
     monkeypatch.setattr(main, "get_engine", lambda: fake_engine)
     client = TestClient(main.app)
     assert client.get("/api/openings").json()["openings"]
-    assert client.get("/api/endgames").json()["endgames"]
+    assert client.get("/api/endgames").json()["stages"]
     lines = client.post("/api/analyze", json={"fen": "6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1"}).json()["lines"]
     assert lines[0]["san"][0] == "Ra8#"
     assert client.post("/api/analyze", json={"fen": "nonsense"}).status_code == 400
