@@ -23,7 +23,7 @@ moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 a6 {Black makes a retreat squar
 
 line: piano-d5
 name: 5...d5: Black hits the centre
-moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 d5 {Black opens the centre straight away.} 6.exd5 {Take: Black's knight comes to d5, and the e5 pawn becomes a target.} Nxd5 7.O-O O-O 8.a4 {Gain space first: a5 can come next, and Black's bishop may need a6 to stay safe.} a5 9.Re1 {Now the rook and the knight both hit e5.} Bg4 10.h3 Bh5 11.Nbd2 {Next comes Ne4 hitting the c5 bishop, or Nb3.}
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 d5 {Black opens the centre straight away.} 6.exd5 {Take: Black's knight comes to d5, and the e5 pawn becomes a target.} Nxd5 7.Qb3 {Castling is natural, but this is stronger: the queen hits the d5 knight and f7 at the same time.} Be6 {Black covers both.} 8.Qxb7 {Take the pawn: the knight on c6 is now loose and Black's queenside is a mess.} Nde7 9.Bxe6 {Trade off the defender first.} fxe6 10.Qa6 {The queen escapes to safety and Black has nothing for the pawn.}
 
 line: piano-qe7
 name: 4...Qe7
@@ -75,7 +75,7 @@ moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 d6 4.c3 {Prepare d4 or d3 as usual.} Nf6 5.d3 Be7
 
 line: blackburne
 name: 3...Nd4: the Blackburne Shilling Gambit trap
-moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nd4 {A trap: it hopes for 4.Nxe5?? Qg5!, hitting e5 and g2 at once.} 4.Nxd4 {Just take the knight.} exd4 5.c3 {Open up the centre while Black is behind in development.} dxc3 6.Nxc3 d6 7.d4 {A big centre and much faster development. White is clearly better.} Nf6 8.O-O Be7 9.Re1
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nd4 {A trap: it hopes for 4.Nxe5?? Qg5!, hitting e5 and g2 at once.} 4.Nxd4 {Just take the knight.} exd4 5.c3 {Open up the centre while Black is behind in development.} dxc3 6.Nxc3 d6 7.d4 {A big centre and much faster development. White is clearly better.} Nf6 8.Qb3 {Hit f7 and b7: the queen and bishop line up on the weak f7 pawn.} Be6 9.Bxe6 fxe6 10.O-O {Castle first. The e6 and b7 pawns are weak and aren't running away.}
 
 line: rousseau
 name: 3...f5: the Rousseau Gambit
