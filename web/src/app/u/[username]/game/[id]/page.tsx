@@ -7,6 +7,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Board, type Arrow } from "@/components/Board";
 import { CLS_COLORS, CLS_LABELS, ClassificationIcon } from "@/components/ClassificationIcon";
 import { EvalBar } from "@/components/EvalBar";
+import { Kittu, kittuSays, moodForClassification, type KittuMood } from "@/components/Kittu";
 import { EvalGraph } from "@/components/EvalGraph";
 import { MoveList } from "@/components/MoveList";
 import { Progress } from "@/components/Progress";
@@ -38,6 +39,23 @@ function coachLine(m: MoveReview): string {
     default:
       return `${m.san} is ${label === "inaccuracy" ? "an" : "a"} ${label}. ${m.best_san} was best.`;
   }
+}
+
+/** Kittu reacts to your moves; on your opponent's moves he gloats or frets on your behalf. */
+function kittuReaction(m: MoveReview | null, retry: "trying" | "right" | "wrong" | null, player: string): { mood: KittuMood; quip: string } {
+  if (retry === "trying") return { mood: "thinking", quip: kittuSays("thinking", m?.ply ?? 0) };
+  if (retry === "right") return { mood: "proud", quip: kittuSays("proud", m?.ply ?? 0) };
+  if (retry === "wrong") return { mood: "unimpressed", quip: kittuSays("unimpressed", m?.ply ?? 0) };
+  if (!m) return { mood: "smug", quip: "Let's see how you did. I already know, obviously." };
+  if (m.color === player) {
+    const mood = moodForClassification(m.classification);
+    return { mood, quip: kittuSays(mood, m.ply) };
+  }
+  if (["blunder", "mistake", "miss"].includes(m.classification))
+    return { mood: "smug", quip: ["Heh. They slipped. Did you punish it?", "Your opponent just blundered. Pay attention.", "Hehe. A gift. Don't drop it."][m.ply % 3] };
+  if (m.classification === "brilliant" || m.classification === "great")
+    return { mood: "worried", quip: "Ugh. Your opponent found a good one." };
+  return { mood: "neutral", quip: "" };
 }
 
 function ReviewPage({ params }: { params: { username: string; id: string } }) {
@@ -172,6 +190,7 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
   const lastMove = retry ? retry.lastMove ?? null : current ? uciToMove(current.uci) : null;
   const explanation = current ? explanations[current.ply] : undefined;
   const isError = current && ["inaccuracy", "mistake", "miss", "blunder"].includes(current.classification);
+  const kittu = kittuReaction(current, retry?.state ?? null, playerColor);
 
   const PlayerBar = ({ c }: { c: "white" | "black" }) => (
     <div className="flex items-center gap-2 py-1.5">
@@ -223,10 +242,14 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
-          {/* Coach bubble */}
-          <div className="flex gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-2xl">♞</div>
-            <div className="relative flex-1 rounded-lg bg-white p-3 text-[14px] text-[#312e2b] shadow">
+          {/* Kittu's bubble */}
+          <div className="flex items-start gap-2">
+            <div key={kittu.mood} className="animate-pop h-[68px] w-[68px] shrink-0">
+              <Kittu mood={kittu.mood} size={68} />
+            </div>
+            <div className="relative mt-1 flex-1 rounded-xl bg-white p-3 text-[14px] text-[#312e2b] shadow">
+              <span className="absolute -left-1.5 top-5 h-3 w-3 rotate-45 bg-white" />
+              {kittu.quip && <p className="mb-1 font-extrabold italic">{kittu.quip}</p>}
               {retry ? (
                 <p className="font-semibold">
                   {retry.state === "trying" && "Find the best move for this position."}

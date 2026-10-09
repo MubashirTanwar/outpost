@@ -1,7 +1,8 @@
 "use client";
 
-import { Loader2, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Kittu } from "@/components/Kittu";
 import { Markdown } from "@/components/Markdown";
 import { api, getHealth } from "@/lib/api";
 
@@ -63,12 +64,15 @@ export default function CoachPage({ params }: { params: { username: string } }) 
 
   return (
     <div className="mx-auto flex h-[calc(100vh-56px)] max-w-3xl flex-col p-3 md:h-screen md:p-5">
-      <h1 className="mb-3 text-2xl font-extrabold">Coach</h1>
+      <h1 className="mb-3 text-2xl font-extrabold">Coach Kittu</h1>
       <div className="card flex-1 space-y-4 overflow-y-auto p-4">
         {messages.length === 0 && (
           <div className="py-8 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand text-4xl">♞</div>
-            <p className="mt-3 text-soft">Ask about your games, your weaknesses, openings, or paste a FEN and ask about a position.</p>
+            <div className="mx-auto w-fit">
+              <Kittu mood="smug" size={110} />
+            </div>
+            <p className="mt-1 font-extrabold italic">“Ask me anything. I already know the answer.”</p>
+            <p className="mt-2 text-soft">Ask about your games, your weaknesses, openings, or paste a FEN and ask about a position.</p>
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               {STARTERS.map((s) => (
                 <button key={s} className="btn-secondary" onClick={() => send(s)}>
@@ -80,7 +84,11 @@ export default function CoachPage({ params }: { params: { username: string } }) 
         )}
         {messages.map((m, i) => (
           <div key={i} className={`flex gap-3 ${m.role === "user" ? "justify-end" : ""}`}>
-            {m.role === "assistant" && <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-xl">♞</div>}
+            {m.role === "assistant" && (
+              <div className="shrink-0">
+                <Kittu mood={i === messages.length - 1 ? "smug" : "neutral"} size={44} />
+              </div>
+            )}
             <div className={`max-w-[85%] rounded-lg px-4 py-3 ${m.role === "user" ? "bg-[#4b4847]" : "bg-panel2"}`}>
               {m.role === "assistant" ? <Markdown>{m.content}</Markdown> : <p>{m.content}</p>}
               {m.meta && <p className="mt-1 text-[11px] text-muted">{m.meta}</p>}
@@ -89,7 +97,7 @@ export default function CoachPage({ params }: { params: { username: string } }) 
         ))}
         {busy && (
           <div className="flex items-center gap-2 text-sm text-muted">
-            <Loader2 size={16} className="animate-spin" /> Coach is thinking…
+            <Kittu mood="thinking" size={36} /> Kittu is thinking…
           </div>
         )}
         <div ref={bottom} />
@@ -103,7 +111,7 @@ export default function CoachPage({ params }: { params: { username: string } }) 
       >
         <input className="input w-full text-sm" placeholder="Optional: paste a FEN to ask about a position" value={fen} onChange={(e) => setFen(e.target.value)} />
         <div className="flex gap-2">
-          <input className="input flex-1" placeholder="Ask your coach…" value={input} onChange={(e) => setInput(e.target.value)} />
+          <input className="input flex-1" placeholder="Ask Kittu…" value={input} onChange={(e) => setInput(e.target.value)} />
           <button className="btn-primary px-4" disabled={busy || !input.trim()} aria-label="Send">
             <Send size={20} />
           </button>

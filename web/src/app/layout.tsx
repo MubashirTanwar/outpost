@@ -4,7 +4,7 @@ import { Shell } from "@/components/Shell";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ChessCoach",
+  title: "Outpost: chess training with Kittu",
   description: "Free game reviews, daily coaching, puzzles from your own mistakes, openings and endgame training.",
 };
 

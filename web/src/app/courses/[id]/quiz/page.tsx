@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Board, type Arrow } from "@/components/Board";
+import { Kittu, kittuSays } from "@/components/Kittu";
 import { START_FEN, allLines, getCourse, isLearnerMove, type Course } from "@/lib/courses";
 import { lineKey, recordQuiz } from "@/lib/progress";
 import { playSound } from "@/lib/sounds";
@@ -110,7 +111,9 @@ export default function QuizPage({ params }: { params: { id: string } }) {
   if (!q)
     return (
       <div className="animate-pop mx-auto mt-14 max-w-md text-center">
-        <div className="text-6xl">{score.right >= questions.length * 0.75 ? "🏆" : "📘"}</div>
+        <div className="mx-auto w-fit">
+          <Kittu mood={score.right >= questions.length * 0.75 ? "starry" : "unimpressed"} size={130} />
+        </div>
         <h2 className="mt-3 text-3xl font-extrabold text-brand-light">
           {score.right}/{questions.length} correct
         </h2>
@@ -180,7 +183,13 @@ export default function QuizPage({ params }: { params: { id: string } }) {
           })}
           {picked && (
             <div className={`animate-pop rounded-xl p-4 ${picked === q.answer ? "bg-[#e6f4d9] text-[#3d6b1f]" : "bg-[#fde4e1] text-[#a1271a]"}`}>
-              <div className="font-extrabold">{picked === q.answer ? "Correct!" : `Answer: ${q.answer}`}</div>
+              <div className="flex items-center gap-2">
+                <Kittu mood={picked === q.answer ? "proud" : "unimpressed"} size={48} />
+                <div>
+                  <div className="font-extrabold">{picked === q.answer ? "Correct!" : `Answer: ${q.answer}`}</div>
+                  <div className="text-xs font-bold italic">{kittuSays(picked === q.answer ? "proud" : "unimpressed", index)}</div>
+                </div>
+              </div>
               <p className="mt-1 text-sm font-semibold">{q.explanation}</p>
               <button
                 className="btn-primary mt-3 w-full"

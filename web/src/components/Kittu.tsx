@@ -14,7 +14,8 @@ export type KittuMood =
   | "shocked" // blunder
   | "sad" // missed chance, lost game
   | "thinking" // waiting for your move
-  | "party"; // lesson complete
+  | "party" // lesson complete
+  | "smug"; // told you so
 
 const C = {
   fur: "#f3d5b0",
@@ -73,6 +74,10 @@ function Eye({ x, mood, side }: { x: number; mood: KittuMood; side: -1 | 1 }) {
       <circle cx={x - 4 + look} cy={y - 5 + lookY} r="3.2" fill="#fff" />
       <circle cx={x + 4 + look} cy={y + 4 + lookY} r="1.4" fill="#fff" opacity="0.8" />
       {/* Eyelids: half-lidded stare, worried/sad tilt */}
+      {mood === "smug" && (
+        <path d={`M${x - rx - 2},${y - 2} Q${x},${y - 5} ${x + rx + 2},${y - 2} L${x + rx + 2},${y - ry - 4} L${x - rx - 2},${y - ry - 4}Z`} fill={C.fur} />
+      )}
+      {mood === "smug" && <path d={`M${x - rx},${y - 2} Q${x},${y - 5} ${x + rx},${y - 2}`} stroke={C.line} strokeWidth="2.4" fill="none" strokeLinecap="round" />}
       {mood === "unimpressed" && <path d={`M${x - rx - 2},${y - 1} L${x + rx + 2},${y - 1} L${x + rx + 2},${y - ry - 3} L${x - rx - 2},${y - ry - 3}Z`} fill={C.fur} />}
       {mood === "unimpressed" && <path d={`M${x - rx},${y - 1} L${x + rx},${y - 1}`} stroke={C.line} strokeWidth="2.5" strokeLinecap="round" />}
       {mood === "neutral" && (
@@ -113,6 +118,14 @@ function Mouth({ mood }: { mood: KittuMood }) {
       return <path d={`M91,${y + 8} Q100,${y - 1} 109,${y + 8}`} {...s} />;
     case "unimpressed":
       return <path d={`M92,${y + 3} L108,${y + 3}`} {...s} />;
+    case "smug":
+      // lopsided sly grin
+      return (
+        <g>
+          <path d={`M88,${y + 1} Q95,${y + 4} 100,${y + 1} Q108,${y + 9} 115,${y - 5}`} {...s} />
+          <path d={`M115,${y - 5} l3,-2`} {...s} />
+        </g>
+      );
     case "proud":
       return <path d={`M90,${y} Q95,${y + 7} 100,${y + 1} Q106,${y + 8} 112,${y - 2}`} {...s} />;
     default:
@@ -127,6 +140,13 @@ function Brows({ mood }: { mood: KittuMood }) {
       <g>
         <path d="M60,76 L80,70" {...s} />
         <path d="M140,76 L120,70" {...s} />
+      </g>
+    );
+  if (mood === "smug")
+    return (
+      <g>
+        <path d="M60,74 Q71,80 83,80" {...s} />
+        <path d="M117,78 Q130,70 141,74" {...s} />
       </g>
     );
   if (mood === "unimpressed" || mood === "thinking")
@@ -276,15 +296,23 @@ export function moodForClassification(cls: Classification | null | undefined): K
   }
 }
 
+/** Kittu's commentary: a smug cat who roasts your moves (never you) and still teaches. */
 export const KITTU_LINES: Record<KittuMood, string[]> = {
-  starry: ["Purr-fect! I didn't even see that one.", "Now THAT is a move. Treats for you."],
-  proud: ["Exactly what I'd play. Obviously.", "Textbook. I approve."],
-  happy: ["Nice. Keep it up.", "Good move, human."],
-  unimpressed: ["Hmm. There was something better.", "I've seen you do better."],
-  worried: ["Uh-oh. That gives something away.", "My whiskers are twitching. Careful."],
-  shocked: ["HISS! What did you just do?!", "My fur is standing up. That's a blunder."],
-  sad: ["They blundered and you let them off…", "That was a free fish, and you didn't take it."],
-  thinking: ["Your move. Take your time.", "What's the plan here?"],
-  neutral: ["Let's look at this together.", "Show me what you've got."],
-  party: ["You did it! Cake time.", "Lesson complete. Proud of you."],
+  neutral: ["Meow. Show me what you've got.", "I've been waiting. Impress me.", "Go on. I'm watching. Always watching."],
+  thinking: ["Take your time. I have nine lives, you don't.", "Tick tock, human.", "Think harder. I can hear you thinking."],
+  happy: ["Fine. That was decent.", "Okay, okay. Not bad for a human.", "Acceptable. You may continue."],
+  proud: ["That's my move. Did you copy me?", "Correct. I taught you that.", "Exactly. I'm a great teacher, aren't I?"],
+  starry: ["WHAT. Who taught you that? Oh right. Me.", "Brilliant! I'm almost impressed. Almost.", "Purr-fect. Don't let it go to your head."],
+  unimpressed: ["Really? That's the move?", "Hmm. I expected better. I always expect better.", "Meh. My tail could find a better move."],
+  worried: ["Uh-oh. You see what you just allowed, right?", "That's going to hurt. Not me. You.", "I'm not saying it's bad. I'm just thinking it really loudly."],
+  sad: ["They handed you a free fish and you said no thanks.", "Your opponent blundered. You didn't notice. Tragic.", "Missed it. I'll pretend I didn't see that."],
+  shocked: ["HISSS. What did you just do?!", "I'm knocking this game off the table.", "Even a kitten wouldn't hang that."],
+  party: ["You did it. I'll allow a small celebration.", "Cake for you. Mostly for me.", "Done! You're slightly less hopeless now."],
+  smug: ["Heh. Told you so.", "I knew you'd play that. I know everything.", "Hehe. This is going well. For me."],
 };
+
+/** A line for this mood; pass a seed (move number, attempt…) so it's stable across renders. */
+export function kittuSays(mood: KittuMood, seed = 0): string {
+  const lines = KITTU_LINES[mood];
+  return lines[Math.abs(seed) % lines.length];
+}

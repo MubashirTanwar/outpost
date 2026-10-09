@@ -51,15 +51,15 @@ export function Board({ fen, orientation = "white", onMove, lastMove, arrows = [
   const squareStyles = useMemo(() => {
     const s: Record<string, React.CSSProperties> = {};
     if (lastMove) {
-      s[lastMove.from] = { backgroundColor: LAST_MOVE };
-      s[lastMove.to] = { backgroundColor: LAST_MOVE };
+      s[lastMove.from] = { background: LAST_MOVE };
+      s[lastMove.to] = { background: LAST_MOVE };
     }
     if (chess.inCheck()) {
       const king = chess.findPiece({ type: "k", color: chess.turn() })[0];
       if (king) s[king] = { ...s[king], background: "radial-gradient(circle, rgba(255,0,0,0.85) 0%, rgba(231,0,0,0.5) 40%, rgba(169,0,0,0) 75%)" };
     }
-    for (const [sq, color] of Object.entries(highlights)) s[sq] = { ...s[sq], backgroundColor: color };
-    if (selected) s[selected] = { ...s[selected], backgroundColor: SELECTED };
+    for (const [sq, color] of Object.entries(highlights)) s[sq] = { ...s[sq], background: color };
+    if (selected) s[selected] = { ...s[selected], background: SELECTED };
     for (const t of targets) {
       s[t.to] = {
         ...s[t.to],

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Board } from "@/components/Board";
 import { ClassificationIcon, CLS_LABELS } from "@/components/ClassificationIcon";
+import { Kittu, kittuSays, type KittuMood } from "@/components/Kittu";
 import { Markdown } from "@/components/Markdown";
 import { Progress } from "@/components/Progress";
 import { ClassificationTable } from "@/components/ReviewSummary";
@@ -147,9 +148,12 @@ export default function Dashboard({ params }: { params: { username: string } }) 
 
               {overview?.lesson && (
                 <div className="card p-5">
-                  <div className="mb-3 flex items-center gap-2 text-sm font-bold text-muted">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-lg">♞</span>
-                    Coach
+                  <div className="mb-3 flex items-center gap-3 text-sm font-bold text-muted">
+                    <Kittu mood={dayMood(s)} size={56} />
+                    <div>
+                      <div className="text-white">Kittu</div>
+                      <div className="font-extrabold italic text-soft">“{kittuSays(dayMood(s), s.games)}”</div>
+                    </div>
                     <span className="ml-auto rounded bg-[#3c3a37] px-2 py-0.5 text-[11px]">{overview.lesson_source}</span>
                   </div>
                   <Markdown>{overview.lesson}</Markdown>
@@ -349,6 +353,16 @@ export default function Dashboard({ params }: { params: { username: string } }) 
       </div>
     </div>
   );
+}
+
+/** Kittu's verdict on the whole day. */
+function dayMood(s: NonNullable<DayOverview["summary"]>): KittuMood {
+  if (s.counts.blunder >= 3) return "shocked";
+  const acc = s.avg_accuracy ?? 0;
+  if (acc >= 85) return "starry";
+  if (acc >= 75) return "proud";
+  if (acc >= 60) return "unimpressed";
+  return "worried";
 }
 
 function Stat({ label, value, sub, accent, danger }: { label: string; value: React.ReactNode; sub?: string; accent?: boolean; danger?: boolean }) {

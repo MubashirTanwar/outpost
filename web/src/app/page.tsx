@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Board } from "@/components/Board";
 import { ClassificationIcon } from "@/components/ClassificationIcon";
+import { KittuBubble } from "@/components/KittuBubble";
 import { playerExists } from "@/lib/chesscom";
 import { rememberUser, useRememberedUser } from "@/lib/user";
 
@@ -12,7 +13,7 @@ const HERO_FEN = "r1bq1rk1/pppp1Bpp/2n2n2/2b1p3/4P3/2N2N2/PPPP1PPP/R1BQK2R b KQ 
 
 const FEATURES = [
   { icon: LineChart, title: "Day Review", text: "Every game you played today, reviewed move by move: brilliant, best, mistake, blunder." },
-  { icon: Bot, title: "AI Coach", text: "LangGraph agents that remember your patterns across games and explain them like a coach." },
+  { icon: Bot, title: "Coach Kittu", text: "A sassy AI cat coach (LangGraph agents) who remembers your patterns across games. Roasts your moves, never you." },
   { icon: Puzzle, title: "Your Puzzles", text: "Every mistake you make becomes a puzzle, with spaced repetition so it sticks." },
   { icon: BookOpen, title: "Opening Courses", text: "Six full repertoires, Duolingo-style: learn every line, earn XP, keep your streak." },
   { icon: Crown, title: "Endgames", text: "Lucena, Philidor, basic mates: play them out against Stockfish." },
@@ -49,12 +50,17 @@ export default function Home() {
       <div className="grid items-center gap-10 md:grid-cols-2">
         <div className="mx-auto w-full max-w-[460px]">
           <Board fen={HERO_FEN} badge={{ square: "f7", cls: "brilliant" }} lastMove={{ from: "c4", to: "f7" }} id="hero" />
+          <div className="mt-4">
+            <KittuBubble mood="smug" quip="Hi, I'm Kittu. I'll be judging your moves.">
+              Enter your chess.com username and I&apos;ll review your games, roast your blunders and teach you to stop making them.
+            </KittuBubble>
+          </div>
         </div>
         <div>
           <h1 className="text-4xl font-extrabold leading-tight md:text-5xl">
-            Your own chess coach.
+            Outpost.
             <br />
-            <span className="text-brand">Free. Runs locally.</span>
+            <span className="text-brand">Your chess training base.</span>
           </h1>
           <p className="mt-4 text-lg text-soft">
             Enter your chess.com username. Get a full review of every game you played today, find out what keeps costing

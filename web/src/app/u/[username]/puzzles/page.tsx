@@ -1,10 +1,12 @@
 "use client";
 
 import { Chess, type Square } from "chess.js";
-import { Check, Eye, Lightbulb, SkipForward, X } from "lucide-react";
+import { Eye, Lightbulb, SkipForward } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Board, type Arrow } from "@/components/Board";
+import { kittuSays } from "@/components/Kittu";
+import { KittuBubble } from "@/components/KittuBubble";
 import { getPuzzles, recordAttempt } from "@/lib/client";
 import { prettyMotif, uciToMove } from "@/lib/format";
 import { playSound, soundForMove } from "@/lib/sounds";
@@ -152,32 +154,21 @@ export default function PuzzlesPage({ params }: { params: { username: string } }
           <span className="text-[#fa412d]">✗ {score.failed}</span>
         </div>
 
-        <div
-          className={`mt-4 rounded-lg p-4 font-bold ${
-            status === "solved" ? "bg-brand/20 text-brand-light" : status === "failed" ? "bg-[#fa412d]/15 text-[#ff8a7a]" : status === "wrong" ? "bg-[#fa412d]/15 text-[#ff8a7a]" : "bg-panel2"
-          }`}
-        >
-          {status === "solving" && (
-            <>
-              <span className={`mr-2 inline-block h-3 w-3 rounded-sm ${orientation === "white" ? "bg-white" : "bg-black ring-1 ring-[#666]"}`} />
-              {orientation === "white" ? "White" : "Black"} to move. Find the best move.
-            </>
-          )}
-          {status === "wrong" && (
-            <span className="flex items-center gap-2">
-              <X size={18} /> That&apos;s not it. One more try.
-            </span>
-          )}
-          {status === "solved" && (
-            <span className="flex items-center gap-2">
-              <Check size={18} /> Solved! {puzzle!.best_san} was the move.
-            </span>
-          )}
-          {status === "failed" && (
-            <span>
-              In the game you played <b>{puzzle!.played}</b>. Best was <b>{puzzle!.best_san}</b>.
-            </span>
-          )}
+        <div className="mt-4">
+          <KittuBubble
+            mood={status === "solved" ? "starry" : status === "failed" ? "sad" : status === "wrong" ? "unimpressed" : "thinking"}
+            quip={kittuSays(status === "solved" ? "starry" : status === "failed" ? "sad" : status === "wrong" ? "unimpressed" : "thinking", idx)}
+            tone={status === "solved" ? "good" : status === "failed" || status === "wrong" ? "bad" : "white"}
+          >
+            {status === "solving" && <>{orientation === "white" ? "White" : "Black"} to move. Find the best move.</>}
+            {status === "wrong" && <>That&apos;s not it. One more try.</>}
+            {status === "solved" && <>Solved! {puzzle!.best_san} was the move.</>}
+            {status === "failed" && (
+              <>
+                In the game you played <b>{puzzle!.played}</b>. Best was <b>{puzzle!.best_san}</b>.
+              </>
+            )}
+          </KittuBubble>
         </div>
 
         <div className="mt-3 flex flex-wrap gap-1.5">

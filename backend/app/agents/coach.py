@@ -123,7 +123,8 @@ def _template_answer(state: CoachState) -> str:
         parts.append("I don't have enough analyzed games yet. Run a day review first and I'll learn your patterns.")
     for o in (state.get("openings") or [])[:3]:
         parts.append(f"- **{o['name']}** ({o['eco']}, for {o['color']}): {o['ideas'][0]}")
-    parts.append("\n_(Template answer: set LLM_PROVIDER=anthropic or ollama for full coaching conversations.)_")
+    parts.insert(0, "*Meow. Fine, I'll help you.*\n")
+    parts.append("\n_(Kittu is in template mode: set LLM_PROVIDER=anthropic or ollama to let him really talk.)_")
     return "\n".join(parts)
 
 

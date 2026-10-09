@@ -142,7 +142,15 @@ def describe_move(move: dict) -> str:
 
 def template_day_lesson(state: dict) -> str:
     day = state["day_summary"]
-    lines = [f"## Your day in chess: {day['games']} games, {day['wins']}W / {day['draws']}D / {day['losses']}L"]
+    acc = day.get("avg_accuracy") or 0
+    quip = (
+        "HISSS. Three blunders? I'm knocking this whole day off the table." if day["counts"].get("blunder", 0) >= 3
+        else "Purr-fect day. I taught you well." if acc >= 85
+        else "Not bad, human. Not great either." if acc >= 70
+        else "Hmm. We have work to do. Lots of work."
+    )
+    lines = [f"*Kittu says: \"{quip}\"*", "",
+             f"## Your day in chess: {day['games']} games, {day['wins']}W / {day['draws']}D / {day['losses']}L"]
     if day.get("avg_accuracy") is not None:
         lines.append(f"Average accuracy: **{day['avg_accuracy']}%**.")
     errs = day["counts"]

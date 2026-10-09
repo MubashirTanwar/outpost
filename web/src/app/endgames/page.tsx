@@ -5,6 +5,8 @@ import { Lightbulb, Loader2, RotateCcw } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Board, type Arrow } from "@/components/Board";
+import { kittuSays } from "@/components/Kittu";
+import { KittuBubble } from "@/components/KittuBubble";
 import endgameData from "@/data/endgames.json";
 import { playSound, soundForMove } from "@/lib/sounds";
 import { getBrowserEngine } from "@/lib/stockfish";
@@ -130,16 +132,22 @@ function EndgameTrainer() {
             {drill.level} · play {drill.side} · goal: {drill.goal}
           </div>
           <h2 className="mt-1 text-xl font-extrabold">{drill.name}</h2>
-          <div
-            className={`mt-3 rounded-md p-3 text-sm font-bold ${outcome ? (outcome.ok ? "bg-brand/20 text-brand-light" : "bg-[#fa412d]/15 text-[#ff8a7a]") : "bg-panel2 text-soft"}`}
-          >
-            {outcome ? outcome.text : thinking ? (
-              <span className="flex items-center gap-2">
-                <Loader2 size={16} className="animate-spin" /> Stockfish is thinking…
-              </span>
-            ) : (
-              `Your move. ${drill.goal === "win" ? "Convert it against perfect defence." : "Hold the draw against Stockfish."}`
-            )}
+          <div className="mt-3">
+            <KittuBubble
+              mood={outcome ? (outcome.ok ? "party" : "sad") : thinking ? "thinking" : "neutral"}
+              quip={outcome ? kittuSays(outcome.ok ? "party" : "sad", userMoves) : undefined}
+              tone={outcome ? (outcome.ok ? "good" : "bad") : "white"}
+            >
+              {outcome ? (
+                outcome.text
+              ) : thinking ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={16} className="animate-spin" /> Stockfish is thinking…
+                </span>
+              ) : (
+                `Your move. ${drill.goal === "win" ? "Convert it against perfect defence." : "Hold the draw against Stockfish."}`
+              )}
+            </KittuBubble>
           </div>
           {showHint && <p className="mt-3 text-sm text-soft">{drill.hint}</p>}
           <div className="mt-4 flex flex-wrap gap-2">

@@ -4,6 +4,7 @@ import { BookOpen, Bot, Crown, Home, LineChart, Puzzle, Swords, Volume2, VolumeX
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Logo } from "@/components/Logo";
 import { getHealth, type Health } from "@/lib/api";
 import { isMuted, setMuted } from "@/lib/sounds";
 import { useRememberedUser } from "@/lib/user";
@@ -33,11 +34,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <nav className="flex shrink-0 items-center gap-1 overflow-x-auto bg-side px-2 py-2 md:sticky md:top-0 md:h-screen md:w-[150px] md:flex-col md:items-stretch md:px-0 md:py-3">
-        <Link href="/" className="mb-0 flex items-center gap-2 px-3 py-1 md:mb-3">
-          <span className="text-2xl">♞</span>
-          <span className="whitespace-nowrap text-[17px] font-extrabold tracking-tight">
-            Chess<span className="text-brand">Coach</span>
-          </span>
+        <Link href="/" className="mb-0 px-3 py-1 md:mb-3">
+          <Logo />
         </Link>
         {links.map(({ href, label, icon: Icon, needsUser }) => {
           const active =

@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
+import { Kittu } from "@/components/Kittu";
 import { LinePlayer, type LineResult } from "@/components/LinePlayer";
 import { COURSES, allLines, type Course, type CourseLine } from "@/lib/courses";
 import { isDue, lineKey, recordReview } from "@/lib/progress";
@@ -71,7 +72,9 @@ function ReviewSession() {
   if (!queue.length)
     return (
       <div className="mx-auto mt-16 max-w-md text-center">
-        <div className="text-6xl">✅</div>
+        <div className="mx-auto w-fit">
+          <Kittu mood="smug" size={130} />
+        </div>
         <h2 className="mt-3 text-2xl font-extrabold">Nothing due right now</h2>
         <p className="mt-1 text-soft">You&apos;re all caught up. Learn a new line or try a drill shuffle.</p>
         <Link href={back} className="btn-primary mt-6">
@@ -85,7 +88,9 @@ function ReviewSession() {
     const perfect = results.filter((r) => r.mistakes === 0).length;
     return (
       <div className="animate-pop mx-auto mt-12 max-w-md text-center">
-        <div className="text-6xl">🏁</div>
+        <div className="mx-auto w-fit">
+          <Kittu mood={perfect === results.length ? "party" : "smug"} size={130} />
+        </div>
         <h2 className="mt-3 text-3xl font-extrabold text-brand-light">Session complete</h2>
         <p className="mt-2 text-soft">
           {results.length} lines reviewed · {perfect} perfect · <span className="font-extrabold text-[#f7c631]">+{xp} XP</span>

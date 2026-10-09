@@ -4,6 +4,7 @@ import { X, Zap } from "lucide-react";
 import Link from "next/link";
 import { notFound, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useMemo, useState } from "react";
+import { Kittu, kittuSays } from "@/components/Kittu";
 import { LinePlayer, type LineResult } from "@/components/LinePlayer";
 import { allLines, findLine, getCourse, knownPositions } from "@/lib/courses";
 import { INTERVALS_H, lineKey, recordLearned, recordReview } from "@/lib/progress";
@@ -66,7 +67,10 @@ function LessonPage({ params }: { params: { id: string; lineId: string } }) {
 
       {result ? (
         <div className="animate-pop mx-auto mt-10 max-w-md text-center">
-          <div className="text-6xl">{result.mistakes === 0 ? "🎉" : "💪"}</div>
+          <div className="mx-auto w-fit animate-bounce">
+            <Kittu mood={result.mistakes === 0 ? "party" : "smug"} size={140} />
+          </div>
+          <p className="font-extrabold italic text-soft">“{kittuSays(result.mistakes === 0 ? "party" : "smug", result.mistakes + result.xp)}”</p>
           <h2 className="mt-3 text-3xl font-extrabold text-brand-light">
             {mode === "learn" ? "Lesson complete!" : result.mistakes === 0 ? "Perfect review!" : "Review complete"}
           </h2>

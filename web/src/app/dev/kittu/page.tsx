@@ -11,6 +11,7 @@ const MOODS: [KittuMood, string][] = [
   ["sad", "Missed chance"],
   ["shocked", "Blunder"],
   ["party", "Lesson complete"],
+  ["smug", "Greeting / told-you-so"],
 ];
 
 /** Mascot sheet: every expression and when it shows up. */
@@ -18,7 +19,7 @@ export default function KittuSheet() {
   return (
     <div className="p-8">
       <h1 className="mb-6 text-2xl font-extrabold">Kittu: all reactions</h1>
-      <div className="grid grid-cols-5 gap-5">
+      <div className="grid grid-cols-4 lg:grid-cols-6 gap-5">
         {MOODS.map(([m, when]) => (
           <div key={m} className="flex flex-col items-center rounded-xl bg-panel p-4 text-center">
             <Kittu mood={m} size={170} />

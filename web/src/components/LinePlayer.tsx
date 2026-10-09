@@ -4,6 +4,8 @@ import { Chess, type Square } from "chess.js";
 import { Lightbulb } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Board, type Arrow } from "@/components/Board";
+import { KittuBubble } from "@/components/KittuBubble";
+import { kittuSays, type KittuMood } from "@/components/Kittu";
 import { START_FEN, isLearnerMove, positionBefore, type Course, type CourseLine } from "@/lib/courses";
 import { playSound, soundForMove } from "@/lib/sounds";
 
@@ -137,6 +139,23 @@ export function LinePlayer({ course, line, mode, known, onComplete }: Props) {
       ? [[expected.uci.slice(0, 2) as Square, expected.uci.slice(2, 4) as Square, pass === "learn" ? "rgba(129,182,76,0.85)" : "rgba(247,198,49,0.85)"]]
       : [];
 
+  // Kittu: thinking on your turn, proud/happy when you're right, unimpressed then worried when you're not.
+  const mood: KittuMood =
+    feedback?.kind === "wrong"
+      ? wrongHere > 1
+        ? "worried"
+        : "unimpressed"
+      : feedback?.kind === "right"
+        ? ply % 4 === 1
+          ? "proud"
+          : "happy"
+        : feedback?.kind === "known"
+          ? "smug"
+          : learnerTurn && pass === "practice"
+            ? "thinking"
+            : "neutral";
+  const quip = feedback?.kind === "wrong" || (feedback?.kind === "right" && pass === "practice") ? kittuSays(mood, ply + mistakes) : undefined;
+
   const percent = Math.round(((pass === "practice" ? learnerTotal : 0) + learnerDone) / (mode === "learn" ? 2 * learnerTotal : learnerTotal) * 100);
 
   return (
@@ -159,25 +178,18 @@ export function LinePlayer({ course, line, mode, known, onComplete }: Props) {
           {banner && <p className="mt-2 rounded-md bg-brand/15 px-3 py-2 text-sm font-semibold text-brand-light">{banner}</p>}
         </div>
 
-        <div className="flex gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-2xl">♞</div>
-          <div
-            className={`min-h-[64px] flex-1 rounded-lg p-3 text-[14px] font-semibold shadow ${
-              feedback?.kind === "wrong"
-                ? "bg-[#fde4e1] text-[#a1271a]"
-                : feedback?.kind === "right"
-                  ? "bg-[#e6f4d9] text-[#3d6b1f]"
-                  : "bg-white text-[#312e2b]"
-            }`}
-          >
-            {feedback?.text ??
-              (learnerTurn
-                ? pass === "learn"
-                  ? "Your move."
-                  : "Your move: what's the repertoire move here?"
-                : "Watch the opponent's move…")}
-          </div>
-        </div>
+        <KittuBubble
+          mood={mood}
+          quip={quip}
+          tone={feedback?.kind === "wrong" ? "bad" : feedback?.kind === "right" ? "good" : "white"}
+        >
+          {feedback?.text ??
+            (learnerTurn
+              ? pass === "learn"
+                ? "Your move."
+                : "Your move: what's the repertoire move here?"
+              : "Watch the opponent's move…")}
+        </KittuBubble>
 
         {pass === "practice" && learnerTurn && wrongHere === 0 && (
           <button
