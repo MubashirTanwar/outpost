@@ -59,7 +59,7 @@ moves: 1.d4 d5 2.c4 c6 3.Nf3 Bf5 {Develops the bishop before ...Nf6.} 4.cxd5 cxd
 
 line: slav-bg4
 name: 5...Bg4
-moves: 1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 dxc4 5.a4 Bg4 {Black develops the bishop to g4 instead of f5.} 6.Ne5 {Hit the bishop and go after c4.} Bh5 7.f3 Nfd7 8.Nxc4 e5 9.dxe5 {You've won the pawn back with a strong centre.}
+moves: 1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 dxc4 5.a4 Bg4 {Black develops the bishop to g4 instead of f5.} 6.Ne5 {Hit the bishop and go after c4.} Bh5 7.f3 Nfd7 8.Nxc4 e5 9.Ne4 {Not 9.dxe5?, which lets Black's pieces flood in with tempo. The knight heads for d6 or g5, and you've won the pawn back.}
 
 chapter: qga
 title: Queen's Gambit Accepted: 2...dxc4

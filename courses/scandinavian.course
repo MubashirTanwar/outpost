@@ -71,7 +71,7 @@ moves: 1.e4 d5 2.exd5 Qxd5 3.Nc3 Qa5 4.d3 Nf6 5.Nf3 Bg4 {With d3 played there's 
 
 line: blackmar
 name: 2.d4 dxe4: the Blackmar-Diemer
-moves: 1.e4 d5 2.d4 {The Blackmar-Diemer Gambit: White offers a pawn.} dxe4 3.Nc3 Nf6 4.f3 {White wants open lines.} e5 {Hit back in the centre!} 5.dxe5 Qxd1+ 6.Kxd1 Nfd7 {Black wins the pawn back with a great ending.}
+moves: 1.e4 d5 2.d4 {The Blackmar-Diemer Gambit: White offers a pawn.} dxe4 3.Nc3 Nf6 4.f3 {White wants open lines.} exf3 {Take it: you're a pawn up.} 5.Nxf3 g6 {The Bogoljubov setup: the bishop goes to g7 to guard your king and hit d4. White's attack has nothing to bite on.}
 
 quiz: main-bc4 6
 q: White kicked your queen with 3.Nc3. Why put it on a5?
