@@ -149,7 +149,10 @@ function buildLocalOverview(username: string, day: string, games: GameMeta[], re
         avg !== null ? `Average accuracy: **${avg}%**.` : "",
         `${counts.brilliant} brilliant and ${counts.great} great moves; ${counts.blunder} blunders, ${counts.mistake} mistakes and ${counts.miss} missed chances.`,
         worst.length ? "\n### Key moments to replay" : "",
-        ...worst.slice(0, 3).map((w) => `- vs ${w.opponent}, move ${w.move_number}: you played **${w.san}**, best was **${w.best_san}** (−${w.win_loss.toFixed(0)}% winning chances).`),
+        ...worst.slice(0, 3).map(
+          (w) =>
+            `- vs [${w.opponent}](game:${w.game_id}), move ${w.move_number}: you played [**${w.san}**](move:${w.game_id}:${w.ply}), best was **${w.best_san}** (−${w.win_loss.toFixed(0)}% winning chances).`,
+        ),
         "\n_Browser-only mode: connect the backend for AI coaching, cross-game pattern memory and a personal puzzle queue._",
       ].filter(Boolean).join("\n")
     : null;

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Board, type Arrow } from "@/components/Board";
 import { CLS_COLORS, CLS_LABELS, ClassificationIcon } from "@/components/ClassificationIcon";
+import { EngineLines } from "@/components/EngineLines";
 import { EvalBar } from "@/components/EvalBar";
 import { Kittu, kittuSays, moodForClassification, type KittuMood } from "@/components/Kittu";
 import { EvalGraph } from "@/components/EvalGraph";
@@ -16,7 +17,7 @@ import { api } from "@/lib/api";
 import { getReview, isBackendMode } from "@/lib/client";
 import { formatClock, formatEval, prettyMotif, uciToMove } from "@/lib/format";
 import { playSound, soundForMove } from "@/lib/sounds";
-import type { MoveReview, Review } from "@/lib/types";
+import type { EngineLine, MoveReview, Review } from "@/lib/types";
 
 function coachLine(m: MoveReview): string {
   const label = CLS_LABELS[m.classification].toLowerCase();
@@ -71,6 +72,8 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
   const [explanations, setExplanations] = useState<Record<number, { text: string; source: string } | "loading">>({});
   const [backend, setBackend] = useState(false);
   const [retry, setRetry] = useState<{ fen: string; state: "trying" | "right" | "wrong"; lastMove?: { from: string; to: string } } | null>(null);
+  // Free exploration: moves you play on the board branch off the game, like chess.com's analysis.
+  const [explore, setExplore] = useState<{ base: number; moves: { uci: string; san: string; fen: string }[] } | null>(null);
 
   useEffect(() => {
     isBackendMode().then(setBackend);
@@ -103,6 +106,7 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
         playSound("move");
       }
       setRetry(null);
+      setExplore(null);
       setPly(target);
     },
     [review, ply],
@@ -111,7 +115,11 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.tagName === "INPUT") return;
-      if (e.key === "ArrowRight") goTo(ply + 1);
+      if (explore && e.key === "ArrowLeft") {
+        playSound("move");
+        setExplore(explore.moves.length > 1 ? { ...explore, moves: explore.moves.slice(0, -1) } : null);
+      } else if (explore && e.key === "ArrowRight") return;
+      else if (e.key === "ArrowRight") goTo(ply + 1);
       else if (e.key === "ArrowLeft") goTo(ply - 1);
       else if (e.key === "ArrowUp") goTo(0);
       else if (e.key === "ArrowDown") goTo(moves.length);
@@ -121,14 +129,23 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [goTo, ply, moves.length]);
+  }, [goTo, ply, moves.length, explore]);
+
+  const [engineLines, setEngineLines] = useState<EngineLine[]>([]);
+  const [lineSel, setLineSel] = useState<number | null>(null);
+  useEffect(() => setLineSel(null), [ply]);
 
   const arrows = useMemo<Arrow[]>(() => {
-    if (!current || retry || !showBest || !current.best_uci || current.best_uci === current.uci) return [];
+    // A clicked engine line: show its first two moves.
+    const sel = lineSel !== null ? engineLines[lineSel] : null;
+    if (sel && !retry) {
+      return sel.pv.slice(0, 2).map((u, i) => [u.slice(0, 2) as Square, u.slice(2, 4) as Square, i === 0 ? "rgba(116,155,191,0.9)" : "rgba(116,155,191,0.45)"] as Arrow);
+    }
+    if (explore || !current || retry || !showBest || !current.best_uci || current.best_uci === current.uci) return [];
     if (["book", "forced", "best", "brilliant", "great"].includes(current.classification)) return [];
     const b = uciToMove(current.best_uci);
     return [[b.from as Square, b.to as Square, "rgba(129, 182, 76, 0.85)"]];
-  }, [current, retry, showBest]);
+  }, [current, retry, showBest, lineSel, engineLines, explore]);
 
   const explain = async () => {
     if (!current) return;
@@ -184,13 +201,40 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
     return null;
   };
 
-  const fen = retry ? retry.fen : current ? current.fen_after : moves[0]?.fen_before ?? new Chess().fen();
-  const evalCp = current ? current.eval_cp : review.start_eval.cp;
-  const evalMate = current ? current.eval_mate : review.start_eval.mate;
-  const lastMove = retry ? retry.lastMove ?? null : current ? uciToMove(current.uci) : null;
+  const gameFen = current ? current.fen_after : moves[0]?.fen_before ?? new Chess().fen();
+  const exploreLast = explore?.moves[explore.moves.length - 1];
+  const fen = retry ? retry.fen : exploreLast ? exploreLast.fen : gameFen;
+  // While exploring, the eval bar follows the live engine; otherwise the stored review eval.
+  const live = explore && engineLines[0] ? engineLines[0] : null;
+  const liveSign = fen.split(" ")[1] === "w" ? 1 : -1;
+  const evalCp = live ? liveSign * live.cp : current ? current.eval_cp : review.start_eval.cp;
+  const evalMate = live ? (live.mate !== null ? liveSign * live.mate : null) : current ? current.eval_mate : review.start_eval.mate;
+  const lastMove = retry ? retry.lastMove ?? null : exploreLast ? uciToMove(exploreLast.uci) : current ? uciToMove(current.uci) : null;
+
+  const onExploreMove = (from: Square, to: Square, promotion?: string) => {
+    const chess = new Chess(fen);
+    let mv;
+    try {
+      mv = chess.move({ from, to, promotion });
+    } catch {
+      return false;
+    }
+    playSound(soundForMove(mv));
+    const step = { uci: mv.from + mv.to + (mv.promotion ?? ""), san: mv.san, fen: chess.fen() };
+    // Playing the game's own next move just steps forward in the game.
+    if (!explore && moves[ply] && moves[ply].uci === step.uci) {
+      setPly(ply + 1);
+      return true;
+    }
+    setExplore((e) => (e ? { ...e, moves: [...e.moves, step] } : { base: ply, moves: [step] }));
+    setLineSel(null);
+    return true;
+  };
   const explanation = current ? explanations[current.ply] : undefined;
   const isError = current && ["inaccuracy", "mistake", "miss", "blunder"].includes(current.classification);
-  const kittu = kittuReaction(current, retry?.state ?? null, playerColor);
+  const kittu = explore
+    ? { mood: "thinking" as KittuMood, quip: "Ooh, a what-if. Let's see what the engine thinks." }
+    : kittuReaction(current, retry?.state ?? null, playerColor);
 
   const PlayerBar = ({ c }: { c: "white" | "black" }) => (
     <div className="flex items-center gap-2 py-1.5">
@@ -220,8 +264,8 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
               orientation={orientation}
               lastMove={lastMove}
               arrows={arrows}
-              badge={current && !retry ? { square: current.uci.slice(2, 4), cls: current.classification } : null}
-              onMove={retry?.state === "trying" ? onRetryMove : undefined}
+              badge={current && !retry && !explore ? { square: current.uci.slice(2, 4), cls: current.classification } : null}
+              onMove={retry ? (retry.state === "trying" ? onRetryMove : undefined) : onExploreMove}
               id="review"
             />
           </div>
@@ -250,7 +294,11 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
             <div className="relative mt-1 flex-1 rounded-xl bg-white p-3 text-[14px] text-[#312e2b] shadow">
               <span className="absolute -left-1.5 top-5 h-3 w-3 rotate-45 bg-white" />
               {kittu.quip && <p className="mb-1 font-extrabold italic">{kittu.quip}</p>}
-              {retry ? (
+              {explore ? (
+                <p className="font-semibold">
+                  You&apos;re exploring your own line. The engine lines below follow every move. Press ← to take moves back.
+                </p>
+              ) : retry ? (
                 <p className="font-semibold">
                   {retry.state === "trying" && "Find the best move for this position."}
                   {retry.state === "right" && <span className="text-[#5d9948]">Correct! {current?.best_san} is the best move.</span>}
@@ -321,6 +369,28 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
               <input type="checkbox" checked={showBest} onChange={(e) => setShowBest(e.target.checked)} /> Best-move arrow
             </label>
           </div>
+
+          {explore && (
+            <div className="flex items-start gap-2 rounded-md border border-[#749bbf]/40 bg-[#749bbf]/10 px-3 py-2 text-sm">
+              <div className="flex-1">
+                <div className="text-xs font-extrabold uppercase text-[#a9c5e0]">Your variation</div>
+                <div className="mt-0.5 font-mono text-[13px] text-white">
+                  {explore.moves
+                    .map((m, i) => {
+                      const plyNo = explore.base + i; // moves before this one
+                      const white = plyNo % 2 === 0;
+                      return `${white || i === 0 ? `${Math.floor(plyNo / 2) + 1}${white ? "." : "..."} ` : ""}${m.san}`;
+                    })
+                    .join(" ")}
+                </div>
+              </div>
+              <button className="btn-secondary shrink-0 px-3 py-1.5" onClick={() => setExplore(null)}>
+                Back to game
+              </button>
+            </div>
+          )}
+
+          <EngineLines fen={fen} onLines={setEngineLines} selected={lineSel ?? undefined} onSelect={(i) => setLineSel(lineSel === i ? null : i)} />
 
           <EvalGraph moves={moves} current={ply} onSelect={goTo} startCp={review.start_eval.cp} />
 

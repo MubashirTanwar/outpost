@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Board } from "@/components/Board";
 import { ClassificationIcon, CLS_LABELS } from "@/components/ClassificationIcon";
 import { Kittu, kittuSays, type KittuMood } from "@/components/Kittu";
-import { Markdown } from "@/components/Markdown";
+import { RefMarkdown } from "@/components/GameRefs";
 import { Progress } from "@/components/Progress";
 import { ClassificationTable } from "@/components/ReviewSummary";
 import { api, getHealth } from "@/lib/api";
@@ -156,7 +156,7 @@ export default function Dashboard({ params }: { params: { username: string } }) 
                     </div>
                     <span className="ml-auto rounded bg-[#3c3a37] px-2 py-0.5 text-[11px]">{overview.lesson_source}</span>
                   </div>
-                  <Markdown>{overview.lesson}</Markdown>
+                  <RefMarkdown ctx={{ username, day, games: s.per_game, moments: s.worst_moments }}>{overview.lesson}</RefMarkdown>
                 </div>
               )}
 

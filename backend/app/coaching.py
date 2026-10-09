@@ -192,17 +192,19 @@ def template_day_lesson(state: dict) -> str:
     if day["worst_moments"]:
         lines.append("\n### Key moments to replay")
         for w in day["worst_moments"][:3]:
-            lines.append(f"- vs {w['opponent']}, move {w['move_number']}: you played **{w['san']}**, "
-                         f"best was **{w['best_san']}** (−{w['win_loss']:.0f}% winning chances).")
+            lines.append(f"- vs [{w['opponent']}](game:{w['game_id']}), move {w['move_number']}: you played "
+                         f"[**{w['san']}**](move:{w['game_id']}:{w['ply']}), best was **{w['best_san']}** "
+                         f"(−{w['win_loss']:.0f}% winning chances).")
     rep = day.get("repertoire") or []
     if rep:
         lines.append("\n### Opening repertoire check")
         for n in rep[:4]:
             if n["kind"] == "you_deviated":
-                lines.append(f"- vs {n['opponent']}: you left your **{n['course_name']}** course on move {(n['ply'] + 1) // 2} with "
-                             f"**{n['played']}**; the course plays **{n['expected']}** ({n['line_name']}). Review that line.")
+                lines.append(f"- vs [{n['opponent']}](game:{n['game_id']}): you left your **{n['course_name']}** course on "
+                             f"move {(n['ply'] + 1) // 2} with [**{n['played']}**](move:{n['game_id']}:{n['ply']}); the course "
+                             f"plays **{n['expected']}** ({n['line_name']}). Review that line.")
             else:
-                lines.append(f"- vs {n['opponent']}: your opponent played **{n['played']}** on move {(n['ply'] + 1) // 2}, which "
+                lines.append(f"- vs [{n['opponent']}](game:{n['game_id']}): your opponent played **{n['played']}** on move {(n['ply'] + 1) // 2}, which "
                              f"your **{n['course_name']}** course doesn't cover yet.")
     weakest = state["patterns"].get("weakest_phase")
     if weakest:

@@ -178,10 +178,12 @@ def coach_lesson(state: DayState, config: RunnableConfig) -> DayState:
         "day": state["day"],
         "record": {k: day[k] for k in ("games", "wins", "draws", "losses", "avg_accuracy")},
         "move_quality": day["counts"],
-        "games": [{k: g[k] for k in ("opponent", "color", "result", "accuracy", "opening", "time_class")}
+        "games": [{**{k: g[k] for k in ("opponent", "color", "result", "accuracy", "opening", "time_class")},
+                   "link": f"game:{g['id']}"}
                   for g in day["per_game"]],
-        "worst_moments": [{k: w[k] for k in ("opponent", "move_number", "san", "best_san", "best_line",
-                                             "classification", "win_loss", "motifs", "fen_before")}
+        "worst_moments": [{**{k: w[k] for k in ("opponent", "move_number", "san", "best_san", "best_line",
+                                                "classification", "win_loss", "motifs", "fen_before")},
+                           "link": f"move:{w['game_id']}:{w['ply']}"}
                           for w in day["worst_moments"][:5]],
         "todays_patterns": state["patterns"]["today_motifs"][:5],
         "opening_repertoire": [{k: n[k] for k in ("opponent", "course_name", "line_name", "kind", "played", "expected", "ply")}
@@ -202,7 +204,11 @@ def coach_lesson(state: DayState, config: RunnableConfig) -> DayState:
         "and which course line to review.\n"
         "4. 'What went right': genuine positives.\n"
         "5. 'Tomorrow's focus': one concrete habit to practise.\n"
-        "Keep it under 450 words."
+        "Keep it under 450 words.\n\n"
+        "Link every game and move you mention using the 'link' values from the JSON, as Markdown links: "
+        "[opponent name](game:...) for a game and [**Bb5+**](move:...) for a move. Example: "
+        "\"Against [DTJONY](game:abc) you played [**Bb5+**](move:abc:17)\". The app turns these into "
+        "previews of the position."
     )
     try:
         return {"lesson": llm.generate(prompt), "lesson_source": llm.provider()}
