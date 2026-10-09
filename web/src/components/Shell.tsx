@@ -24,7 +24,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     { href: "/", label: "Home", icon: Home },
     { href: u ?? "/", label: "Review", icon: LineChart, needsUser: true },
     { href: u ? `${u}/puzzles` : "/", label: "Puzzles", icon: Puzzle, needsUser: true },
-    { href: "/openings", label: "Openings", icon: BookOpen },
+    { href: "/courses", label: "Courses", icon: BookOpen },
     { href: "/endgames", label: "Endgames", icon: Crown },
     { href: "/analysis", label: "Analysis", icon: Swords },
     { href: u ? `${u}/coach` : "/", label: "Coach", icon: Bot, needsUser: true },

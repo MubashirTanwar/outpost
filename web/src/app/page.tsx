@@ -14,7 +14,7 @@ const FEATURES = [
   { icon: LineChart, title: "Day Review", text: "Every game you played today, reviewed move by move: brilliant, best, mistake, blunder." },
   { icon: Bot, title: "AI Coach", text: "LangGraph agents that remember your patterns across games and explain them like a coach." },
   { icon: Puzzle, title: "Your Puzzles", text: "Every mistake you make becomes a puzzle, with spaced repetition so it sticks." },
-  { icon: BookOpen, title: "Openings", text: "Drill repertoire lines move by move until you know them cold." },
+  { icon: BookOpen, title: "Opening Courses", text: "Six full repertoires, Duolingo-style: learn every line, earn XP, keep your streak." },
   { icon: Crown, title: "Endgames", text: "Lucena, Philidor, basic mates: play them out against Stockfish." },
 ];
 

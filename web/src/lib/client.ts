@@ -174,7 +174,7 @@ function buildLocalOverview(username: string, day: string, games: GameMeta[], re
     },
     lesson,
     lesson_source: "browser",
-    plan: games.length ? { puzzles: puzzles.slice(0, 10), focus: [], opening: null, endgame: null } : null,
+    plan: games.length ? { puzzles: puzzles.slice(0, 10), focus: [], opening: null, endgame: null, repertoire: [] } : null,
   };
 }
 

@@ -1,0 +1,106 @@
+course: london
+name: London System
+color: white
+eco: D02 A46 D00 A48 A45 A80
+tagline: One setup against everything. Bf4, e3, c3, Nf3, Nbd2, Bd3, and go.
+description: The London is the easiest repertoire in chess to learn: you put your pieces on the same squares in almost every game. This course teaches the setup, the key plans (Ne5 with f4, or the e4 break), and the exact moves you need against Black's sharpest tries: ...c5 with ...Qb6, early ...Bf5 and ...Bg4, and King's Indian setups.
+
+chapter: classical
+title: The main setup vs ...d5
+intro: Against 1...d5 and ...e6 you build the London pyramid: pawns on c3, d4 and e3, bishop on f4, knights on f3 and d2, bishop on d3. When Black offers to trade bishops with ...Bd6, drop back to g3. Then jump into e5 and support the knight with f4.
+
+line: main-b6
+name: Main line: ...Bd6 and ...b6
+moves: 1.d4 {Claim the centre with the d-pawn.} d5 2.Bf4 {The London bishop: develop it before you play e3, so it doesn't get locked in.} Nf6 3.e3 {Build the pyramid and open the f1 bishop.} e6 4.Nf3 c5 5.c3 {Support d4 so ...cxd4 can always be met by exd4 or cxd4.} Nc6 6.Nbd2 {The knight goes to d2, not c3: c3 is for the pawn, and d2 supports e4 or f3.} Bd6 7.Bg3 {Don't trade on d6. If Black takes on g3, hxg3 opens the h-file for your rook.} O-O 8.Bd3 {Your bishop points at h7.} b6 9.Ne5 {The London outpost. The knight is strong on e5 and supports a kingside attack.} Bb7 10.f4 {Secure the knight with f4: a London with a Stonewall-style kingside attack. Next ideas are Qf3, g4 and O-O or O-O-O.}
+
+line: main-re8
+name: Main line: ...Bd6 and ...Re8
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 e6 4.Nf3 c5 5.c3 Nc6 6.Nbd2 Bd6 7.Bg3 O-O 8.Bd3 Re8 {Black prepares ...e5.} 9.Ne5 {Occupy e5 before Black can play ...e5 there. If Black challenges with ...Nd7?, Nxc6 and Bxd6 win material: the d6 bishop loses its defender.}
+
+line: main-bxg3
+name: ...Bxg3: Black takes the bishop
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 e6 4.Nf3 c5 5.c3 Nc6 6.Nbd2 Bd6 7.Bg3 Bxg3 {Black gives up the bishop pair to break your structure.} 8.hxg3 {Recapture toward the centre. The open h-file is great for your rook if you castle queenside.} Qd6 9.Bd3 e5 10.dxe5 Nxe5 11.Nxe5 Qxe5 12.Nf3 {Develop with tempo by hitting the queen. White is comfortable.}
+
+line: bd6-early
+name: 4...Bd6 straight away
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 e6 4.Nf3 Bd6 {Black offers the trade at once.} 5.Bg3 {Same idea: keep the bishop.} O-O 6.Bd3 c5 7.c3 Nc6 8.Nbd2 b6 9.Ne5 {The main-line position by transposition.} Bb7 10.f4
+
+line: qb6
+name: ...c5, ...Nc6, ...Qb6: hitting b2
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 c5 4.c3 Nc6 5.Nd2 {Move order matters: Nd2 before Nf3 lets your queen reach b3.} Qb6 {Black attacks b2.} 6.Qb3 {Offer the trade. If Black takes, axb3 gives your rook the a-file.} c4 7.Qc2 {The queen still guards b2 along the rank.} e6 8.Ngf3 Be7 9.Be2 O-O 10.O-O {Next is b3 or e4 to break Black's queenside clamp.}
+
+line: qb6-bf5-trap
+name: ...Bf5?: the bishop hangs
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 c5 4.c3 Qb6 5.Qb3 {Same answer: meet ...Qb6 with Qb3.} c4 6.Qc2 Bf5 {It looks like it gains a tempo on your queen, but d3 and e4 are empty.} 7.Qxf5 {Take the bishop. A whole piece up.}
+
+line: early-c5
+name: 2...c5: early counterattack
+moves: 1.d4 d5 2.Bf4 c5 {Black hits d4 before playing ...Nf6.} 3.e3 Nc6 4.c3 {Hold the centre.} Qb6 5.Qb3 c4 6.Qc2 e6 7.Nd2 Nf6 8.Ngf3 {Same structure as the ...Qb6 line.}
+
+line: bf5
+name: ...Bf5: trade off Black's good bishop
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 Bf5 {Black copies you.} 4.Bd3 {Offer the trade of light-squared bishops.} Bxd3 5.Qxd3 {Your queen is active and you're ahead in development.} e6 6.Nf3 c5 7.c3 Nc6 8.Nbd2 Be7 9.O-O O-O 10.Ne5 {The familiar outpost.}
+
+line: bg4
+name: ...Bg4: the queen is attacked
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 Bg4 {Careful: the bishop now hits your queen on d1 through the empty e2 square.} 4.Be2 {Block, and offer the trade.} Bxe2 5.Qxe2 e6 6.Nf3 c5 7.c3 Nc6 8.Nbd2 Bd6 9.Bg3 O-O 10.O-O {A comfortable London.}
+
+chapter: indian
+title: Against 1...Nf6 and King's Indian setups
+intro: After 1...Nf6 you keep the same setup. Against ...g6 and ...Bg7 put your bishop on e2 and play h3, so the f4 bishop can retreat to h2 and survive ...Nh5 and ...e5. Against an early ...c5 with ...Qb6, know your one sharp answer.
+
+line: kid
+name: King's Indian setup with ...e5
+moves: 1.d4 Nf6 2.Bf4 {Same London move.} g6 3.e3 Bg7 4.Nf3 O-O 5.Be2 {Against the fianchetto the bishop is better on e2: it doesn't run into ...e5-e4 forks.} d6 6.h3 {Give the bishop a retreat on h2 and stop ...Nh5 and ...Bg4.} c5 7.c3 Nc6 8.O-O Qb6 {Pressure on b2.} 9.Qb3 {The standard answer: offer the queen trade.} Be6 10.Qxb6 axb6 11.a3 {Watch the a-file: the a2 pawn was hanging to ...Rxa2. Now Black's doubled b-pawns are a long-term target.}
+
+line: kid-e5
+name: ...e5?: grab the pawn
+moves: 1.d4 Nf6 2.Bf4 g6 3.e3 Bg7 4.Nf3 O-O 5.Be2 d6 6.h3 c5 7.c3 Nc6 8.O-O e5 {Natural, but it drops a pawn.} 9.dxe5 dxe5 10.Nxe5 {The c6 knight is overloaded: after ...Nxe5 Bxe5 the bishop also hits the g7 bishop.} Nxe5 11.Bxe5 {A clean extra pawn.}
+
+line: grunfeld
+name: ...g6 with ...d5
+moves: 1.d4 Nf6 2.Bf4 g6 3.e3 Bg7 4.Nf3 O-O 5.Be2 d5 {A Grünfeld-style setup.} 6.O-O c5 7.c3 Nc6 8.Nbd2 {The usual setup. Ne5 and h3 come next.}
+
+line: nf6-e6
+name: 1...Nf6 2...e6 transposition
+moves: 1.d4 Nf6 2.Bf4 e6 3.e3 c5 4.c3 Nc6 5.Nd2 d5 6.Ngf3 Bd6 7.Bg3 O-O 8.Bd3 {Back in the main line.}
+
+line: c5-qb6
+name: 2...c5 3...Qb6: the sharp test
+moves: 1.d4 Nf6 2.Bf4 c5 3.e3 Qb6 {Black attacks b2 at once.} 4.Nc3 {Gambit the b-pawn! If Black takes, the queen gets chased around.} Qxb2 5.Nb5 {Threatens Nc7+ forking king and rook.} Na6 6.a3 {Quiet but deadly: Rb1 next will trap the queen, and Black has to give up material to get it out.}
+
+line: c5-cxd4
+name: 2...c5 3...cxd4
+moves: 1.d4 Nf6 2.Bf4 c5 3.e3 cxd4 4.exd4 {Recapture with the pawn: the e-file opens and your bishop is outside the chain.} d5 5.Nf3 Nc6 6.c3 Bg4 7.Nbd2 e6 8.Qb3 {Hit b7. Black's queenside is the target.}
+
+line: dutch
+name: 1...f5: the Dutch
+moves: 1.d4 f5 {Black grabs e4.} 2.Bf4 Nf6 3.e3 e6 4.Nf3 b6 5.Bd3 {Aim at the weakened kingside.} Bb7 6.Nbd2 Be7 7.h3 O-O 8.O-O {Solid: c4 or Qe2 and e4 later.}
+
+quiz: main-b6 13
+q: Black played ...Bd6, offering a bishop trade. What's the London answer?
+a: Bg3: keep the bishop; if ...Bxg3 then hxg3 opens your h-file
+w: Bxd6: trade and double Black's pawns
+w: Ne5: ignore it
+why: The f4 bishop is your best minor piece. Dropping back to g3 keeps it. If Black trades, you recapture toward the centre and get a semi-open h-file.
+
+quiz: main-b6 18
+q: You've just put a knight on e5. Which pawn move supports it and builds a kingside attack?
+a: f4
+w: c4
+w: h3
+why: f2-f4 locks the knight on e5 and gives a Stonewall-style attacking setup with Qf3, g4 and Rf3-h3 ideas.
+
+quiz: qb6 10
+q: Black's queen hits b2. What's the standard London answer?
+a: Qb3: offer the queen trade
+w: b3: defend the pawn
+w: Qc2: guard b2 along the rank
+why: Qb3 meets the threat head on. If ...Qxb3, axb3 gives you the half-open a-file. Black usually plays ...c4, and your queen drops to c2, still guarding b2. Watch out for ...Bf5 there: with d3 and e4 empty, Qxf5 just wins the bishop.
+
+quiz: kid 12
+q: Why play h3 against the King's Indian setup?
+a: It makes h2 a retreat square for the bishop and stops ...Nh5 and ...Bg4
+w: To prepare g4 and a pawn storm
+w: To stop ...Qh4
+why: Against ...g6 and ...e5, Black wants to trap or trade your f4 bishop. With h3 the bishop can always drop back to h2.

@@ -6,7 +6,7 @@ A free, self-hosted alternative to chess.com's premium features. Enter your ches
 - **Game Review**: a chess.com-style review screen with eval bar, advantage graph, move list with classification icons, best-move arrows, a "Retry" mode for your mistakes, and an AI "Explain" button.
 - **Your Puzzles**: every mistake you make becomes a puzzle, served with spaced repetition and filterable by theme (forks, hanging pieces, back-rank, missed mates…).
 - **AI Coach chat**: ask about your weaknesses, openings, or a specific position.
-- **Opening trainer**: drill 28 repertoire lines move by move.
+- **Opening courses (Chessly/Duolingo-style)**: six full repertoires (Italian, London and Queen's Gambit for White; Caro-Kann, French and Scandinavian for Black) with 92 lines and 23 hand-written quizzes. Each lesson is learned with hints, then played from memory. After that, spaced-repetition reviews, a drill shuffle and quizzes keep it fresh. Progress shows as XP, levels, a streak, a daily goal and achievements.
 - **Endgame trainer**: Lucena, Philidor, basic mates and more, played out against Stockfish.
 - **Analysis board**: Stockfish 17.1 running in your browser, with three lines.
 
@@ -54,6 +54,40 @@ Each position is analysed with MultiPV 2. Evaluations are converted to winning c
 - **Book / Forced**: opening theory, or the only legal move.
 
 Accuracy uses Lichess' per-move formula, blended from the arithmetic and harmonic means. Mistakes are tagged with motifs: `hanging_piece`, `fork`, `pin`, `allowed_mate`, `back_rank`, `missed_mate`, `missed_tactic`, `weakened_king`, `time_pressure`, plus the game phase. The same logic runs in Python (`backend/app/review.py`) and TypeScript (`web/src/lib/classify.ts`), and both have the same tests.
+
+## Opening courses
+
+Course content lives in `courses/*.course`, a plain-text format with PGN move text and `{comments}` that become the explanations shown during lessons:
+
+```
+chapter: advance
+title: Advance Variation: 3.e5
+intro: ...
+line: adv-short
+name: Short System: Nf3 and Be2
+moves: 1.e4 c6 {Prepare ...d5 ...} 2.d4 d5 3.e5 Bf5 {The key Caro-Kann move ...} ...
+quiz: adv-short 6
+q: White played 3.e5. What's the key idea now?
+a: 3...Bf5: develop the bishop before ...e6
+w: 3...e6 straight away
+why: ...
+```
+
+`python courses/build.py` validates every course and writes `courses.json` for the backend and the web app. It checks that every move is legal, that every line ends on your move, that quiz positions exist, and that **every position where it's your turn has exactly one repertoire move across the whole course, including transpositions**, so drills are never ambiguous. Two more checks:
+
+- `python courses/build.py --engine stockfish --depth 18` flags any repertoire move that loses more than 0.7 pawns compared with Stockfish's choice.
+- `python courses/coverage.py` asks the Lichess opening explorer which opponent moves real club players make in each course position, and lists popular ones no line covers yet. The explorer may need a free `LICHESS_TOKEN`.
+
+**How learning works**
+
+| | |
+|---|---|
+| Learn | The board shows each move with an arrow and an explanation, and you play it. Moves you already know from other lines are played for you. Then you replay the whole line from memory. |
+| Review | No hints. A wrong move counts as a mistake and shows the right one. A perfect review moves the line up the ladder (4h, 1d, 3d, 1w, 2w, 1mo, 3mo, 6mo); a mistake drops it two steps. A line counts as *mastered* once it survives the one-week review. |
+| Drill shuffle / Quiz | Random learned lines, and multiple-choice questions: hand-written idea questions plus "find the repertoire move" positions from lines you've learned. |
+| Path | Each chapter is a Duolingo-style path. The next line unlocks when you finish the previous one, and each node shows new, learning (with a progress ring), mastered (crown) or due (clock). |
+
+Progress is kept in your browser and, when the backend is running, synced to Neo4j as `(:Player)-[:STUDIED {stage, due}]->(:CourseLine)`, so it follows you across devices. The day review then checks your real games against the courses you study. It tells you where *you* left the course ("you played 5.d4, the course plays 5.d3: review this line"), or where your *opponent* played a move the course doesn't cover yet.
 
 ## Run it locally (full stack)
 
@@ -113,6 +147,7 @@ cd backend && pytest                       # classifier, agents (fake engine), A
 STOCKFISH_PATH=/usr/games/stockfish pytest # + real-engine test
 NEO4J_TEST_URI=bolt://localhost:7687 pytest tests/test_neo4j.py
 cd ../web && npm test && npm run typecheck && npm run build
+python ../courses/build.py --check       # course data valid and JSON up to date
 ```
 
 CI (`.github/workflows/chess-coach.yml`) runs all of these against real Stockfish and Neo4j.

@@ -155,9 +155,25 @@ export interface DayOverview {
   plan: {
     puzzles: Puzzle[];
     focus: (MotifInfo & { motif: string })[];
-    opening: { line_id: string; name: string; played: string | null; reason: string } | null;
+    opening: { course_id: string | null; line_id: string | null; name: string; played: string | null; reason: string } | null;
+    repertoire: RepertoireNote[];
     endgame: Endgame | null;
   } | null;
+}
+
+/** Where a game left one of your course repertoires (backend day review). */
+export interface RepertoireNote {
+  game_id: string;
+  opponent: string;
+  course_id: string;
+  course_name: string;
+  line_id: string;
+  line_name: string;
+  ply: number;
+  kind: "you_deviated" | "opponent_deviated";
+  played: string;
+  expected: string | null;
+  fen: string;
 }
 
 export interface Job<T> {

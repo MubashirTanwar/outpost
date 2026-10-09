@@ -18,7 +18,7 @@ from typing import Any, Callable, TypedDict
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, StateGraph
 
-from .. import chesscom, coaching, llm
+from .. import chesscom, coaching, llm, repertoire
 from ..engine import get_engine
 from ..graph_store import get_store
 from ..review import CLASSIFICATIONS, review_pgn
@@ -104,6 +104,17 @@ def summarize_day(state: DayState, config: RunnableConfig) -> DayState:
                                                    "classification", "fen_before", "motifs", "best_line")},
                               "game_id": game["id"], "opponent": opponent})
     worst.sort(key=lambda w: -w["win_loss"])
+
+    # Where did each game leave your opening courses? Only courses you study, if we know them.
+    studied = _studied_courses(state["username"])
+    notes = []
+    for game in state["games"]:
+        color = game.get("player_color") or "white"
+        sans = [m["san"] for m in state["reviews"][game["id"]]["moves"]]
+        opponent = game["black"] if color == "white" else game["white"]
+        note = repertoire.check_game(sans, color, game["id"], opponent, studied)
+        if note:
+            notes.append(note)
     with_acc = [g for g in per_game if g["accuracy"] is not None]
     summary = {
         "games": len(per_game),
@@ -115,8 +126,18 @@ def summarize_day(state: DayState, config: RunnableConfig) -> DayState:
         "worst_game": min(with_acc, key=lambda g: g["accuracy"])["id"] if with_acc else None,
         "worst_moments": worst[:8],
         "openings": openings.most_common(),
+        "repertoire": notes,
     }
     return {"day_summary": summary}
+
+
+def _studied_courses(username: str) -> set[str] | None:
+    """Course ids with at least one learned line, from synced progress; None = check every course."""
+    progress = get_store().get_progress(username)
+    if not progress:
+        return None
+    ids = {key.split("/", 1)[0] for key, lp in progress.get("lines", {}).items() if lp.get("stage", 0) > 0}
+    return ids or None
 
 
 def mine_patterns(state: DayState, config: RunnableConfig) -> DayState:
@@ -163,6 +184,8 @@ def coach_lesson(state: DayState, config: RunnableConfig) -> DayState:
                                              "classification", "win_loss", "motifs", "fen_before")}
                           for w in day["worst_moments"][:5]],
         "todays_patterns": state["patterns"]["today_motifs"][:5],
+        "opening_repertoire": [{k: n[k] for k in ("opponent", "course_name", "line_name", "kind", "played", "expected", "ply")}
+                               for n in day.get("repertoire", [])],
         "weakest_phase": state["patterns"]["weakest_phase"],
         "all_time_profile": {k: state["patterns"]["profile"][k] for k in ("games_analyzed", "motifs", "phases")},
         "motif_glossary": {m["motif"]: coaching.motif_info(m["motif"]) for m in state["patterns"]["today_motifs"][:5]},
@@ -174,7 +197,9 @@ def coach_lesson(state: DayState, config: RunnableConfig) -> DayState:
         "1. A two-sentence verdict on the day.\n"
         "2. 'What went wrong': the 2-3 most important lessons, each tied to a concrete moment "
         "(opponent, move number, what I played, what was better and why).\n"
-        "3. 'Patterns': say whether each is a one-off or recurring, using the all-time profile.\n"
+        "3. 'Patterns': say whether each is a one-off or recurring, using the all-time profile. If "
+        "opening_repertoire is not empty, say where I left my opening course (or where the opponent did) "
+        "and which course line to review.\n"
         "4. 'What went right': genuine positives.\n"
         "5. 'Tomorrow's focus': one concrete habit to practise.\n"
         "Keep it under 450 words."
@@ -197,16 +222,23 @@ def training_plan(state: DayState, config: RunnableConfig) -> DayState:
     opening_review = None
     scored = sorted(state["day_summary"]["per_game"], key=lambda g: (g["result"] != "loss", g["accuracy"] or 100))
     for g in scored:
+        reason = f"You had a {g['result']} with {g['accuracy']}% accuracy in this opening."
+        course = repertoire.match_course(g.get("eco"), g["color"])
+        if course:
+            opening_review = {"course_id": course.id, "line_id": None, "name": course.name,
+                              "played": g.get("opening"), "reason": reason}
+            break
         line = coaching.match_opening(g.get("eco"), g.get("opening"), g["color"])
         if line:
-            opening_review = {"line_id": line["id"], "name": line["name"], "played": g.get("opening"),
-                              "reason": f"You had {g['result']} with {g['accuracy']}% accuracy in this opening."}
+            opening_review = {"course_id": None, "line_id": line["id"], "name": line["name"],
+                              "played": g.get("opening"), "reason": reason}
             break
 
     endgame = None
     if state["patterns"]["phase_losses"].get("endgame"):
         endgame = next((d for d in coaching.endgames() if d["level"] == "intermediate"), None)
-    return {"plan": {"puzzles": puzzles, "focus": focus, "opening": opening_review, "endgame": endgame}}
+    return {"plan": {"puzzles": puzzles, "focus": focus, "opening": opening_review, "endgame": endgame,
+                     "repertoire": state["day_summary"].get("repertoire", [])}}
 
 
 def build_day_review_graph():

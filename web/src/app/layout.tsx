@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AchievementToasts } from "@/components/AchievementToasts";
 import { Shell } from "@/components/Shell";
 import "./globals.css";
 
@@ -12,6 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="font-sans antialiased">
         <Shell>{children}</Shell>
+        <AchievementToasts />
       </body>
     </html>
   );

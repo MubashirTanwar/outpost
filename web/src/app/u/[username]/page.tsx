@@ -259,8 +259,11 @@ export default function Dashboard({ params }: { params: { username: string } }) 
                   </PlanLink>
                 )}
                 {overview.plan.opening && (
-                  <PlanLink href={`/openings?line=${overview.plan.opening.line_id}`} icon={<BookOpen size={18} />}>
-                    Drill {overview.plan.opening.name}
+                  <PlanLink
+                    href={overview.plan.opening.course_id ? `/courses/${overview.plan.opening.course_id}` : "/courses"}
+                    icon={<BookOpen size={18} />}
+                  >
+                    {overview.plan.opening.course_id ? `Study the ${overview.plan.opening.name} course` : `Review ${overview.plan.opening.name}`}
                   </PlanLink>
                 )}
                 {overview.plan.endgame && (
@@ -273,6 +276,35 @@ export default function Dashboard({ params }: { params: { username: string } }) 
                     <div className="font-bold">{f.title}</div>
                     <div className="mt-0.5 text-soft">{f.drill}</div>
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {overview?.plan?.repertoire && overview.plan.repertoire.length > 0 && (
+            <div className="card p-5">
+              <h3 className="mb-1 font-extrabold">Repertoire check</h3>
+              <p className="mb-3 text-xs text-muted">Where today&apos;s games left your opening courses</p>
+              <div className="space-y-2">
+                {overview.plan.repertoire.map((n) => (
+                  <Link
+                    key={n.game_id}
+                    href={n.line_id ? `/courses/${n.course_id}/learn/${n.line_id}?mode=review` : `/courses/${n.course_id}`}
+                    className="block rounded-md bg-panel2 p-3 text-sm hover:bg-[#2d2b28]"
+                  >
+                    <div className="text-xs font-bold text-muted">
+                      vs {n.opponent} · {n.course_name} · move {Math.ceil(n.ply / 2)}
+                    </div>
+                    {n.kind === "you_deviated" ? (
+                      <div className="mt-0.5">
+                        You played <b className="text-[#ffa459]">{n.played}</b>; the course plays <b className="text-brand-light">{n.expected}</b>.
+                        <span className="text-muted"> Review “{n.line_name}”</span>
+                      </div>
+                    ) : (
+                      <div className="mt-0.5">
+                        Your opponent played <b>{n.played}</b>, which the course doesn&apos;t cover yet.
+                      </div>
+                    )}
+                  </Link>
                 ))}
               </div>
             </div>

@@ -1,0 +1,110 @@
+course: queens-gambit
+name: Queen's Gambit
+color: white
+eco: D06 D07 D08 D10 D11 D15 D20 D30 D31 D32 D35 D37 D43 D52 D53 D56 D58
+tagline: The classical way to play 1.d4: pressure d5 and squeeze.
+description: 1.d4 d5 2.c4 offers a pawn to pull Black's centre apart. This course covers every serious reply: the Queen's Gambit Declined (Tartakower, Lasker, Cambridge Springs), the Tarrasch, the Slav and Semi-Slav, the Queen's Gambit Accepted, and the Albin, Chigorin and Baltic. You'll also learn the Elephant Trap and the Lasker Trap so you don't fall for them.
+
+chapter: qgd
+title: Queen's Gambit Declined: 2...e6
+intro: Black supports d5 with ...e6. You develop with Nc3, pin with Bg5 and play e3 and Nf3. Your long-term plans are pressure on the c-file and the minority attack (b4-b5) against Black's queenside.
+
+line: tartakower
+name: Tartakower: ...h6 and ...b6
+moves: 1.d4 d5 2.c4 {The Queen's Gambit: attack d5 from the side.} e6 3.Nc3 {Add a second attacker on d5.} Nf6 4.Bg5 {Pin the knight that defends d5.} Be7 5.e3 O-O 6.Nf3 h6 7.Bh4 {Keep the pin.} b6 {The Tartakower: Black's bishop goes to b7.} 8.cxd5 {Release the tension at the right moment.} Nxd5 9.Bxe7 Qxe7 10.Nxd5 exd5 11.Rc1 {Pressure on the c-file against c7 and c5.} Be6 12.Qa4 {Hit a7 and prepare to answer ...c5 with pressure.} c5 13.Qa3 {Pin the c5 pawn against the queen. Black's hanging pawns are a target.} Rc8 14.Be2
+
+line: lasker
+name: Lasker: ...Ne4
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7 5.e3 O-O 6.Nf3 h6 7.Bh4 Ne4 {The Lasker: Black trades pieces to free the position.} 8.Bxe7 Qxe7 9.Rc1 {Pressure on c7.} c6 10.Be2 Nxc3 11.Rxc3 dxc4 12.Bxc4 Nd7 13.O-O {Solid edge: you're better developed and Black still has to free the c8 bishop.}
+
+line: capablanca
+name: ...Nbd7: Capablanca's freeing plan
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7 5.e3 O-O 6.Nf3 Nbd7 7.Rc1 {The rook gets to the c-file before the centre opens.} c6 8.Bd3 dxc4 9.Bxc4 Nd5 10.Bxe7 Qxe7 11.O-O Nxc3 12.Rxc3 e5 {Black finally frees the position.} 13.Bb3 {Keep the bishop aimed at f7. White is a little better.}
+
+line: cambridge
+name: 4...Nbd7 and the Elephant Trap
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Nbd7 {Sets the Elephant Trap: 5.cxd5 exd5 6.Nxd5?? Nxd5! 7.Bxd8 Bb4+ and Black wins a piece.} 5.e3 {Don't grab anything: just develop.} c6 6.Nf3 Qa5 {The Cambridge Springs: the queen pins your c3 knight.} 7.Nd2 {Defends c3 indirectly and unpins: your knight can recapture on c4 or b3.} Bb4 8.Qc2 O-O 9.Be2 {Castle next. White is solid and slightly better.}
+
+line: tarrasch
+name: 3...c5: the Tarrasch
+moves: 1.d4 d5 2.c4 e6 3.Nc3 c5 {Black accepts an isolated pawn in return for free development.} 4.cxd5 exd5 5.Nf3 Nc6 6.g3 {Put the bishop on g2, aimed straight at the isolated d5 pawn.} Nf6 7.Bg2 Be7 8.O-O O-O 9.Bg5 {Remove a defender of d5.}
+
+chapter: slav
+title: The Slav: 2...c6
+intro: Black keeps the c8 bishop free by supporting d5 with ...c6. You develop with Nf3 and Nc3. If Black takes on c4 you play a4 and win the pawn back with e3 and Bxc4, then build a big centre with e4.
+
+line: slav-main
+name: Main line: ...dxc4 and ...Bf5
+moves: 1.d4 d5 2.c4 c6 3.Nf3 {Develop first.} Nf6 4.Nc3 dxc4 {Black takes the pawn and will try to hold it with ...b5.} 5.a4 {Stop ...b5. You'll win the pawn back.} Bf5 6.e3 e6 7.Bxc4 {Material is level again.} Bb4 8.O-O O-O 9.Qe2 {Prepare e4.} Nbd7 10.e4 Bg6 11.Bd3 {A big centre. Your plan is e5 and a kingside attack.}
+
+line: chebanenko
+name: 4...a6: the Chebanenko
+moves: 1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 a6 {Black prepares ...b5.} 5.e3 b5 6.b3 {Keep the centre stable and don't let Black win c4.} Bg4 7.h3 Bxf3 8.Qxf3 e6 9.Bd2 {You have the bishop pair and a solid position.}
+
+line: semi-slav
+name: 4...e6: the Semi-Slav
+moves: 1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 e6 {The Semi-Slav: very solid.} 5.e3 {The calm approach: no sharp Botvinnik or Moscow theory.} Nbd7 6.Qc2 {Prepare e4.} Bd6 7.Bd3 O-O 8.O-O dxc4 9.Bxc4 b5 10.Be2 {Next is e4 with a strong centre.}
+
+line: slav-bf5-early
+name: 3...Bf5 too early
+moves: 1.d4 d5 2.c4 c6 3.Nf3 Bf5 {Develops the bishop before ...Nf6.} 4.cxd5 cxd5 5.Qb3 {Hits b7 and d5. Black's bishop left the queenside short of defenders.} Qb6 6.Qxb6 axb6 7.Nc3 {A pleasant ending: Black's doubled b-pawns are a long-term weakness.}
+
+chapter: qga
+title: Queen's Gambit Accepted: 2...dxc4
+intro: Black takes the pawn but can't keep it. Play e3 and Bxc4 to win it back with a lead in development and a free hand in the centre.
+
+line: qga-main
+name: Main line: ...e6 and ...c5
+moves: 1.d4 d5 2.c4 dxc4 {Black takes the pawn.} 3.e3 {Opens the f1 bishop to recapture.} Nf6 4.Bxc4 {The pawn is back.} e6 5.Nf3 c5 6.O-O a6 7.a4 {Stop ...b5.} Nc6 8.Qe2 {Prepare Rd1 and pressure on the d-file.} cxd4 9.Rd1 Be7 10.exd4 O-O 11.Nc3 {An isolated d-pawn but very active pieces. Ideas: d5 or a kingside attack.}
+
+line: qga-e5
+name: 3...e5: the central counterattack
+moves: 1.d4 d5 2.c4 dxc4 3.e3 e5 {Black strikes back in the centre.} 4.Bxc4 {Win the pawn back first.} exd4 5.exd4 Nf6 6.Nf3 Be7 7.O-O O-O 8.h3 {Rule out ...Bg4. You have more active pieces.}
+
+line: qga-b5
+name: 3...b5?: holding the pawn
+moves: 1.d4 d5 2.c4 dxc4 3.e3 b5 {Black tries to keep the extra pawn. It doesn't work.} 4.a4 {Hit the support.} c6 5.axb5 cxb5 6.Qf3 {The long diagonal is open: your queen hits the rook on a8.} Nc6 7.Qxc6+ {The knight was the only blocker.} Bd7 8.Qf3 {You've won a whole piece.}
+
+chapter: offbeat
+title: Offbeat defences and traps
+intro: The Albin, Chigorin and Baltic try to catch you unprepared. Learn the one sensible setup against each, and the Lasker Trap in the Albin.
+
+line: albin
+name: 2...e5: the Albin Countergambit
+moves: 1.d4 d5 2.c4 e5 {The Albin: a gambit with a well-known trap.} 3.dxe5 d4 {The d4 pawn cramps you. Avoid 4.e3?? Bb4+ 5.Bd2 dxe3! when 6.Bxb4?? exf2+ 7.Ke2 fxg1=N+! wins for Black: the Lasker Trap.} 4.Nf3 {Develop and keep the e5 pawn.} Nc6 5.g3 {The bishop goes to g2 to attack Black's queenside.} Be6 6.Nbd2 Qd7 7.Bg2 O-O-O 8.O-O {You're a pawn up with a safe king. Queenside attack next: Qa4, b4.}
+
+line: chigorin
+name: 2...Nc6: the Chigorin
+moves: 1.d4 d5 2.c4 Nc6 {Black blocks the c-pawn and plays for piece activity.} 3.Nf3 Bg4 4.cxd5 Bxf3 5.gxf3 {Recapture with the pawn: the bishop pair and the centre are worth the slightly loose structure.} Qxd5 6.e3 e5 7.Nc3 Bb4 8.Bd2 Bxc3 9.bxc3 {Bishop pair and a strong centre.}
+
+line: baltic
+name: 2...Bf5: the Baltic
+moves: 1.d4 d5 2.c4 Bf5 {Black develops the bishop at once.} 3.cxd5 Bxb1 4.Qa4+ {Insert the check before recapturing.} c6 5.Rxb1 {Take the bishop back.} Qxd5 6.Nf3 Nd7 7.e3 {You have the bishop pair and an easy position.}
+
+quiz: cambridge 8
+q: Black played 4...Nbd7. Can you win a pawn with 5.cxd5 exd5 6.Nxd5?
+a: No: 6...Nxd5! 7.Bxd8 Bb4+ and Black wins a piece (the Elephant Trap)
+w: Yes: the d5 pawn is pinned
+w: Yes, and if 6...Nxd5 then 7.Bxd8 wins the queen for free
+why: The d7 knight blocks nothing important. After 6...Nxd5 7.Bxd8, the check 7...Bb4+ forces 8.Qd2 Bxd2+ 9.Kxd2 Kxd8, and Black is a piece up.
+
+quiz: albin 6
+q: In the Albin after 3...d4, what's wrong with 4.e3?
+a: 4...Bb4+ 5.Bd2 dxe3! and 6.Bxb4?? exf2+ 7.Ke2 fxg1=N+! is the Lasker Trap
+w: Nothing: it's the best move
+w: It loses the e5 pawn to ...Nc6
+why: 4.e3 walks into one of the most famous traps in chess. 4.Nf3 develops a piece and avoids all of it.
+
+quiz: slav-main 9
+q: Why play 5.a4 after Black takes on c4?
+a: It stops ...b5, so Black can't hold onto the c4 pawn
+w: It prepares Ra3 and a rook lift
+w: It attacks the black knight
+why: Without ...b5 the c4 pawn can't be defended. After e3 and Bxc4 you've won it back.
+
+quiz: tartakower 26
+q: Black's pawns on c5 and d5 are "hanging pawns". How do you play against them?
+a: Pressure them with pieces on the c- and d-files so they have to advance or be lost
+w: Push e4 straight away
+w: Trade queens immediately
+why: Hanging pawns are strong if they stay side by side but weak once they're forced to advance. Rooks on the c- and d-files and a queen on a3 keep them under fire.

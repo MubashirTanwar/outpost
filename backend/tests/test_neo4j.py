@@ -54,3 +54,10 @@ def test_neo4j_store_contract(monkeypatch, fake_engine, neo4j_store):
     att = neo4j_store.record_attempt("coach_tester", puzzles[0]["id"], solved=True)
     assert att["attempts"] == 2 and att["streak"] == 1
     assert neo4j_store.puzzles("coach_tester", motif="hanging_piece")
+
+    progress = {"version": 1, "xp": 30, "lines": {"london/main-b6": {"stage": 1, "due": 5, "reviews": 0, "lapses": 0}}}
+    neo4j_store.save_progress("coach_tester", progress)
+    assert neo4j_store.get_progress("coach_tester")["xp"] == 30
+    with neo4j_store._driver.session() as s:
+        rel = s.run("MATCH (:Player {username: 'coach_tester'})-[r:STUDIED]->(l:CourseLine) RETURN l.course AS c, r.stage AS stage").single()
+    assert rel["c"] == "london" and rel["stage"] == 1

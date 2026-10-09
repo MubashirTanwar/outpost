@@ -1,0 +1,118 @@
+course: french
+name: French Defence
+color: black
+eco: C00 C01 C02 C03 C05 C06 C07 C09 C11 C12 C13
+tagline: Counterpunch from a solid shell: ...e6, ...d5, then hit the chain with ...c5.
+description: 1.e4 e6 2.d4 d5. You let White build a big centre and then attack its base with ...c5 and ...f6. This course covers the Advance, the Exchange, the Tarrasch, the Classical 3.Nc3 Nf6 with both 4.e5 and 4.Bg5, and the King's Indian Attack.
+
+chapter: advance
+title: Advance Variation: 3.e5
+intro: White locks the centre with e5. You attack the base of the chain with ...c5, add ...Nc6 and ...Qb6 against d4, and bring the g8 knight round to f5. The d4 pawn is your target.
+
+line: adv-main
+name: Main line: 5.Nf3 Qb6 6.a3
+moves: 1.e4 e6 {Prepare ...d5 with the support of the e-pawn.} 2.d4 d5 {Challenge e4 at once.} 3.e5 c5 {Strike the base of White's pawn chain: the French's key idea.} 4.c3 Nc6 {Add pressure on d4.} 5.Nf3 Qb6 {The queen hits d4 and b2.} 6.a3 {White prepares b4.} c4 {Lock the queenside and gain space. Your plan is ...Na5 and ...Bd7, fixing White's queenside.} 7.Nbd2 Na5 8.Rb1 Bd7 {Solid. Next: ...Ne7 and ...Nc6 or ...h6 and ...O-O-O.}
+
+line: adv-bd3
+name: 6.Bd3: the Milner-Barry Gambit
+moves: 1.e4 e6 2.d4 d5 3.e5 c5 4.c3 Nc6 5.Nf3 Qb6 6.Bd3 {White offers the d4 pawn.} cxd4 7.cxd4 Bd7 {Prepare to take on d4 safely.} 8.O-O Nxd4 9.Nxd4 Qxd4 10.Nc3 a6 {Stop Nb5. You're a pawn up: develop carefully and don't grab the e5 pawn too.}
+
+line: adv-be2
+name: 6.Be2
+moves: 1.e4 e6 2.d4 d5 3.e5 c5 4.c3 Nc6 5.Nf3 Qb6 6.Be2 cxd4 7.cxd4 Nh6 {The knight heads for f5 to pile up on d4.} 8.Nc3 Nf5 9.Na4 Qa5+ 10.Bd2 Bb4 {Trade the bishops: the French dark-squared bishop is the one to swap off.}
+
+line: adv-nf3-early
+name: 4.Nf3 without c3
+moves: 1.e4 e6 2.d4 d5 3.e5 c5 4.Nf3 cxd4 {Take on d4 at once: White can't support it with c3.} 5.Bd3 Nc6 6.O-O Nge7 {Heading for g6 to hit e5.} 7.Bf4 Ng6 8.Bg3 Be7 {You're a pawn up, or at least better if White wins it back.}
+
+chapter: exchange
+title: Exchange Variation: 3.exd5
+intro: The Exchange is symmetrical, but it's not a draw if you play actively. Develop with ...Bd6, ...Nc6 and ...Nge7, pin with ...Bg4, and think about castling long.
+
+line: exchange-main
+name: Active setup with ...Bg4
+moves: 1.e4 e6 2.d4 d5 3.exd5 exd5 {Recapture: your c8 bishop is now free.} 4.Bd3 Nc6 5.c3 Bd6 6.Nf3 Bg4 {Pin the knight.} 7.O-O Nge7 {The knight goes to e7 so the f-pawn stays flexible.} 8.Re1 Qd7 9.Nbd2 O-O-O {Opposite-side castling: you can push the kingside pawns.}
+
+line: exchange-c4
+name: 4.c4: isolated pawn lines
+moves: 1.e4 e6 2.d4 d5 3.exd5 exd5 4.c4 Nf6 {Develop and pressure d5.} 5.Nc3 Bb4 {Pin the c3 knight.} 6.Bd3 dxc4 7.Bxc4 O-O 8.Nge2 Nbd7 {Blockade d5 and target d4.}
+
+chapter: tarrasch
+title: Tarrasch: 3.Nd2
+intro: White's knight goes to d2 so it can't be pinned. You reply 3...c5, and after exd5 you recapture with the queen. Black gets free development and White gets a slight lead in time. It's a solid, well-tested line.
+
+line: tarrasch-main
+name: Main line: 4.exd5 Qxd5
+moves: 1.e4 e6 2.d4 d5 3.Nd2 c5 {Hit the centre at once.} 4.exd5 Qxd5 {Recapture with the queen. The knight on d2 can't attack it from c3.} 5.Ngf3 cxd4 6.Bc4 Qd6 {The queen drops back, still eyeing d4.} 7.O-O Nf6 8.Nb3 Nc6 9.Nbxd4 Nxd4 10.Nxd4 a6 {Stop Nb5 and Bb5.} 11.Re1 Qc7 12.Bb3 Bd6 {Easy development. The plan is ...O-O, ...b5 and ...Bb7.}
+
+line: tarrasch-ngf3
+name: 4.Ngf3
+moves: 1.e4 e6 2.d4 d5 3.Nd2 c5 4.Ngf3 cxd4 {Release the tension.} 5.exd5 Qxd5 6.Bc4 Qd6 {Same position as the main line.}
+
+chapter: classical
+title: Classical: 3.Nc3 Nf6
+intro: Against 3.Nc3 you develop with 3...Nf6 and put pressure on e4. If White plays 4.e5 the knight drops to d7 and you hit the centre with ...c5 and ...f6. If White pins with 4.Bg5, unpin with ...Be7.
+
+line: steinitz
+name: 4.e5 Nfd7 5.f4: the Steinitz
+moves: 1.e4 e6 2.d4 d5 3.Nc3 Nf6 {Pressure on e4.} 4.e5 Nfd7 {The knight steps back and supports ...c5 and ...f6.} 5.f4 c5 {Hit d4 straight away.} 6.Nf3 Nc6 7.Be3 cxd4 8.Nxd4 Bc5 {Pressure on the pinned-looking d4 knight.} 9.Qd2 O-O 10.O-O-O a6 {Race on the queenside with ...b5.} 11.h4 Nxd4 12.Bxd4 b5 {Your pawns roll toward White's king.}
+
+line: steinitz-nce2
+name: 5.Nce2: supporting d4
+moves: 1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.e5 Nfd7 5.Nce2 {White plans c3 to hold d4.} c5 6.c3 Nc6 7.f4 Qb6 {Pressure on d4 and b2.} 8.Nf3 f6 {Strike the head of the chain as well.} 9.a3 Be7 {Solid and active: ...O-O and pressure on the f-file next.}
+
+line: steinitz-nf3
+name: 5.Nf3
+moves: 1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.e5 Nfd7 5.Nf3 c5 6.dxc5 Nc6 7.Bf4 Bxc5 8.Bd3 f6 {Undermine e5 at once.} 9.exf6 Nxf6 10.O-O O-O {Good piece play and a strong centre.}
+
+line: classical-bg5
+name: 4.Bg5 Be7: the Classical
+moves: 1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5 Be7 {Unpin calmly.} 5.e5 Nfd7 6.Bxe7 Qxe7 7.f4 O-O 8.Nf3 c5 {The standard counter: hit d4.} 9.Bd3 f6 {Hit e5 too. You trade White's centre away.} 10.exf6 Qxf6 {Active pieces and a solid king.}
+
+line: classical-exd5
+name: 4.exd5: a quiet exchange
+moves: 1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.exd5 exd5 {An Exchange French with your knight already on f6.} 5.Bd3 Bd6 6.Nf3 O-O 7.O-O Bg4 {Pin the knight, as in the Exchange chapter.}
+
+chapter: kia
+title: King's Indian Attack and early deviations
+intro: Some White players avoid d4 altogether with d3, Nd2, g3 and Bg2. Grab the centre with ...c5 and ...Nc6 and expand on the queenside with ...b5.
+
+line: kia
+name: King's Indian Attack: 2.d3
+moves: 1.e4 e6 2.d3 d5 {Take the centre.} 3.Nd2 Nf6 4.Ngf3 c5 5.g3 Nc6 6.Bg2 Be7 7.O-O O-O 8.Re1 b5 {Queenside expansion: White will attack on the kingside, you on the other wing.}
+
+line: two-nf3
+name: 2.Nf3
+moves: 1.e4 e6 2.Nf3 d5 3.Nc3 {Delaying d4.} Nf6 {Same as against 3.Nc3: pressure e4.} 4.e5 Nfd7 5.d4 c5 {You're in the Steinitz 5.Nf3 line by transposition.}
+
+line: two-nf3-e5
+name: 2.Nf3 d5 3.e5
+moves: 1.e4 e6 2.Nf3 d5 3.e5 {An Advance without d4.} c5 4.d4 cxd4 {The Advance 4.Nf3 line by transposition: take on d4 at once.}
+
+quiz: adv-main 6
+q: White played 3.e5. What's the French's key counter?
+a: 3...c5: hit the base of the pawn chain on d4
+w: 3...f6: hit the head of the chain
+w: 3...Bd7 and ...Bb5
+why: Attack a pawn chain at its base. ...c5, ...Nc6 and ...Qb6 all pile up on d4.
+
+quiz: adv-bd3 19
+q: You've won the d4 pawn. Why play 10...a6?
+a: It stops Nb5, which would hit c7 and d6
+w: It prepares ...b5 and ...Bb7
+w: It's a waiting move
+why: In the Milner-Barry, White's knight wants to jump to b5. ...a6 takes away that square so you can develop calmly with the extra pawn.
+
+quiz: tarrasch-main 8
+q: Why is 4...Qxd5 safe in the Tarrasch?
+a: White's knight is on d2, not c3, so it can't gain a tempo on the queen
+w: Because the queen can't be attacked on d5
+w: Because White has to recapture on d4 first
+why: 3.Nd2 blocks the queen's knight from c3. The queen is stable on d5 for a move and then drops back to d6.
+
+quiz: steinitz 10
+q: White played 5.f4 to support e5. What's your plan?
+a: Hit d4 with ...c5, ...Nc6 and ...Qb6 or ...Bc5
+w: Attack e5 with ...Nd7 and ...Ndxe5
+w: Close the queenside with ...c4
+why: The d4 pawn holds White's chain together. Pressure it from every angle, and when it's gone the e5 pawn is weak.

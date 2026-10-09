@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import json
 import time
 from datetime import date, datetime, timedelta, timezone
 
@@ -195,6 +196,20 @@ class AttemptRequest(BaseModel):
 @app.post("/api/puzzles/{puzzle_id}/attempt")
 def attempt(puzzle_id: str, req: AttemptRequest) -> dict:
     return get_store().record_attempt(req.username, puzzle_id, req.solved)
+
+
+@app.get("/api/players/{username}/progress")
+def get_progress(username: str) -> dict:
+    """Opening-course progress (XP, spaced-repetition state) synced from the web app."""
+    return {"progress": get_store().get_progress(username)}
+
+
+@app.put("/api/players/{username}/progress")
+def put_progress(username: str, progress: dict) -> dict:
+    if not isinstance(progress.get("lines"), dict) or len(json.dumps(progress)) > 2_000_000:
+        raise HTTPException(400, "Invalid progress payload")
+    get_store().save_progress(username, progress)
+    return {"ok": True}
 
 
 @app.get("/api/openings")

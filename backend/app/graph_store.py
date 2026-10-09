@@ -11,6 +11,7 @@ Graph model (Neo4j):
     (:Mistake)-[:HAS_MOTIF]->(:Motif)           # fork, hanging_piece, back_rank, ...
     (:Puzzle)-[:FROM_MISTAKE]->(:Mistake)
     (:Player)-[:ATTEMPTED {solved, attempts, streak, last_at}]->(:Puzzle)
+    (:Player)-[:STUDIED {stage, due, reviews, lapses}]->(:CourseLine {id, course})
 """
 
 from __future__ import annotations
@@ -89,6 +90,8 @@ class GraphStore(Protocol):
     def weakness_profile(self, username: str) -> dict: ...
     def puzzles(self, username: str, motif: str | None = None, limit: int = 20) -> list[dict]: ...
     def record_attempt(self, username: str, puzzle_id: str, solved: bool) -> dict: ...
+    def get_progress(self, username: str) -> dict | None: ...
+    def save_progress(self, username: str, progress: dict) -> None: ...
     def close(self) -> None: ...
 
 
@@ -127,6 +130,7 @@ class MemoryGraphStore:
         self._puzzles: dict[str, dict] = {}
         self._player_puzzles: dict[str, list[str]] = defaultdict(list)
         self._attempts: dict[tuple[str, str], dict] = {}
+        self._progress: dict[str, dict] = {}
 
     def save_review(self, username: str, game: dict, review: dict) -> None:
         user = username.lower()
@@ -216,6 +220,13 @@ class MemoryGraphStore:
             }
             self._attempts[key] = att
         return att
+
+    def get_progress(self, username: str) -> dict | None:
+        return self._progress.get(username.lower())
+
+    def save_progress(self, username: str, progress: dict) -> None:
+        with self._lock:
+            self._progress[username.lower()] = progress
 
     def close(self) -> None:
         pass
@@ -411,6 +422,34 @@ class Neo4jGraphStore:
                     """, u=username.lower(), id=puzzle_id, solved=solved).single()
             )
         return rec["attempt"] if rec else {}
+
+    def get_progress(self, username: str) -> dict | None:
+        with self._driver.session() as s:
+            rec = s.run("MATCH (p:Player {username: $u}) RETURN p.course_progress AS progress", u=username.lower()).single()
+        return json.loads(rec["progress"]) if rec and rec["progress"] else None
+
+    def save_progress(self, username: str, progress: dict) -> None:
+        lines = [
+            {"id": key, "course": key.split("/", 1)[0], "stage": lp.get("stage", 0), "due": lp.get("due", 0),
+             "reviews": lp.get("reviews", 0), "lapses": lp.get("lapses", 0)}
+            for key, lp in progress.get("lines", {}).items()
+        ]
+        with self._driver.session() as s:
+            s.execute_write(
+                lambda tx: tx.run(
+                    """
+                    MERGE (p:Player {username: $u})
+                    SET p.course_progress = $blob, p.xp = $xp
+                    WITH p
+                    UNWIND $lines AS l
+                    MERGE (cl:CourseLine {id: l.id})
+                    SET cl.course = l.course
+                    MERGE (p)-[r:STUDIED]->(cl)
+                    SET r.stage = l.stage, r.due = l.due, r.reviews = l.reviews, r.lapses = l.lapses
+                    """,
+                    u=username.lower(), blob=json.dumps(progress), xp=progress.get("xp", 0), lines=lines,
+                ).consume()
+            )
 
     def close(self) -> None:
         self._driver.close()

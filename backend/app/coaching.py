@@ -162,6 +162,16 @@ def template_day_lesson(state: dict) -> str:
         for w in day["worst_moments"][:3]:
             lines.append(f"- vs {w['opponent']}, move {w['move_number']}: you played **{w['san']}**, "
                          f"best was **{w['best_san']}** (−{w['win_loss']:.0f}% winning chances).")
+    rep = day.get("repertoire") or []
+    if rep:
+        lines.append("\n### Opening repertoire check")
+        for n in rep[:4]:
+            if n["kind"] == "you_deviated":
+                lines.append(f"- vs {n['opponent']}: you left your **{n['course_name']}** course on move {(n['ply'] + 1) // 2} with "
+                             f"**{n['played']}**; the course plays **{n['expected']}** ({n['line_name']}). Review that line.")
+            else:
+                lines.append(f"- vs {n['opponent']}: your opponent played **{n['played']}** on move {(n['ply'] + 1) // 2}, which "
+                             f"your **{n['course_name']}** course doesn't cover yet.")
     weakest = state["patterns"].get("weakest_phase")
     if weakest:
         lines.append(f"\n### Focus area: the {weakest}")
