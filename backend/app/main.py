@@ -5,14 +5,16 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import logging
 import time
 from datetime import date, datetime, timedelta, timezone
 
 import chess
 import chess.pgn
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from . import chesscom, coaching, jobs, llm
@@ -24,6 +26,19 @@ from .graph_store import get_store
 from .review import _san_line, review_pgn
 
 app = FastAPI(title="Outpost API", version="0.1.0")
+log = logging.getLogger(__name__)
+
+
+# Registered before CORS so CORS wraps it: an unexpected crash becomes a JSON 500 the browser can
+# read, instead of a header-less 500 that browsers report as "TypeError: Failed to fetch".
+@app.middleware("http")
+async def json_errors(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as exc:  # noqa: BLE001
+        log.exception("Unhandled error on %s", request.url.path)
+        return JSONResponse({"detail": f"{type(exc).__name__}: {exc}"}, status_code=500)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in get_settings().cors_origins.split(",")],

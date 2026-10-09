@@ -4,7 +4,9 @@ import { Chess, type Square } from "chess.js";
 import { RefreshCcw, Undo2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Board, type Arrow } from "@/components/Board";
+import { CapturedPieces } from "@/components/CapturedPieces";
 import { EvalBar } from "@/components/EvalBar";
+import { material } from "@/lib/material";
 import { formatEval } from "@/lib/format";
 import { playSound, soundForMove } from "@/lib/sounds";
 import { getBrowserEngine } from "@/lib/stockfish";
@@ -87,7 +89,9 @@ export default function AnalysisPage() {
       <div className="mx-auto flex w-full max-w-[min(85vh,700px)] gap-2 lg:flex-1">
         <EvalBar cp={top ? turn * top.cp : 0} mate={top?.mate != null ? turn * top.mate : null} orientation={orientation} />
         <div className="flex-1">
+          <SideBar c={orientation === "white" ? "black" : "white"} fen={fen} />
           <Board fen={fen} orientation={orientation} onMove={onMove} lastMove={lastMove} arrows={arrows} id="analysis" />
+          <SideBar c={orientation} fen={fen} />
         </div>
       </div>
       <div className="flex w-full flex-col gap-4 lg:w-[400px]">
@@ -130,6 +134,20 @@ export default function AnalysisPage() {
           <p className="mt-3 break-all font-mono text-[11px] text-muted">{fen}</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Side label with the pieces that side has captured and its material lead. */
+function SideBar({ c, fen }: { c: "white" | "black"; fen: string }) {
+  const m = material(fen);
+  return (
+    <div className="flex h-9 items-center gap-2 py-1">
+      <span className={`flex h-6 w-6 items-center justify-center rounded text-sm ${c === "white" ? "bg-white text-black" : "bg-[#1a1a1a] text-white"}`}>
+        {c === "white" ? "♔" : "♚"}
+      </span>
+      <span className="text-sm font-bold capitalize">{c}</span>
+      <CapturedPieces pieces={m.captured[c]} color={c} lead={c === "white" ? m.diff : -m.diff} />
     </div>
   );
 }

@@ -41,7 +41,7 @@ export default function CoachPage({ params }: { params: { username: string } }) 
     setBusy(true);
     try {
       const res = await api.chat({ username, message: text, fen: fen.trim() || null, history });
-      setMessages((m) => [...m, { role: "assistant", content: res.answer, meta: `${res.source} · used ${res.used.join(", ") || "nothing"}` }]);
+      setMessages((m) => [...m, { role: "assistant", content: res.answer, meta: `${res.source} · used ${(res.used ?? []).join(", ") || "nothing"}` }]);
     } catch (e) {
       setMessages((m) => [...m, { role: "assistant", content: `Something went wrong: ${e instanceof Error ? e.message : e}` }]);
     } finally {

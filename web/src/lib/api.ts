@@ -10,10 +10,16 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!API_URL) throw new ApiError(0, "No backend configured");
-  const res = await fetch(`${API_URL}${path}`, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...init,
+      headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
+    });
+  } catch {
+    // fetch only throws (as a bare "TypeError: Failed to fetch") when the request never got a readable reply.
+    throw new ApiError(0, `Couldn't reach the backend at ${API_URL}. Is it running?`);
+  }
   if (!res.ok) {
     let detail = res.statusText;
     try {

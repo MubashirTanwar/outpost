@@ -5,6 +5,7 @@ import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, ExternalLink, Lig
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Board, type Arrow } from "@/components/Board";
+import { CapturedPieces } from "@/components/CapturedPieces";
 import { CLS_COLORS, CLS_LABELS, ClassificationIcon } from "@/components/ClassificationIcon";
 import { EngineLines } from "@/components/EngineLines";
 import { EvalBar } from "@/components/EvalBar";
@@ -16,7 +17,9 @@ import { AccuracyBadge, ClassificationTable } from "@/components/ReviewSummary";
 import { api } from "@/lib/api";
 import { getReview, isBackendMode } from "@/lib/client";
 import { formatClock, formatEval, prettyMotif, uciToMove } from "@/lib/format";
+import { material } from "@/lib/material";
 import { playSound, soundForMove } from "@/lib/sounds";
+import { back, forward, inVariation, jump, lineText, play, type Nav, type Variation } from "@/lib/variation";
 import type { EngineLine, MoveReview, Review } from "@/lib/types";
 
 function coachLine(m: MoveReview): string {
@@ -73,7 +76,10 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
   const [backend, setBackend] = useState(false);
   const [retry, setRetry] = useState<{ fen: string; state: "trying" | "right" | "wrong"; lastMove?: { from: string; to: string } } | null>(null);
   // Free exploration: moves you play on the board branch off the game, like chess.com's analysis.
-  const [explore, setExplore] = useState<{ base: number; moves: { uci: string; san: string; fen: string }[] } | null>(null);
+  // The line stays in memory; back/forward step through it.
+  const [variation, setVariation] = useState<Variation | null>(null);
+  const nav: Nav = { ply, variation };
+  const exploring = inVariation(nav);
 
   useEffect(() => {
     isBackendMode().then(setBackend);
@@ -106,21 +112,33 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
         playSound("move");
       }
       setRetry(null);
-      setExplore(null);
+      setVariation((v) => (v ? { ...v, cursor: 0 } : v)); // leave the line, but remember it
       setPly(target);
     },
     [review, ply],
   );
 
+  const stepBack = () => {
+    if (!exploring) return goTo(ply - 1);
+    playSound("move");
+    setVariation(back(nav).variation);
+  };
+  const stepForward = () => {
+    if (!exploring) return goTo(ply + 1);
+    const next = forward(nav, moves.length);
+    const v = next.variation!;
+    if (v.cursor === variation!.cursor) return;
+    const step = v.moves[v.cursor - 1];
+    const prevFen = v.cursor > 1 ? v.moves[v.cursor - 2].fen : moves[ply - 1]?.fen_after ?? moves[0]?.fen_before ?? new Chess().fen();
+    playSound(soundForMove(new Chess(prevFen).move(uciToMove(step.uci))));
+    setVariation(v);
+  };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.tagName === "INPUT") return;
-      if (explore && e.key === "ArrowLeft") {
-        playSound("move");
-        setExplore(explore.moves.length > 1 ? { ...explore, moves: explore.moves.slice(0, -1) } : null);
-      } else if (explore && e.key === "ArrowRight") return;
-      else if (e.key === "ArrowRight") goTo(ply + 1);
-      else if (e.key === "ArrowLeft") goTo(ply - 1);
+      if (e.key === "ArrowRight") stepForward();
+      else if (e.key === "ArrowLeft") stepBack();
       else if (e.key === "ArrowUp") goTo(0);
       else if (e.key === "ArrowDown") goTo(moves.length);
       else if (e.key === "f") setFlipped((f) => !f);
@@ -129,7 +147,7 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [goTo, ply, moves.length, explore]);
+  });
 
   const [engineLines, setEngineLines] = useState<EngineLine[]>([]);
   const [lineSel, setLineSel] = useState<number | null>(null);
@@ -141,11 +159,11 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
     if (sel && !retry) {
       return sel.pv.slice(0, 2).map((u, i) => [u.slice(0, 2) as Square, u.slice(2, 4) as Square, i === 0 ? "rgba(116,155,191,0.9)" : "rgba(116,155,191,0.45)"] as Arrow);
     }
-    if (explore || !current || retry || !showBest || !current.best_uci || current.best_uci === current.uci) return [];
+    if (exploring || !current || retry || !showBest || !current.best_uci || current.best_uci === current.uci) return [];
     if (["book", "forced", "best", "brilliant", "great"].includes(current.classification)) return [];
     const b = uciToMove(current.best_uci);
     return [[b.from as Square, b.to as Square, "rgba(129, 182, 76, 0.85)"]];
-  }, [current, retry, showBest, lineSel, engineLines, explore]);
+  }, [current, retry, showBest, lineSel, engineLines, exploring]);
 
   const explain = async () => {
     if (!current) return;
@@ -202,10 +220,10 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
   };
 
   const gameFen = current ? current.fen_after : moves[0]?.fen_before ?? new Chess().fen();
-  const exploreLast = explore?.moves[explore.moves.length - 1];
+  const exploreLast = exploring ? variation!.moves[variation!.cursor - 1] : undefined;
   const fen = retry ? retry.fen : exploreLast ? exploreLast.fen : gameFen;
   // While exploring, the eval bar follows the live engine; otherwise the stored review eval.
-  const live = explore && engineLines[0] ? engineLines[0] : null;
+  const live = exploring && engineLines[0] ? engineLines[0] : null;
   const liveSign = fen.split(" ")[1] === "w" ? 1 : -1;
   const evalCp = live ? liveSign * live.cp : current ? current.eval_cp : review.start_eval.cp;
   const evalMate = live ? (live.mate !== null ? liveSign * live.mate : null) : current ? current.eval_mate : review.start_eval.mate;
@@ -222,17 +240,16 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
     playSound(soundForMove(mv));
     const step = { uci: mv.from + mv.to + (mv.promotion ?? ""), san: mv.san, fen: chess.fen() };
     // Playing the game's own next move just steps forward in the game.
-    if (!explore && moves[ply] && moves[ply].uci === step.uci) {
-      setPly(ply + 1);
-      return true;
-    }
-    setExplore((e) => (e ? { ...e, moves: [...e.moves, step] } : { base: ply, moves: [step] }));
+    const next = play(nav, step, exploring ? undefined : moves[ply]?.uci);
+    setPly(next.ply);
+    setVariation(next.variation);
     setLineSel(null);
     return true;
   };
+  const materialNow = material(fen);
   const explanation = current ? explanations[current.ply] : undefined;
   const isError = current && ["inaccuracy", "mistake", "miss", "blunder"].includes(current.classification);
-  const kittu = explore
+  const kittu = exploring
     ? { mood: "thinking" as KittuMood, quip: "Ooh, a what-if. Let's see what the engine thinks." }
     : kittuReaction(current, retry?.state ?? null, playerColor);
 
@@ -243,6 +260,7 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
       </span>
       <span className="font-bold">{name(c)}</span>
       <span className="text-sm text-muted">({rating(c) ?? "?"})</span>
+      <CapturedPieces pieces={materialNow.captured[c]} color={c} lead={c === "white" ? materialNow.diff : -materialNow.diff} />
       {clockFor(c) !== null && (
         <span className={`ml-auto rounded px-2 py-0.5 font-mono text-sm font-bold ${c === "white" ? "bg-white text-black" : "bg-[#1a1a1a] text-white"}`}>
           {formatClock(clockFor(c))}
@@ -264,7 +282,7 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
               orientation={orientation}
               lastMove={lastMove}
               arrows={arrows}
-              badge={current && !retry && !explore ? { square: current.uci.slice(2, 4), cls: current.classification } : null}
+              badge={current && !retry && !exploring ? { square: current.uci.slice(2, 4), cls: current.classification } : null}
               onMove={retry ? (retry.state === "trying" ? onRetryMove : undefined) : onExploreMove}
               id="review"
             />
@@ -294,9 +312,9 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
             <div className="relative mt-1 flex-1 rounded-xl bg-white p-3 text-[14px] text-[#312e2b] shadow">
               <span className="absolute -left-1.5 top-5 h-3 w-3 rotate-45 bg-white" />
               {kittu.quip && <p className="mb-1 font-extrabold italic">{kittu.quip}</p>}
-              {explore ? (
+              {exploring ? (
                 <p className="font-semibold">
-                  You&apos;re exploring your own line. The engine lines below follow every move. Press ← to take moves back.
+                  You&apos;re exploring your own line. The engine lines below follow every move. ← and → step through it.
                 </p>
               ) : retry ? (
                 <p className="font-semibold">
@@ -334,7 +352,7 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {current && isError && !retry && (
+            {current && isError && !retry && !exploring && (
               <button className="btn-secondary" onClick={() => setRetry({ fen: current.fen_before, state: "trying" })}>
                 <RotateCcw size={16} /> Retry
               </button>
@@ -360,7 +378,7 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
                 </button>
               </>
             )}
-            {current && backend && !retry && (
+            {current && backend && !retry && !exploring && (
               <button className="btn-secondary" onClick={explain} disabled={explanation === "loading"}>
                 <Lightbulb size={16} /> {explanation === "loading" ? "Thinking…" : "Explain"}
               </button>
@@ -370,23 +388,37 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
             </label>
           </div>
 
-          {explore && (
-            <div className="flex items-start gap-2 rounded-md border border-[#749bbf]/40 bg-[#749bbf]/10 px-3 py-2 text-sm">
-              <div className="flex-1">
+          {variation && (
+            <div className={`flex items-start gap-2 rounded-md border px-3 py-2 text-sm ${exploring ? "border-[#749bbf]/40 bg-[#749bbf]/10" : "border-line bg-panel2"}`}>
+              <div className="min-w-0 flex-1">
                 <div className="text-xs font-extrabold uppercase text-[#a9c5e0]">Your variation</div>
-                <div className="mt-0.5 font-mono text-[13px] text-white">
-                  {explore.moves
-                    .map((m, i) => {
-                      const plyNo = explore.base + i; // moves before this one
-                      const white = plyNo % 2 === 0;
-                      return `${white || i === 0 ? `${Math.floor(plyNo / 2) + 1}${white ? "." : "..."} ` : ""}${m.san}`;
-                    })
-                    .join(" ")}
+                <div className="mt-0.5 flex flex-wrap gap-x-1 font-mono text-[13px]">
+                  {lineText(variation).map((m, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setRetry(null);
+                        const n = jump(nav, i);
+                        setPly(n.ply);
+                        setVariation(n.variation);
+                      }}
+                      className={`rounded px-0.5 ${exploring && variation.cursor === i + 1 ? "bg-[#749bbf] text-white" : i < (exploring ? variation.cursor : 0) ? "text-white hover:bg-white/10" : "text-soft hover:bg-white/10"}`}
+                    >
+                      {m.label && <span className="text-muted">{m.label}</span>}
+                      {m.san}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <button className="btn-secondary shrink-0 px-3 py-1.5" onClick={() => setExplore(null)}>
-                Back to game
-              </button>
+              {exploring ? (
+                <button className="btn-secondary shrink-0 px-3 py-1.5" onClick={() => goTo(ply)}>
+                  Back to game
+                </button>
+              ) : (
+                <button className="btn-secondary shrink-0 px-3 py-1.5" onClick={() => setVariation(null)}>
+                  Clear
+                </button>
+              )}
             </div>
           )}
 
@@ -428,10 +460,10 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
           <NavBtn onClick={() => goTo(0)} label="First move">
             <ChevronFirst />
           </NavBtn>
-          <NavBtn onClick={() => goTo(ply - 1)} label="Previous move">
+          <NavBtn onClick={stepBack} label="Previous move">
             <ChevronLeft />
           </NavBtn>
-          <NavBtn onClick={() => goTo(ply + 1)} label="Next move" primary>
+          <NavBtn onClick={stepForward} label="Next move" primary>
             <ChevronRight />
           </NavBtn>
           <NavBtn onClick={() => goTo(moves.length)} label="Last move">

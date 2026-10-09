@@ -111,3 +111,17 @@ def test_history_rows_have_chart_fields(monkeypatch, fake_engine, memory_store):
     assert queen["rating"] == 1200 and queen["blunders"] >= 1 and queen["accuracy"] is not None
     client = TestClient(main.app)
     assert len(client.get("/api/players/coach_tester/history?days=100000").json()["games"]) == 2
+
+
+def test_crashes_come_back_as_json_with_cors(monkeypatch):
+    from app import main
+
+    def boom(*a, **k):
+        raise TypeError("unsupported operand")
+
+    monkeypatch.setattr(main, "ask_coach", boom)
+    client = TestClient(main.app, raise_server_exceptions=False)
+    res = client.post("/api/coach/chat", json={"username": "x", "message": "hi"}, headers={"Origin": "http://localhost:3000"})
+    assert res.status_code == 500
+    assert res.json()["detail"] == "TypeError: unsupported operand"
+    assert res.headers["access-control-allow-origin"]
