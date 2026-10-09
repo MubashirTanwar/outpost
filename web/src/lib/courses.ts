@@ -1,5 +1,5 @@
 import { Chess } from "chess.js";
-import data from "@/data/courses.json";
+import data from "../data/courses.json";
 import type { Color } from "./types";
 
 export interface CourseMove {

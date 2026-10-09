@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Check, ChevronDown, Clock, Crown, Dumbbell, Lock, Play, RotateCcw, Shuffle } from "lucide-react";
+import { BookOpen, Check, ChevronDown, Clock, Crown, Dumbbell, Lock, Play, RotateCcw, Shuffle, Swords } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -83,6 +83,9 @@ export default function CoursePage({ params }: { params: { id: string } }) {
           </Link>
           <Link href={`/courses/${course.id}/quiz`} className="btn-secondary">
             <Dumbbell size={16} /> Quiz
+          </Link>
+          <Link href={`/courses/${course.id}/practice`} className="btn-secondary">
+            <Swords size={16} /> Practice vs Kittu
           </Link>
         </div>
       </div>
