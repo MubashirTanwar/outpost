@@ -20,7 +20,7 @@ function escapeRe(s: string) {
  * whose opponent is named in the same paragraph wins.
  */
 export function linkify(markdown: string, ctx: RefContext): string {
-  return markdown
+  return repairLinks(markdown, ctx)
     .split(/\n{2,}/)
     .map((para) => {
       const parts = para.split(/(\[[^\]]*\]\([^)]*\))/g);
@@ -30,7 +30,8 @@ export function linkify(markdown: string, ctx: RefContext): string {
       return parts
         .map((part, i) => {
           if (i % 2 === 1) return part; // an existing link
-          let out = part;
+          // Stray references the model wrote as text, e.g. "Bob (game:abc123)": drop them.
+          let out = part.replace(/\s*\(?`?\b(?:game|move):[\w:.-]+`?\)?/g, "");
           // Moves: played SAN first, then best SAN (both open the same moment).
           const candidates = ctx.moments
             .map((m) => ({ m, preferred: mentioned.some((g) => g.id === m.game_id) }))
@@ -63,3 +64,31 @@ export function linkify(markdown: string, ctx: RefContext): string {
     .join("\n\n");
 }
 
+
+const LINK = /\[([^\]]*)\]\(\s*<?((?:game|move):[^)>\s]*)>?(?:\s+"[^"]*")?\s*\)/g;
+
+/** The day's game a model-written reference means: exact id, a fragment of it, or the opponent's name. */
+function findGame(ctx: RefContext, ref: string, label: string): DayGame | undefined {
+  const r = ref.trim().toLowerCase();
+  const name = label.replace(/[*_`]/g, "").trim().toLowerCase();
+  return (
+    ctx.games.find((g) => g.id.toLowerCase() === r) ??
+    (r.length >= 6 ? ctx.games.find((g) => g.id.toLowerCase().startsWith(r) || r.endsWith(g.id.toLowerCase())) : undefined) ??
+    ctx.games.find((g) => g.opponent.toLowerCase() === r || g.opponent.toLowerCase() === name)
+  );
+}
+
+/**
+ * Models often get link targets slightly wrong (made-up or truncated ids, the opponent's name as
+ * the id, angle brackets). Point each game:/move: link at a real game, or unwrap it to plain text
+ * so the normal name/move linking can take over. A link is never left pointing nowhere.
+ */
+export function repairLinks(markdown: string, ctx: RefContext): string {
+  return markdown.replace(LINK, (_, label: string, target: string) => {
+    const [kind, ref = "", ply, best] = target.split(":");
+    const game = findGame(ctx, ref, label);
+    if (!game) return label;
+    if (kind === "move" && ply && /^\d+$/.test(ply)) return `[${label}](move:${game.id}:${ply}${best === "best" ? ":best" : ""})`;
+    return `[${label}](game:${game.id})`;
+  });
+}

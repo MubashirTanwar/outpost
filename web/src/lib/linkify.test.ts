@@ -37,3 +37,19 @@ test("no partial matches inside other moves or words", () => {
   const c: RefContext = { ...ctx, moments: [moment("g1", 9, "O-O", "d4", "DTJONY")] };
   assert.doesNotMatch(linkify("Castling long with O-O-O was fine.", c), /move:/);
 });
+
+test("model-written links that point nowhere are repaired or unwrapped", () => {
+  const c: RefContext = { ...ctx, games: [...ctx.games, game("37a81a2f-c499-11f1-8dbb-feb0c301000f", "Spha_hlatshwayo-97Rsa"), game("x9", "err0r_0110")] };
+  // Opponent name used as the id, truncated id, angle brackets: all resolve to the real game.
+  assert.match(linkify("vs [Spha_hlatshwayo-97Rsa](game:Spha_hlatshwayo-97Rsa)", c), /\(game:37a81a2f-c499-11f1-8dbb-feb0c301000f\)/);
+  assert.match(linkify("vs [them](game:37a81a2f-c499)", c), /\(game:37a81a2f-c499-11f1-8dbb-feb0c301000f\)/);
+  assert.match(linkify("vs [DTJONY](<game:g1>)", c), /\[DTJONY\]\(game:g1\)/);
+  // A made-up id for a known opponent: unwrapped, then linked by name.
+  assert.match(linkify("against [err0r_0110](game:abc)", c), /\[err0r_0110\]\(game:x9\)/);
+  // Unknown target and unknown name: plain text, never a dead link.
+  assert.equal(linkify("see [this game](game:nope)", c), "see this game");
+  // Stray references in the text are removed.
+  assert.equal(linkify("You lost to err0r_0110 (game:x9).", c), "You lost to [err0r_0110](game:x9).");
+  // Names with _ and - are linked when the model didn't link them at all.
+  assert.match(linkify("and Spha_hlatshwayo-97Rsa too", c), /\[Spha_hlatshwayo-97Rsa\]\(game:37a81a2f/);
+});

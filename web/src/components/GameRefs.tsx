@@ -159,6 +159,7 @@ export function RefMarkdown({ children, ctx }: { children: string; ctx: RefConte
             if (href?.startsWith("game:")) {
               const game = ctx.games.find((g) => g.id === href.slice(5));
               if (game) return <GameRef ctx={ctx} game={game} label={label} />;
+              return <>{label}</>; // never a dead "game:" link
             }
             return (
               <a href={href} target="_blank" rel="noreferrer" className="text-[#8fc8ff] underline">

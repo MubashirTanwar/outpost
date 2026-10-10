@@ -209,7 +209,9 @@ def coach_lesson(state: DayState, config: RunnableConfig) -> DayState:
         "Link every game and move you mention using the 'link' values from the JSON, as Markdown links: "
         "[opponent name](game:...) for a game and [**Bb5+**](move:...) for a move. Example: "
         "\"Against [DTJONY](game:abc) you played [**Bb5+**](move:abc:17)\". The app turns these into "
-        "previews of the position."
+        "previews of the position. Copy each 'link' value exactly, character for character; never shorten "
+        "it, invent one, or write it outside a Markdown link. If several games are mentioned together, link "
+        "each opponent name separately."
     )
     try:
         return {"lesson": llm.generate(prompt), "lesson_source": llm.provider()}
