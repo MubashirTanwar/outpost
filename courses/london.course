@@ -3,7 +3,7 @@ name: London System
 color: white
 eco: D02 A46 D00 A48 A45 A80
 tagline: One setup against everything. Bf4, e3, c3, Nf3, Nbd2, Bd3, and go.
-description: The London is the easiest repertoire in chess to learn: you put your pieces on the same squares in almost every game. This course teaches the setup, the key plans (Ne5 with f4, or the e4 break), and the exact moves you need against Black's sharpest tries: ...c5 with ...Qb6, early ...Bf5 and ...Bg4, and King's Indian setups.
+description: The London is the easiest repertoire in chess to learn: you put your pieces on the same squares in almost every game. This course teaches the setup, the key plans (Ne5 with f4, or the e4 break), and the exact moves you need against Black's sharpest tries: ...c5 with ...Qb6, early ...Bf5 and ...Bg4, the ...Nh5 bishop hunt, ...Ne4, ...cxd4 structures, King's Indian and Old Indian setups, and offbeat replies like 2...Nc6 and 1...b5.
 
 chapter: classical
 title: The main setup vs ...d5
@@ -101,6 +101,74 @@ line: benoni
 name: 1...c5: the Benoni
 moves: 1.d4 c5 {Black hits d4 at once.} 2.d5 {Take space: this is the best answer.} Nf6 3.Nc3 d6 4.e4 g6 5.Nf3 Bg7 6.Be2 {A classical big centre. Plans: O-O, Nd2 and f4 or a4.}
 
+chapter: deeper
+title: Deeper theory: Black's best tries against the setup
+intro: Strong players don't just copy the main line. They hunt your bishop with ...Nh5, trade it with ...Ne4, develop their light bishop before ...e6 and then hit b2, or open the c-file with ...cxd4. The setup stays the same; what changes is knowing the one or two precise moves each idea asks for. A recurring theme: once Black's light-squared bishop leaves c8, b7 is loose, and Qb3 hits it.
+
+line: be7
+name: 4...Be7: the Queen's Gambit setup
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 e6 4.Nf3 Be7 {Solid: the bishop avoids your Bg3 and waits for ...c5.} 5.Bd3 {Aim at h7 straight away.} O-O 6.O-O c5 7.c3 Nc6 8.Nbd2 b6 9.Ne5 {The outpost again.} Nxe5 10.dxe5 {Recapture with the pawn: it gains space and kicks the f6 knight away from the defence of h7.} Nd7 11.Qg4 {Now the queen joins the attack on the kingside, with Bxh7+ ideas in the air.}
+
+line: ne4
+name: ...Ne4: trading off the bishop
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 e6 4.Nf3 Bd6 5.Bg3 Ne4 {Black jumps in to take on g3.} 6.Nbd2 {Challenge the knight. If it takes on g3, the h-file opens for your rook.} Nxg3 7.hxg3 c5 8.c3 {The usual pyramid, with a half-open h-file as a bonus. Bd3 and Qc2 hit h7 twice.}
+
+line: e6-bd6
+name: 2...e6 and 3...Bd6
+moves: 1.d4 d5 2.Bf4 e6 3.e3 Bd6 {Black offers the bishop trade before ...Nf6.} 4.Bg3 {Same rule: keep the bishop.} Nf6 5.Nf3 {The ...Bd6 line by transposition.}
+
+line: bf5-early
+name: 2...Bf5: the copycat move order
+moves: 1.d4 d5 2.Bf4 Bf5 {Black copies you before ...Nf6.} 3.e3 e6 4.Bd3 {Same recipe: offer the light-squared bishops.} Bxd3 5.Qxd3 Nf6 6.Nf3 {The ...Bf5 line by transposition.}
+
+line: nh5
+name: ...Nh5: hunting the bishop
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 c5 4.c3 Nc6 5.Nd2 e6 6.Ngf3 Nh5 {The knight hunts your dark-squared bishop.} 7.Bg5 {Step aside with tempo: the bishop now hits the queen on d8.} Be7 8.Bxe7 Qxe7 9.Ne5 {The dark bishops are off, so the e5 square is yours.} Nxe5 10.dxe5 g6 11.g4 {Hit the h5 knight: its only square is g7, far from the action.}
+
+line: bf5-qb3
+name: ...Bf5 with ...c5: hitting b7
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 c5 4.c3 Nc6 5.Nd2 Bf5 {The bishop gets out before ...e6.} 6.Ngf3 e6 7.Qb3 {With the bishop gone from c8, b7 is loose.} Qc8 8.Nh4 {Chase the bishop and win the bishop pair.} Be4 9.f3 Bg6 10.Nxg6 hxg6 11.g4 {You have the two bishops; now take space on the kingside. Careful: the natural 11.Bd3? runs into ...c4, hitting your queen and bishop at once.}
+
+line: bg4-qb3
+name: ...Bg4 with ...c5: the same b7 idea
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 c5 4.c3 Nc6 5.Nd2 Bg4 {Now the bishop pins nothing, because your knight is not on f3 yet.} 6.Qb3 {Hit b7 at once.} Qd7 7.h3 {Ask the bishop where it is going.} Bf5 8.Ngf3 c4 9.Qd1 {The queen retreats; b3 and e4 will break Black's queenside clamp later.}
+
+line: cxd4
+name: ...cxd4: the exchange structure
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 c5 4.c3 Nc6 5.Nd2 cxd4 {Black releases the tension.} 6.exd4 {Take back with the e-pawn: the e-file opens and the f4 bishop stays outside the pawn chain.} Bf5 7.Qb3 {b7 again.} Qc8 8.Ngf3 e6 9.Nh4 {Chase the bishop.} Be4 10.f3 Bg6 11.Nxg6 hxg6 12.Bd3 {The bishop pair in a structure where your pieces are more active.}
+
+line: grunfeld-d5
+name: 1...d5 then ...g6
+moves: 1.d4 d5 2.Bf4 Nf6 3.e3 g6 {Black goes for a Grünfeld-style setup.} 4.Nf3 Bg7 5.Be2 O-O 6.O-O c5 7.c3 Nc6 8.Nbd2 {The same position as the ...g6 with ...d5 line.}
+
+chapter: offbeat
+title: Offbeat replies
+intro: Some players avoid main lines altogether: the Chigorin-style 2...Nc6, the Old Indian with ...d6 and ...Nbd7, the Modern with 1...g6, or the Polish 1...b5. Each has a simple answer you can learn once.
+
+line: chigorin-bf5
+name: 2...Nc6 3...Nf6 4...Bf5
+moves: 1.d4 d5 2.Bf4 Nc6 {The knight blocks Black's c-pawn but pressures d4 and e5.} 3.e3 Nf6 4.Nf3 Bf5 5.Bb5 {Pin the knight: Ne5 next will hit c6 twice.} e6 6.Ne5 a6 7.Bxc6+ bxc6 8.g4 {Gain space with tempo on the bishop. Black's doubled c-pawns are a long-term target.}
+
+line: chigorin-bg4
+name: 2...Nc6 3...Nf6 4...Bg4
+moves: 1.d4 d5 2.Bf4 Nc6 3.e3 Nf6 4.Nf3 Bg4 5.h3 {Ask the bishop at once.} Bxf3 6.Qxf3 e6 7.c3 {You have the bishop pair; Nd2 and Bd3 come next.}
+
+line: chigorin-nb4
+name: 2...Nc6 3...Nb4: the c2 raid
+moves: 1.d4 d5 2.Bf4 Nc6 3.e3 Nb4 {The knight eyes c2, but your queen guards it.} 4.a3 {Kick the knight.} Nc6 5.c4 {Black has spent two moves going nowhere, so open the centre while you're ahead in development.}
+
+line: old-indian
+name: 2...d6 and ...Nbd7: the Old Indian
+moves: 1.d4 Nf6 2.Bf4 d6 {Black prepares ...e5 with tempo on your bishop.} 3.e3 Nbd7 4.h3 {Give the bishop a retreat first, so ...Nh5 can't trap or trade it.} e5 5.Bh2 {The bishop stays on the b8-h2 diagonal, eyeing e5 and d6.} g6 6.Nf3 exd4 7.Nxd4 {A centralised knight, and d6 is a backward pawn to aim at.}
+
+line: modern
+name: 1...g6: the Modern move order
+moves: 1.d4 g6 2.Bf4 Bg7 3.e3 d6 4.Nf3 Nf6 5.Be2 O-O 6.h3 {The King's Indian position by transposition: the bishop can retreat to h2.}
+
+line: polish
+name: 1...b5: the Polish
+moves: 1.d4 b5 {An offbeat flank move: the b5 pawn is loose.} 2.e4 {Break the London habit here: the big centre is free, and e4 attacks nothing yet but makes Bxb5 possible.} Bb7 3.Bxb5 {Take the pawn. Black can win back e4, but you develop fast.} Bxe4 4.Nf3 e6 5.O-O {Castle: c4 and Nc3 will hit the e4 bishop next, and you're well ahead in development.}
+
 quiz: main-b6 13
 q: Black played ...Bd6, offering a bishop trade. What's the London answer?
 a: Bg3: keep the bishop; if ...Bxg3 then hxg3 opens your h-file
@@ -128,3 +196,17 @@ a: It makes h2 a retreat square for the bishop and stops ...Nh5 and ...Bg4
 w: To prepare g4 and a pawn storm
 w: To stop ...Qh4
 why: Against ...g6 and ...e5, Black wants to trap or trade your f4 bishop. With h3 the bishop can always drop back to h2.
+
+quiz: nh5 13
+q: Black's knight jumps to h5 to hunt your f4 bishop. Where does the bishop go?
+a: Bg5: out of reach, and it hits the queen on d8
+w: Bg3: keep it on the diagonal
+w: Be5: block the e-pawn
+why: On g3 the bishop just gets taken. Bg5 dodges the knight with tempo on the queen, and after ...Be7 Bxe7 the dark-squared bishops are off, leaving e5 to your knight and the h5 knight stranded.
+
+quiz: cxd4 13
+q: Black's light-squared bishop has left c8. Which move punishes it?
+a: Qb3: the b7 pawn is now undefended
+w: Qa4+: check first
+w: Bd3: trade bishops
+why: The c8 bishop was the b7 pawn's only defender. Qb3 hits b7 (and d5 behind it), so Black has to spend a move like ...Qc8 just to hold on.
