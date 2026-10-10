@@ -3,7 +3,8 @@
 import { ArrowDownRight, ArrowUpRight, BarChart3, Table2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { BackfillCard } from "@/components/BackfillCard";
 import { BarChart, Legend, LineChart, SERIES_COLORS, type LineSeries } from "@/components/Charts";
 import { Kittu, type KittuMood } from "@/components/Kittu";
 import { StatsBar } from "@/components/StatsBar";
@@ -33,12 +34,15 @@ export default function ProgressPage({ params }: { params: { username: string } 
   const tick = useNow();
   const now = tick || Date.now();
 
-  useEffect(() => {
-    rememberUser(username);
+  const load = useCallback(() => {
     getHistory(username, 365)
       .then((games) => setRows(games.map(toRow)))
       .catch((e) => setError(String(e.message ?? e)));
   }, [username]);
+  useEffect(() => {
+    rememberUser(username);
+    load();
+  }, [username, load]);
 
   const current = useMemo(() => (rows ? inRange(rows, days, now) : []), [rows, days, now]);
   const previous = useMemo(() => (rows ? inRange(rows, days, now, 1) : []), [rows, days, now]);
@@ -155,13 +159,16 @@ export default function ProgressPage({ params }: { params: { username: string } 
             </div>
           )}
 
+          <div className="mb-4">
+            <BackfillCard username={username} onGamesAdded={load} compact={rows.length > 0} />
+          </div>
           {rows.length === 0 ? (
             <div className="card p-6 text-soft">
-              No reviewed games yet. Review a day on your{" "}
+              No reviewed games yet. Start the analysis above, or review a day on your{" "}
               <Link href={`/u/${encodeURIComponent(username)}`} className="font-bold text-brand-light hover:underline">
                 dashboard
-              </Link>{" "}
-              and your numbers show up here.
+              </Link>
+              , and your numbers show up here.
             </div>
           ) : view === "charts" ? (
             <div className="grid gap-4 lg:grid-cols-2">
@@ -179,7 +186,7 @@ export default function ProgressPage({ params }: { params: { username: string } 
                 <LineChart series={accuracyLines} yDomain={[Math.min(50, ...withAcc.map((r) => r.accuracy!)), 100]} yFormat={(v) => v.toFixed(0)} onPick={openGame} ariaLabel="Accuracy per game" />
               </ChartCard>
               <ChartCard title="Blunders per game" note={days <= 31 ? "Daily average." : "Weekly average."} wide>
-                <BarChart data={blunderBars} color={SERIES_COLORS[0]} ariaLabel="Blunders per game over time" />
+                <BarChart data={blunderBars} color={SERIES_COLORS[0]} yFormat={(v) => String(+v.toFixed(2))} ariaLabel="Blunders per game over time" />
               </ChartCard>
             </div>
           ) : (

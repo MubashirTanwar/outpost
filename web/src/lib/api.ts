@@ -2,6 +2,12 @@ import type { DayOverview, GameMeta, Job, OpeningLine, Profile, Puzzle, Review }
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
+export interface BackfillResult {
+  games: number;
+  analysed: number;
+  already_reviewed: number;
+}
+
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -82,6 +88,13 @@ export const api = {
     request<{ games: (GameMeta & { rating?: number | null; blunders?: number; mistakes?: number; inaccuracies?: number })[] }>(
       `/api/players/${encodeURIComponent(username)}/history?days=${days}`,
     ),
+  startBackfill: (username: string, days: number) =>
+    request<Job<BackfillResult>>(`/api/players/${encodeURIComponent(username)}/backfill`, {
+      method: "POST",
+      body: JSON.stringify({ days }),
+    }),
+  backfill: (username: string) => request<{ job: Job<BackfillResult> | null }>(`/api/players/${encodeURIComponent(username)}/backfill`),
+  stopBackfill: (username: string) => request(`/api/players/${encodeURIComponent(username)}/backfill`, { method: "DELETE" }),
   openings: () => request<{ openings: OpeningLine[] }>("/api/openings"),
   chat: (body: { username: string; message: string; fen?: string | null; history: { role: string; content: string }[] }) =>
     request<{ answer: string; source: string; used: string[] }>("/api/coach/chat", {

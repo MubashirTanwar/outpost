@@ -137,14 +137,21 @@ def fetch_games_for_day(username: str, day: date, tz_offset_minutes: int = 0) ->
     tz = timezone(timedelta(minutes=tz_offset_minutes))
     start = datetime(day.year, day.month, day.day, tzinfo=tz)
     end = start + timedelta(days=1)
-    start_ts, end_ts = int(start.timestamp()), int(end.timestamp())
+    return fetch_games_between(username, int(start.timestamp()), int(end.timestamp()))
 
-    # A local day can straddle two UTC months, so check every month it touches.
-    months = {(start.astimezone(timezone.utc).year, start.astimezone(timezone.utc).month),
-              (end.astimezone(timezone.utc).year, end.astimezone(timezone.utc).month)}
+
+def fetch_games_between(username: str, start_ts: int, end_ts: int) -> list[GameSummary]:
+    """All standard-chess games that ended in [start_ts, end_ts), oldest first."""
+    # The range can span several UTC months (a local day can straddle two), so check every one.
+    first = datetime.fromtimestamp(start_ts, timezone.utc)
+    last = datetime.fromtimestamp(max(start_ts, end_ts - 1), timezone.utc)
+    months, (y, m) = [], (first.year, first.month)
+    while (y, m) <= (last.year, last.month):
+        months.append((y, m))
+        y, m = (y + 1, 1) if m == 12 else (y, m + 1)
     games: list[GameSummary] = []
     with _client() as client:
-        for year, month in sorted(months):
+        for year, month in months:
             try:
                 data = _get_json(client, f"{API}/player/{username.lower()}/games/{year}/{month:02d}")
             except ChessComError:

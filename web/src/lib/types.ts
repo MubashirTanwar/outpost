@@ -180,7 +180,7 @@ export interface RepertoireNote {
 
 export interface Job<T> {
   id: string;
-  status: "queued" | "running" | "done" | "error";
+  status: "queued" | "running" | "done" | "error" | "cancelled";
   stage: string;
   progress: number;
   result: T | null;

@@ -4,8 +4,8 @@
  * One entry point for the UI. Uses the Python backend (agents, graph DB, native Stockfish)
  * when it's reachable, else falls back to browser-only mode (WASM Stockfish + localStorage).
  */
-import { api, getHealth, pollJob } from "./api";
-import { fetchDayGames, playerResult, tzOffset } from "./chesscom";
+import { api, getHealth, pollJob, type BackfillResult } from "./api";
+import { fetchDayGames, fetchGamesBetween, playerResult, tzOffset } from "./chesscom";
 import { reviewPgn } from "./review";
 import type { RawGame } from "./stats";
 import { getBrowserEngine } from "./stockfish";
@@ -253,4 +253,59 @@ export async function recordAttempt(username: string, puzzle: Puzzle, solved: bo
       localStorage.setItem(key, JSON.stringify(all));
     }
   } catch {}
+}
+
+/* ---------- Background analysis of the last N days ---------- */
+
+export interface BackfillState {
+  status: "queued" | "running" | "done" | "error" | "cancelled";
+  stage: string;
+  progress: number;
+  result: BackfillResult | null;
+  error: string | null;
+  /** True when it runs in this browser tab (no backend): it stops if the tab is closed. */
+  inBrowser: boolean;
+}
+
+// Browser-mode runner. Module-level, so it keeps going while you move around the app.
+let local: { username: string; state: BackfillState; ctrl: AbortController } | null = null;
+
+export async function startBackfill(username: string, days = 30): Promise<BackfillState> {
+  if (await isBackendMode()) return { ...(await api.startBackfill(username, days)), inBrowser: false };
+  if (local && local.username === username.toLowerCase() && ["queued", "running"].includes(local.state.status)) return local.state;
+  const ctrl = new AbortController();
+  const run = { username: username.toLowerCase(), ctrl, state: { status: "running", stage: "Fetching your games from chess.com", progress: 0, result: null, error: null, inBrowser: true } as BackfillState };
+  local = run;
+  const set = (patch: Partial<BackfillState>) => (run.state = { ...run.state, ...patch });
+  (async () => {
+    try {
+      const now = Date.now();
+      const games = (await fetchGamesBetween(username, now - days * 86400_000, now + 60_000)).reverse(); // newest first
+      const todo = games.filter((g) => !loadLocalReview(g.id));
+      for (let i = 0; i < todo.length; i++) {
+        await browserReview(todo[i], (_, f) => set({ stage: `Analysing game ${i + 1} of ${todo.length}`, progress: (i + f) / todo.length }), ctrl.signal);
+      }
+      set({ status: "done", stage: "Done", progress: 1, result: { games: games.length, analysed: todo.length, already_reviewed: games.length - todo.length } });
+    } catch (e) {
+      if (ctrl.signal.aborted) set({ status: "cancelled", stage: "Stopped" });
+      else set({ status: "error", error: e instanceof Error ? e.message : String(e) });
+    }
+  })();
+  return run.state;
+}
+
+export async function backfillStatus(username: string): Promise<BackfillState | null> {
+  if (await isBackendMode()) {
+    const { job } = await api.backfill(username);
+    return job ? { ...job, inBrowser: false } : null;
+  }
+  return local && local.username === username.toLowerCase() ? local.state : null;
+}
+
+export async function stopBackfill(username: string): Promise<void> {
+  if (await isBackendMode()) {
+    await api.stopBackfill(username);
+    return;
+  }
+  if (local && local.username === username.toLowerCase()) local.ctrl.abort();
 }

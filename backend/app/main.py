@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 from . import chesscom, coaching, jobs, llm
 from .agents.coach import ask_coach, explain_move
 from .agents.day_review import run_day_review
+from .backfill import run_backfill
 from .config import get_settings
 from .engine import get_engine
 from .graph_store import get_store
@@ -159,6 +160,39 @@ def review_day(req: DayReviewRequest) -> dict:
     job_id = jobs.submit("day_review", lambda progress: run_day_review(
         req.username, req.day.isoformat(), req.tz_offset, depth, progress=progress))
     return {"job_id": job_id}
+
+
+class BackfillRequest(BaseModel):
+    days: int = Field(30, ge=1, le=365)
+    depth: int | None = Field(None, ge=1, le=30)
+
+
+_backfills: dict[str, str] = {}  # username -> its latest backfill job
+
+
+@app.post("/api/players/{username}/backfill")
+def start_backfill(username: str, req: BackfillRequest) -> dict:
+    """Analyse the last N days of games in the background (one job per player at a time)."""
+    user = username.lower()
+    current = jobs.get(_backfills.get(user, ""))
+    if current and current["status"] in {"queued", "running"}:
+        return current
+    depth = req.depth or get_settings().engine_depth
+    job_id = jobs.submit("backfill", lambda progress: run_backfill(username, req.days, depth, progress),
+                         background=True)
+    _backfills[user] = job_id
+    return jobs.get(job_id)
+
+
+@app.get("/api/players/{username}/backfill")
+def backfill_status(username: str) -> dict:
+    """The player's latest background analysis, if any (so the page can pick it up after a reload)."""
+    return {"job": jobs.get(_backfills.get(username.lower(), ""))}
+
+
+@app.delete("/api/players/{username}/backfill")
+def stop_backfill(username: str) -> dict:
+    return {"stopped": jobs.cancel(_backfills.get(username.lower(), ""))}
 
 
 @app.get("/api/jobs/{job_id}")

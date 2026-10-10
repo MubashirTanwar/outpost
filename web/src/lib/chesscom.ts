@@ -57,21 +57,29 @@ function toMeta(raw: RawGame, username: string): GameMeta | null {
 
 /** Games that ended on the given local calendar day (browser time zone). */
 export async function fetchDayGames(username: string, day: string): Promise<GameMeta[]> {
-  const start = new Date(`${day}T00:00:00`);
-  const end = new Date(start.getTime() + 86400_000);
-  const months = new Set<string>();
-  for (const d of [start, new Date(end.getTime() - 1)]) {
-    months.add(`${d.getUTCFullYear()}/${String(d.getUTCMonth() + 1).padStart(2, "0")}`);
+  const start = new Date(`${day}T00:00:00`).getTime();
+  return fetchGamesBetween(username, start, start + 86400_000);
+}
+
+/** Games that ended in [startMs, endMs), oldest first; checks every UTC month archive in range. */
+export async function fetchGamesBetween(username: string, startMs: number, endMs: number): Promise<GameMeta[]> {
+  const months: string[] = [];
+  const d = new Date(startMs);
+  let y = d.getUTCFullYear(), m = d.getUTCMonth();
+  const last = new Date(Math.max(startMs, endMs - 1));
+  while (y < last.getUTCFullYear() || (y === last.getUTCFullYear() && m <= last.getUTCMonth())) {
+    months.push(`${y}/${String(m + 1).padStart(2, "0")}`);
+    if (++m === 12) [y, m] = [y + 1, 0];
   }
   const games: GameMeta[] = [];
-  for (const m of Array.from(months).sort()) {
-    const res = await fetch(`${API}/player/${username.toLowerCase()}/games/${m}`);
+  for (const month of months) {
+    const res = await fetch(`${API}/player/${username.toLowerCase()}/games/${month}`);
     if (res.status === 404) continue;
     if (!res.ok) throw new Error(`chess.com returned ${res.status}`);
     const data: { games: RawGame[] } = await res.json();
     for (const raw of data.games) {
       const t = raw.end_time * 1000;
-      if (t >= start.getTime() && t < end.getTime()) {
+      if (t >= startMs && t < endMs) {
         const meta = toMeta(raw, username);
         if (meta) games.push(meta);
       }
