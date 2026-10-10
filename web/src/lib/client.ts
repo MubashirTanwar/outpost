@@ -89,9 +89,9 @@ export async function isBackendMode(): Promise<boolean> {
 export async function getReview(username: string, gameId: string, progress?: Progress, day?: string, signal?: AbortSignal): Promise<Review> {
   if (await isBackendMode()) {
     try {
-      return await api.getReview(gameId);
+      return await api.getReview(gameId, username);
     } catch {
-      const res = await api.reviewGame({ username, game_id: gameId, day, tz_offset: tzOffset() });
+      const res = await api.reviewGame({ username, game_id: gameId, day, tz_offset: tzOffset(day) });
       if (res.review) return res.review;
       const out = await pollJob<{ review: Review }>(res.job_id!, (j) => progress?.(j.stage, j.progress));
       return out.review;
@@ -107,7 +107,7 @@ export async function getReview(username: string, gameId: string, progress?: Pro
 
 export async function reviewDay(username: string, day: string, progress: Progress, signal?: AbortSignal): Promise<DayOverview> {
   if (await isBackendMode()) {
-    const { job_id } = await api.reviewDay({ username, day, tz_offset: tzOffset() });
+    const { job_id } = await api.reviewDay({ username, day, tz_offset: tzOffset(day) });
     return pollJob<DayOverview>(job_id, (j) => progress(j.stage, j.progress));
   }
   progress("Fetching games from chess.com", 0.02);

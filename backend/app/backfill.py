@@ -9,6 +9,7 @@ from . import chesscom
 from .engine import get_engine
 from .graph_store import get_store
 from .review import review_pgn
+from .review_cache import cached_review
 
 
 def run_backfill(username: str, days: int, depth: int, progress: Callable[[str, float], None],
@@ -22,11 +23,8 @@ def run_backfill(username: str, days: int, depth: int, progress: Callable[[str, 
     now = int(time.time())
     games = (fetch or chesscom.fetch_games_between)(username, now - days * 86400, now + 60)
     store, engine = get_store(), get_engine()
-    todo = []
-    for g in reversed(games):
-        cached = store.get_review(g.id)
-        if not (cached and cached.get("depth", 0) >= depth and cached.get("player_color") == g.player_color):
-            todo.append(g)
+    todo = [g for g in reversed(games)
+            if not cached_review(store, username, g.id, depth, {**g.to_dict(), "pgn": g.pgn})]
     skipped = len(games) - len(todo)
     for i, g in enumerate(todo):
         progress(f"Analysing game {i + 1} of {len(todo)}", i / max(1, len(todo)))

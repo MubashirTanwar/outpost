@@ -69,8 +69,21 @@ def test_neo4j_history_backfills_old_rows(monkeypatch, fake_engine, neo4j_store)
     fresh = {g["id"]: g for g in neo4j_store.list_games("coach_tester")}
     # Games saved before the flat chart fields existed have none of them.
     with neo4j_store._driver.session() as s:
-        s.run("MATCH (g:Game) REMOVE g.blunders, g.mistakes, g.inaccuracies, g.rating, g.player_color").consume()
+        s.run("MATCH ()-[r:PLAYED]->(g:Game) REMOVE r.blunders, r.mistakes, r.inaccuracies, "
+              "g.blunders, g.mistakes, g.inaccuracies, g.rating, g.player_color").consume()
     old = {g["id"]: g for g in neo4j_store.list_games("coach_tester")}
     for gid, g in fresh.items():
         for key in ("blunders", "mistakes", "inaccuracies", "rating", "accuracy"):
             assert old[gid][key] == g[key], (gid, key)
+
+
+def test_neo4j_rereview_replaces_records(fake_engine, neo4j_store):
+    from .store_contract import check_rereview_replaces_records
+
+    check_rereview_replaces_records(neo4j_store, fake_engine)
+
+
+def test_neo4j_two_players(fake_engine, neo4j_store):
+    from .store_contract import check_both_players_keep_their_side
+
+    check_both_players_keep_their_side(neo4j_store, fake_engine)

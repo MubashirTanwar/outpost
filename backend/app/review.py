@@ -258,6 +258,23 @@ def classify(
     return cls
 
 
+def key_moments(moves: list[dict], player_color: str | None) -> list[int]:
+    """The plies worth replaying for one side: its biggest errors, plus its brilliant/great moves."""
+    focus = player_color or "white"
+    picked = sorted(
+        (m for m in moves if m["color"] == focus and (m["classification"] in ERRORS or m["classification"] in {"brilliant", "great"})),
+        key=lambda m: -m["win_loss"] if m["classification"] in ERRORS else -100,
+    )[:6]
+    return sorted(m["ply"] for m in picked)
+
+
+def review_for(review: dict, player_color: str | None) -> dict:
+    """The same analysis seen from one player's side (both players of a game can review it)."""
+    if review.get("player_color") == player_color or player_color is None:
+        return review
+    return {**review, "player_color": player_color, "key_moments": key_moments(review["moves"], player_color)}
+
+
 def _white_pov(line: Line, turn: chess.Color) -> tuple[int, int | None]:
     sign = 1 if turn == chess.WHITE else -1
     return sign * line.cp, (sign * line.mate if line.mate is not None else None)
@@ -383,11 +400,6 @@ def review_pgn(
             "phase_accuracy": phases,
         }
 
-    focus = player_color or "white"
-    key_moments = sorted(
-        (m for m in moves if m.color == focus and (m.classification in ERRORS or m.classification in {"brilliant", "great"})),
-        key=lambda m: -m.win_loss if m.classification in ERRORS else -100,
-    )[:6]
 
     headers = dict(game.headers)
     return {
@@ -399,6 +411,6 @@ def review_pgn(
         "start_eval": {"cp": start_cp, "mate": start_mate},
         "summary": summary,
         "moves": [asdict(m) for m in moves],
-        "key_moments": sorted(m.ply for m in key_moments),
+        "key_moments": key_moments([asdict(m) for m in moves], player_color),
         "depth": depth,
     }

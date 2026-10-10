@@ -61,7 +61,7 @@ export default function Dashboard({ params }: { params: { username: string } }) 
     let cancelled = false;
     fetchDayGames(username, day)
       // chess.com unreachable from the browser? Ask the backend instead.
-      .catch(() => api.games(username, day, tzOffset()).then((d) => d.games))
+      .catch(() => api.games(username, day, tzOffset(day)).then((d) => d.games))
       .then((g: GameMeta[]) => !cancelled && setGames(g))
       .catch((e) => !cancelled && setGamesError(String(e)));
     return () => {

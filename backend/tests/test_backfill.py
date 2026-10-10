@@ -65,3 +65,15 @@ def test_backfill_endpoints_run_in_background_and_stop(monkeypatch, fake_engine,
             break
         time.sleep(0.02)
     assert jobs.get(jid)["status"] == "cancelled"
+
+
+def test_finished_jobs_are_forgotten(monkeypatch):
+    jid = jobs.submit("quick", lambda progress: 42)
+    for _ in range(100):
+        if jobs.get(jid)["status"] == "done":
+            break
+        time.sleep(0.01)
+    assert jobs.get(jid)["result"] == 42
+    monkeypatch.setattr(jobs, "KEEP_FINISHED_S", -1)
+    jobs.submit("next", lambda progress: None)
+    assert jobs.get(jid) is None

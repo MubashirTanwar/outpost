@@ -65,7 +65,8 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  getReview: (gameId: string) => request<Review>(`/api/review/game/${encodeURIComponent(gameId)}`),
+  getReview: (gameId: string, username?: string) =>
+    request<Review>(`/api/review/game/${encodeURIComponent(gameId)}${username ? `?username=${encodeURIComponent(username)}` : ""}`),
   reviewDay: (body: { username: string; day: string; tz_offset: number }) =>
     request<{ job_id: string }>("/api/review/day", { method: "POST", body: JSON.stringify(body) }),
   job: <T>(id: string) => request<Job<T>>(`/api/jobs/${id}`),

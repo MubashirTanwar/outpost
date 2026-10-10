@@ -13,6 +13,8 @@ import chess.engine
 from .config import get_settings
 
 MATE_SCORE = 100_000
+STARTUP_TIMEOUT = 30  # seconds; the WASM build under node can take a while to start
+SEARCH_TIME_CAP = 120  # seconds per position, a safety net against a hung engine
 
 
 @dataclass
@@ -54,22 +56,37 @@ class Engine:
 
     def _ensure(self) -> chess.engine.SimpleEngine:
         if self._engine is None:
-            self._engine = chess.engine.SimpleEngine.popen_uci(self._command)
+            self._engine = chess.engine.SimpleEngine.popen_uci(self._command, timeout=STARTUP_TIMEOUT)
             for name, value in self._options.items():
-                if name in self._engine.options:
+                opt = self._engine.options.get(name)
+                if opt is not None:
+                    # Builds differ (the single-threaded WASM build only allows Threads=1).
+                    if opt.max is not None:
+                        value = min(value, opt.max)
                     self._engine.configure({name: value})
         return self._engine
+
+    def _discard(self) -> None:
+        """Drop a broken engine process, making sure it and its thread go away."""
+        engine, self._engine = self._engine, None
+        if engine is not None:
+            try:
+                engine.close()
+            except Exception:  # noqa: BLE001 - it's already broken
+                pass
 
     def analyse(self, board: chess.Board, depth: int, multipv: int = 1) -> list[Line]:
         if board.is_game_over():
             return [_terminal_line(board)]
+        # The time cap only matters if the engine hangs: a normal search finishes long before it.
+        limit = chess.engine.Limit(depth=depth, time=SEARCH_TIME_CAP)
         with self._lock:
             try:
-                infos = self._ensure().analyse(board, chess.engine.Limit(depth=depth), multipv=multipv)
-            except (chess.engine.EngineTerminatedError, chess.engine.EngineError):
-                # Restart once on a crashed engine process.
-                self._engine = None
-                infos = self._ensure().analyse(board, chess.engine.Limit(depth=depth), multipv=multipv)
+                infos = self._ensure().analyse(board, limit, multipv=multipv)
+            except (chess.engine.EngineTerminatedError, chess.engine.EngineError, TimeoutError):
+                # Restart once on a crashed or hung engine process.
+                self._discard()
+                infos = self._ensure().analyse(board, limit, multipv=multipv)
         return [_score_to_line(info) for info in infos]
 
     def available(self) -> bool:
@@ -77,7 +94,9 @@ class Engine:
             with self._lock:
                 self._ensure()
             return True
-        except (OSError, chess.engine.EngineError):
+        except (OSError, chess.engine.EngineError, TimeoutError):
+            with self._lock:
+                self._discard()
             return False
 
     def close(self) -> None:
@@ -95,10 +114,12 @@ def _terminal_line(board: chess.Board) -> Line:
 
 
 _engine: Engine | None = None
+_engine_lock = threading.Lock()
 
 
 def get_engine() -> Engine:
     global _engine
-    if _engine is None:
-        _engine = Engine()
-    return _engine
+    with _engine_lock:  # concurrent first requests must not start two engines
+        if _engine is None:
+            _engine = Engine()
+        return _engine

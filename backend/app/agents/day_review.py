@@ -21,6 +21,7 @@ from langgraph.graph import END, START, StateGraph
 from .. import chesscom, coaching, llm, repertoire
 from ..engine import get_engine
 from ..graph_store import get_store
+from ..review_cache import cached_review
 from ..review import CLASSIFICATIONS, review_pgn
 
 
@@ -59,13 +60,8 @@ def analyze_games(state: DayState, config: RunnableConfig) -> DayState:
     store, engine, report = get_store(), get_engine(), _progress(config)
     games, reviews = state["games"], {}
     for idx, game in enumerate(games):
-        cached = store.get_review(game["id"])
-        if cached and cached.get("depth", 0) >= state.get("depth", 18):
-            # chess.com's own accuracy appears once the game is reviewed there: carry it into the cache.
-            fresh = {k: v for k, v in game.items() if k != "pgn"}
-            if fresh.get("chesscom_white_accuracy") is not None and cached.get("game") != fresh:
-                cached["game"] = fresh
-                store.save_review(state["username"], game, cached)
+        cached = cached_review(store, state["username"], game["id"], state.get("depth", 18), game)
+        if cached:
             reviews[game["id"]] = cached
             continue
 

@@ -7,12 +7,13 @@ import io
 import json
 import logging
 import time
+from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta, timezone
 
 import chess
 import chess.pgn
 import httpx
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -24,14 +25,29 @@ from .backfill import run_backfill
 from .config import get_settings
 from .engine import get_engine
 from .graph_store import get_store
-from .review import _san_line, review_pgn
+from .review import _san_line, review_for, review_pgn
+from .review_cache import cached_review, color_of
 
-app = FastAPI(title="Outpost API", version="0.1.0")
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    yield
+    # Without this, a Stockfish process (or the node one running the WASM build) keeps
+    # uvicorn from exiting on Ctrl-C / --reload.
+    get_engine().close()
+    get_store().close()
+
+
+app = FastAPI(title="Outpost API", version="0.1.0", lifespan=lifespan)
 log = logging.getLogger(__name__)
 
 
 # Registered before CORS so CORS wraps it: an unexpected crash becomes a JSON 500 the browser can
 # read, instead of a header-less 500 that browsers report as "TypeError: Failed to fetch".
+@app.exception_handler(chesscom.ChessComError)
+async def chesscom_not_found(request: Request, exc: chesscom.ChessComError):
+    return JSONResponse({"detail": str(exc)}, status_code=404)
+
+
 @app.middleware("http")
 async def json_errors(request: Request, call_next):
     try:
@@ -71,7 +87,7 @@ def _day_bounds(day: date, tz_offset: int) -> tuple[int, int]:
 
 
 @app.get("/api/players/{username}/games")
-def list_games(username: str, day: date | None = None, tz_offset: int = 0) -> dict:
+def list_games(username: str, day: date | None = None, tz_offset: int = Query(0, ge=-840, le=840)) -> dict:
     """Games for a day from chess.com, marked with whether we've already reviewed them."""
     try:
         if day:
@@ -93,8 +109,8 @@ class GameReviewRequest(BaseModel):
     game_id: str | None = None
     pgn: str | None = None
     day: date | None = None  # where to look for game_id on chess.com
-    tz_offset: int = 0
-    depth: int | None = None
+    tz_offset: int = Field(0, ge=-840, le=840)  # minutes east of UTC
+    depth: int | None = Field(None, ge=1, le=30)
 
 
 def _find_game(req: GameReviewRequest) -> dict:
@@ -112,8 +128,11 @@ def _find_game(req: GameReviewRequest) -> dict:
                 "white_result": "win" if h.get("Result") == "1-0" else ("agreed" if h.get("Result") == "1/2-1/2" else "lose"),
                 "black_result": "win" if h.get("Result") == "0-1" else ("agreed" if h.get("Result") == "1/2-1/2" else "lose"),
                 "eco": h.get("ECO"), "opening": chesscom.opening_name_from_url(h.get("ECOUrl")), "player_color": color}
-    candidates = (chesscom.fetch_games_for_day(req.username, req.day, req.tz_offset) if req.day
-                  else chesscom.fetch_recent_games(req.username, limit=100))
+    try:
+        candidates = (chesscom.fetch_games_for_day(req.username, req.day, req.tz_offset) if req.day
+                      else chesscom.fetch_recent_games(req.username, limit=100))
+    except httpx.HTTPError as exc:  # rate limits, chess.com down
+        raise HTTPException(502, f"chess.com request failed: {exc}") from exc
     for g in candidates:
         if g.id == req.game_id:
             return {**g.to_dict(), "pgn": g.pgn}
@@ -125,7 +144,7 @@ def review_game(req: GameReviewRequest) -> dict:
     """Start (or return cached) review of one game. Returns a job id or the finished review."""
     store = get_store()
     depth = req.depth or get_settings().engine_depth
-    if req.game_id and (cached := store.get_review(req.game_id)) and cached.get("depth", 0) >= depth:
+    if req.game_id and (cached := cached_review(store, req.username, req.game_id, depth)):
         return {"status": "done", "game_id": req.game_id, "review": cached}
     game = _find_game(req)
 
@@ -140,18 +159,19 @@ def review_game(req: GameReviewRequest) -> dict:
 
 
 @app.get("/api/review/game/{game_id}")
-def get_review(game_id: str) -> dict:
+def get_review(game_id: str, username: str | None = None) -> dict:
+    """A stored review; with `username`, seen from that player's side."""
     review = get_store().get_review(game_id)
     if not review:
         raise HTTPException(404, "Not reviewed yet")
-    return review
+    return review_for(review, color_of(review, username)) if username else review
 
 
 class DayReviewRequest(BaseModel):
     username: str
     day: date
-    tz_offset: int = 0
-    depth: int | None = None
+    tz_offset: int = Field(0, ge=-840, le=840)  # minutes east of UTC
+    depth: int | None = Field(None, ge=1, le=30)
 
 
 @app.post("/api/review/day")

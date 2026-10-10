@@ -105,6 +105,7 @@ export function localDay(d = new Date()): string {
 }
 
 /** Minutes east of UTC, as the backend expects. */
-export function tzOffset(): number {
-  return -new Date().getTimezoneOffset();
+export function tzOffset(day?: string): number {
+  // The offset in effect on that day (it changes across daylight saving), measured at local midnight.
+  return -(day ? new Date(`${day}T00:00:00`) : new Date()).getTimezoneOffset();
 }

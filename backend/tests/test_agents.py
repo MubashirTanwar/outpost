@@ -141,3 +141,36 @@ def test_cached_review_picks_up_chesscom_accuracy(monkeypatch, fake_engine, memo
     games[1]["chesscom_white_accuracy"], games[1]["chesscom_black_accuracy"] = 88.0, 41.2
     day_review.run_day_review("coach_tester", "2025-10-09", games=games, depth=1)
     assert memory_store.get_review("g2")["game"]["chesscom_black_accuracy"] == 41.2
+
+
+def test_memory_store_contract(fake_engine, memory_store):
+    from .store_contract import check_rereview_replaces_records
+
+    check_rereview_replaces_records(memory_store, fake_engine)
+
+
+def test_memory_store_two_players(fake_engine, memory_store):
+    from .store_contract import check_both_players_keep_their_side
+
+    check_both_players_keep_their_side(memory_store, fake_engine)
+
+
+def test_get_review_from_each_players_side(monkeypatch, fake_engine, memory_store):
+    from app import main
+
+    monkeypatch.setattr(day_review, "get_engine", lambda: fake_engine)
+    day_review.run_day_review("coach_tester", "2025-10-09", games=_games(), depth=1)
+    client = TestClient(main.app)
+    mine = client.get("/api/review/game/g2?username=coach_tester").json()
+    theirs = client.get("/api/review/game/g2?username=Opponent2").json()
+    assert mine["player_color"] == "black" and theirs["player_color"] == "white"
+    assert all(mine["moves"][p - 1]["color"] == "black" for p in mine["key_moments"])
+    assert all(theirs["moves"][p - 1]["color"] == "white" for p in theirs["key_moments"])
+    # The opponent reviewing the same game reuses the analysis and gets their own row.
+    games = _games()
+    for g in games:
+        g["player_color"] = "white" if g["white"] == "opponent2" else None
+    day_review.run_day_review("opponent2", "2025-10-09", games=[games[1]], depth=1)
+    assert memory_store.list_games("opponent2")[0]["player_color"] == "white"
+    mine_row = next(r for r in memory_store.list_games("coach_tester") if r["id"] == "g2")
+    assert mine_row["player_color"] == "black", "the opponent's review must not change my row"

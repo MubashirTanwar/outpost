@@ -19,6 +19,10 @@ class ChessComError(RuntimeError):
     pass
 
 
+class PlayerNotFound(ChessComError):
+    pass
+
+
 @dataclass
 class GameSummary:
     id: str
@@ -150,17 +154,22 @@ def fetch_games_between(username: str, start_ts: int, end_ts: int) -> list[GameS
         months.append((y, m))
         y, m = (y + 1, 1) if m == 12 else (y, m + 1)
     games: list[GameSummary] = []
+    missing = 0
     with _client() as client:
         for year, month in months:
             try:
                 data = _get_json(client, f"{API}/player/{username.lower()}/games/{year}/{month:02d}")
             except ChessComError:
+                missing += 1
                 continue
             for raw in data.get("games", []):
                 if start_ts <= int(raw.get("end_time", 0)) < end_ts:
                     parsed = parse_game(raw, username)
                     if parsed:
                         games.append(parsed)
+    # Every month missing usually means a typo in the username, not a quiet month: say so.
+    if months and missing == len(months) and not player_exists(username):
+        raise PlayerNotFound(f"There's no chess.com player called '{username}'")
     games.sort(key=lambda g: g.end_time)
     return games
 

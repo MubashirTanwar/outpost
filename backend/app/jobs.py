@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+import time
 import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -21,9 +22,18 @@ class Cancelled(Exception):
     """Raised inside a job's progress callback once the job has been cancelled."""
 
 
+KEEP_FINISHED_S = 3600  # finished jobs (and their results) are forgotten after an hour
+
+
+def _evict_finished(now: float) -> None:
+    for jid in [j for j, job in _jobs.items() if job.get("finished_at") and now - job["finished_at"] > KEEP_FINISHED_S]:
+        del _jobs[jid]
+
+
 def submit(kind: str, fn: Callable[[Callable[[str, float], None]], Any], background: bool = False) -> str:
     job_id = uuid.uuid4().hex[:12]
     with _lock:
+        _evict_finished(time.time())
         _jobs[job_id] = {"id": job_id, "kind": kind, "status": "queued", "stage": "Queued", "progress": 0.0,
                          "result": None, "error": None, "cancel": False}
 
@@ -39,14 +49,14 @@ def submit(kind: str, fn: Callable[[Callable[[str, float], None]], Any], backgro
         try:
             result = fn(progress)
             with _lock:
-                _jobs[job_id].update(status="done", progress=1.0, stage="Done", result=result)
+                _jobs[job_id].update(status="done", progress=1.0, stage="Done", result=result, finished_at=time.time())
         except Cancelled:
             with _lock:
-                _jobs[job_id].update(status="cancelled", stage="Stopped")
+                _jobs[job_id].update(status="cancelled", stage="Stopped", finished_at=time.time())
         except Exception as exc:  # surfaced to the UI
             traceback.print_exc()
             with _lock:
-                _jobs[job_id].update(status="error", error=str(exc))
+                _jobs[job_id].update(status="error", error=str(exc), finished_at=time.time())
 
     (_background if background else _pool).submit(run)
     return job_id
@@ -55,7 +65,7 @@ def submit(kind: str, fn: Callable[[Callable[[str, float], None]], Any], backgro
 def get(job_id: str) -> dict[str, Any] | None:
     with _lock:
         job = _jobs.get(job_id)
-        return {k: v for k, v in job.items() if k != "cancel"} if job else None
+        return {k: v for k, v in job.items() if k not in {"cancel", "finished_at"}} if job else None
 
 
 def cancel(job_id: str) -> bool:

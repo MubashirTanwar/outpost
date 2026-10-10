@@ -49,7 +49,8 @@ def _puzzle_solution(move: dict) -> list[str]:
 
 def extract_records(username: str, game: dict, review: dict) -> dict:
     """Turn a reviewed game into the mistake and puzzle records the graph stores."""
-    color = review.get("player_color") or game.get("player_color")
+    # The saving player's side (the review may have been made from the opponent's side).
+    color = game.get("player_color") or review.get("player_color")
     mistakes, puzzles = [], []
     for move in review["moves"]:
         if move["color"] != color or move["classification"] not in ERRORS:
@@ -136,7 +137,7 @@ class MemoryGraphStore:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self._reviews: dict[str, dict] = {}
-        self._games: dict[str, dict] = {}  # game_id -> row
+        self._games: dict[tuple[str, str], dict] = {}  # (player, game_id) -> that player's row
         self._player_games: dict[str, set[str]] = defaultdict(set)
         self._mistakes: dict[str, list[dict]] = defaultdict(list)
         self._puzzles: dict[str, dict] = {}
@@ -147,29 +148,35 @@ class MemoryGraphStore:
     def save_review(self, username: str, game: dict, review: dict) -> None:
         user = username.lower()
         records = extract_records(user, game, review)
+        gid = game["id"]
         with self._lock:
-            self._reviews[game["id"]] = review
+            self._reviews[gid] = review
             row = _game_row(game, review, records["color"])
             row["result"] = _player_result(game, records["color"])
-            self._games[game["id"]] = row
-            if game["id"] not in self._player_games[user]:
-                self._player_games[user].add(game["id"])
-                self._mistakes[user].extend(records["mistakes"])
-                for pz in records["puzzles"]:
-                    self._puzzles[pz["id"]] = pz
-                    self._player_puzzles[user].append(pz["id"])
+            self._games[(user, gid)] = row
+            self._player_games[user].add(gid)
+            # A re-review (e.g. deeper) replaces this game's mistakes and puzzles instead of adding to them.
+            self._mistakes[user] = [m for m in self._mistakes[user] if m["game_id"] != gid] + records["mistakes"]
+            self._player_puzzles[user] = [p for p in self._player_puzzles[user] if self._puzzles[p]["game_id"] != gid]
+            for pz in records["puzzles"]:
+                self._puzzles[pz["id"]] = pz
+                self._player_puzzles[user].append(pz["id"])
 
     def get_review(self, game_id: str) -> dict | None:
-        return self._reviews.get(game_id)
+        with self._lock:
+            return self._reviews.get(game_id)
 
     def list_games(self, username: str, since: int | None = None, until: int | None = None) -> list[dict]:
-        rows = [self._games[g] for g in self._player_games.get(username.lower(), ())]
+        user = username.lower()
+        with self._lock:  # job threads add games while requests read them
+            rows = [self._games[(user, g)] for g in self._player_games.get(user, ())]
         rows = [r for r in rows if (since is None or r["end_time"] >= since) and (until is None or r["end_time"] < until)]
         return sorted(rows, key=lambda r: r["end_time"], reverse=True)
 
     def weakness_profile(self, username: str) -> dict:
         user = username.lower()
-        mistakes = self._mistakes.get(user, [])
+        with self._lock:
+            mistakes = list(self._mistakes.get(user, []))
         motif_stats: dict[str, list[float]] = defaultdict(list)
         for m in mistakes:
             for motif in m["motifs"]:
@@ -212,7 +219,9 @@ class MemoryGraphStore:
     def puzzles(self, username: str, motif: str | None = None, limit: int = 20) -> list[dict]:
         user = username.lower()
         out = []
-        for pid in self._player_puzzles.get(user, []):
+        with self._lock:
+            pids = list(self._player_puzzles.get(user, []))
+        for pid in pids:
             pz = self._puzzles[pid]
             if motif and motif not in pz["motifs"]:
                 continue
@@ -304,12 +313,19 @@ class Neo4jGraphStore:
                     MERGE (g:Game {id: $id})
                     SET g += $props, g.review = $review
                     MERGE (p)-[r:PLAYED]->(g)
-                    SET r.color = $color, r.result = $result, r.accuracy = $accuracy, r.rating = $rating
+                    SET r.color = $color, r.result = $result, r.accuracy = $accuracy, r.rating = $rating,
+                        r.blunders = $blunders, r.mistakes = $mistake_count, r.inaccuracies = $inaccuracies
                     MERGE (opp)-[:PLAYED {color: $opp_color}]->(g)
                     MERGE (o:Opening {key: $eco + '|' + $opening})
                     SET o.eco = $eco, o.name = $opening
                     MERGE (g)-[:IN_OPENING]->(o)
                     WITH p, g
+                    // A re-review replaces this player's mistakes (and their puzzles) in this game.
+                    OPTIONAL MATCH (p)-[:MADE]->(old:Mistake)-[:IN_GAME]->(g)
+                    WHERE NOT old.id IN [m IN $mistakes | m.id]
+                    OPTIONAL MATCH (oldpz:Puzzle)-[:FROM_MISTAKE]->(old)
+                    DETACH DELETE oldpz, old
+                    WITH DISTINCT p, g
                     UNWIND $mistakes AS m
                     MERGE (mk:Mistake {id: m.id})
                     SET mk.ply = m.ply, mk.san = m.san, mk.best_san = m.best_san,
@@ -319,6 +335,10 @@ class Neo4jGraphStore:
                     MERGE (mk)-[:IN_GAME]->(g)
                     MERGE (pos:Position {key: m.position})
                     MERGE (mk)-[:AT_POSITION]->(pos)
+                    WITH mk, m
+                    OPTIONAL MATCH (mk)-[stale:HAS_MOTIF]->()
+                    DELETE stale
+                    WITH DISTINCT mk, m
                     FOREACH (name IN m.motifs |
                         MERGE (mo:Motif {name: name})
                         MERGE (mk)-[:HAS_MOTIF]->(mo))
@@ -333,6 +353,7 @@ class Neo4jGraphStore:
                     result=_player_result(game, color),
                     accuracy=row["accuracy"],
                     rating=game.get(f"{color}_rating") if color else None,
+                    blunders=row["blunders"], mistake_count=row["mistakes"], inaccuracies=row["inaccuracies"],
                     eco=eco,
                     opening=opening,
                     mistakes=records["mistakes"],
@@ -362,25 +383,34 @@ class Neo4jGraphStore:
             result = s.run(
                 """
                 MATCH (:Player {username: $user})-[r:PLAYED]->(g:Game)
-                WHERE ($since IS NULL OR g.end_time >= $since) AND ($until IS NULL OR g.end_time < $until)
-                RETURN g {.*, review: null} AS game, r.result AS result, r.color AS color,
-                       CASE WHEN g.blunders IS NULL THEN g.review END AS old_review
+                WHERE r.result IS NOT NULL
+                  AND ($since IS NULL OR g.end_time >= $since) AND ($until IS NULL OR g.end_time < $until)
+                RETURN g {.*, review: null} AS game, r {.*} AS edge,
+                       CASE WHEN r.blunders IS NULL THEN g.review END AS old_review
                 ORDER BY g.end_time DESC
                 """,
                 user=username.lower(), since=since, until=until,
             )
             rows = []
             for rec in result:
-                row = {**{k: v for k, v in rec["game"].items() if k != "review"}, "result": rec["result"]}
-                if rec["old_review"]:  # saved before the flat chart fields existed
-                    row = {**_game_row(row, json.loads(rec["old_review"]), row.get("player_color") or rec["color"]), **row}
+                edge = rec["edge"]
+                # The game node is shared by both players; this player's side lives on their PLAYED edge.
+                row = {**{k: v for k, v in rec["game"].items() if k != "review"}, "result": edge.get("result"),
+                       "player_color": edge.get("color"), "accuracy": edge.get("accuracy"), "rating": edge.get("rating")}
+                if rec["old_review"]:  # saved before the per-player chart fields existed
+                    row = {**row, **{k: v for k, v in _game_row(row, json.loads(rec["old_review"]), edge.get("color")).items()
+                                     if k in {"blunders", "mistakes", "inaccuracies", "counts"}}}
+                else:
+                    row.update(blunders=edge.get("blunders"), mistakes=edge.get("mistakes"), inaccuracies=edge.get("inaccuracies"))
                 rows.append(row)
             return rows
 
     def weakness_profile(self, username: str) -> dict:
         user = username.lower()
         with self._driver.session() as s:
-            games = s.run("MATCH (:Player {username: $u})-[:PLAYED]->(g) RETURN count(g) AS n", u=user).single()["n"]
+            # Only games this player reviewed (an opponent's review also links them to the game).
+            games = s.run("MATCH (:Player {username: $u})-[r:PLAYED]->(g) WHERE r.result IS NOT NULL RETURN count(g) AS n",
+                          u=user).single()["n"]
             motifs = s.run(
                 """
                 MATCH (:Player {username: $u})-[:MADE]->(mk)-[:HAS_MOTIF]->(mo)
@@ -394,6 +424,7 @@ class Neo4jGraphStore:
             openings = s.run(
                 """
                 MATCH (:Player {username: $u})-[r:PLAYED]->(g)-[:IN_OPENING]->(o)
+                WHERE r.result IS NOT NULL
                 RETURN o.eco AS eco, o.name AS name, count(g) AS games,
                        sum(CASE r.result WHEN 'win' THEN 1 ELSE 0 END) AS win,
                        sum(CASE r.result WHEN 'draw' THEN 1 ELSE 0 END) AS draw,
@@ -475,14 +506,16 @@ class Neo4jGraphStore:
 
 
 _store: GraphStore | None = None
+_store_lock = threading.Lock()
 
 
 def get_store() -> GraphStore:
     global _store
-    if _store is None:
-        settings = get_settings()
-        if settings.neo4j_uri:
-            _store = Neo4jGraphStore(settings.neo4j_uri, settings.neo4j_user, settings.neo4j_password)
-        else:
-            _store = MemoryGraphStore()
-    return _store
+    with _store_lock:  # concurrent first requests must not open two drivers
+        if _store is None:
+            settings = get_settings()
+            if settings.neo4j_uri:
+                _store = Neo4jGraphStore(settings.neo4j_uri, settings.neo4j_user, settings.neo4j_password)
+            else:
+                _store = MemoryGraphStore()
+        return _store
