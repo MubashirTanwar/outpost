@@ -29,26 +29,23 @@ function sanLine(fen: string, pv: string[], n = 8): string {
 }
 
 export default function AnalysisPage() {
-  const [history, setHistory] = useState<string[]>([new Chess().fen()]);
+  // Each position remembers the move that led to it, so Undo/Reset restore the right highlight.
+  type Entry = { fen: string; last: { from: string; to: string } | null };
+  const [history, setHistory] = useState<Entry[]>([{ fen: new Chess().fen(), last: null }]);
   const [orientation, setOrientation] = useState<"white" | "black">("white");
   const [lines, setLines] = useState<EngineLine[]>([]);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
-  const fen = history[history.length - 1];
+  const { fen, last: lastMove } = history[history.length - 1];
   const turn = fen.split(" ")[1] === "w" ? 1 : -1;
 
   useEffect(() => {
-    const engine = getBrowserEngine();
-    engine.setSkill(20);
-    engine.stop();
     setLines([]);
-    let live = true;
-    engine.analyse(fen, { depth: 20, multipv: 3, onInfo: (l) => live && setLines([...l]) }).then((l) => live && setLines(l));
-    return () => {
-      live = false;
-      engine.stop();
-    };
+    const ctrl = new AbortController();
+    getBrowserEngine()
+      .analyse(fen, { depth: 20, multipv: 3, signal: ctrl.signal, onInfo: (l) => setLines([...l]) })
+      .then((l) => !ctrl.signal.aborted && setLines(l));
+    return () => ctrl.abort();
   }, [fen]);
 
   const onMove = (from: Square, to: Square, promotion?: string) => {
@@ -56,8 +53,7 @@ export default function AnalysisPage() {
     try {
       const mv = c.move({ from, to, promotion });
       playSound(soundForMove(mv));
-      setLastMove({ from, to });
-      setHistory((h) => [...h, c.fen()]);
+      setHistory((h) => [...h, { fen: c.fen(), last: { from, to } }]);
       return true;
     } catch {
       return false;
@@ -71,8 +67,7 @@ export default function AnalysisPage() {
       const c = new Chess();
       if (text.split("/").length === 8) c.load(text);
       else c.loadPgn(text);
-      setHistory([c.fen()]);
-      setLastMove(null);
+      setHistory([{ fen: c.fen(), last: null }]);
     } catch {
       setError("That's neither a valid FEN nor PGN.");
     }
@@ -119,7 +114,7 @@ export default function AnalysisPage() {
             <button className="btn-secondary" onClick={() => setOrientation((o) => (o === "white" ? "black" : "white"))}>
               <RefreshCcw size={16} /> Flip
             </button>
-            <button className="btn-secondary" onClick={() => setHistory([new Chess().fen()])}>
+            <button className="btn-secondary" onClick={() => setHistory([{ fen: new Chess().fen(), last: null }])}>
               Reset
             </button>
           </div>

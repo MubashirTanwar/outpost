@@ -37,7 +37,7 @@ export function loadLocalReview(id: string): Review | null {
   }
 }
 
-async function browserReview(game: GameMeta, progress?: Progress): Promise<Review> {
+async function browserReview(game: GameMeta, progress?: Progress, signal?: AbortSignal): Promise<Review> {
   const cached = loadLocalReview(game.id);
   if (cached) {
     // chess.com's own accuracy appears once the game is reviewed there: carry it into the cache.
@@ -48,7 +48,8 @@ async function browserReview(game: GameMeta, progress?: Progress): Promise<Revie
     return cached;
   }
   const engine = getBrowserEngine();
-  const review = await reviewPgn(game.pgn!, (fen, depth, multipv) => engine.analyse(fen, { depth, multipv }), {
+  const review = await reviewPgn(game.pgn!, (fen, depth, multipv, sig) => engine.analyse(fen, { depth, multipv, signal: sig }), {
+    signal,
     depth: BROWSER_DEPTH,
     playerColor: game.player_color,
     onProgress: (d, t) => progress?.(`Analyzing move ${d}/${t}`, d / t),
@@ -81,7 +82,7 @@ export async function isBackendMode(): Promise<boolean> {
   return (await getHealth()) !== null;
 }
 
-export async function getReview(username: string, gameId: string, progress?: Progress, day?: string): Promise<Review> {
+export async function getReview(username: string, gameId: string, progress?: Progress, day?: string, signal?: AbortSignal): Promise<Review> {
   if (await isBackendMode()) {
     try {
       return await api.getReview(gameId);
@@ -97,10 +98,10 @@ export async function getReview(username: string, gameId: string, progress?: Pro
   if (!day) throw new Error("Game not reviewed yet: open it from the day overview.");
   const game = (await fetchDayGames(username, day)).find((g) => g.id === gameId);
   if (!game) throw new Error("Game not found on chess.com");
-  return browserReview(game, progress);
+  return browserReview(game, progress, signal);
 }
 
-export async function reviewDay(username: string, day: string, progress: Progress): Promise<DayOverview> {
+export async function reviewDay(username: string, day: string, progress: Progress, signal?: AbortSignal): Promise<DayOverview> {
   if (await isBackendMode()) {
     const { job_id } = await api.reviewDay({ username, day, tz_offset: tzOffset() });
     return pollJob<DayOverview>(job_id, (j) => progress(j.stage, j.progress));
@@ -110,7 +111,7 @@ export async function reviewDay(username: string, day: string, progress: Progres
   const reviews: Review[] = [];
   for (let i = 0; i < games.length; i++) {
     reviews.push(
-      await browserReview(games[i], (stage, f) => progress(`Game ${i + 1}/${games.length}: ${stage}`, 0.05 + (0.9 * (i + f)) / games.length)),
+      await browserReview(games[i], (stage, f) => progress(`Game ${i + 1}/${games.length}: ${stage}`, 0.05 + (0.9 * (i + f)) / games.length), signal),
     );
   }
   return buildLocalOverview(username, day, games, reviews);

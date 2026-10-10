@@ -66,9 +66,7 @@ export default function PracticePage({ params }: { params: { id: string } }) {
     let uci = book?.uci;
     if (!uci) {
       const engine = getBrowserEngine();
-      engine.setSkill(level.skill);
-      const [line] = await engine.analyse(g.fen(), { movetime: level.ms });
-      engine.setSkill(20);
+      const [line] = await engine.analyse(g.fen(), { movetime: level.ms, skill: level.skill });
       uci = line?.pv[0];
     } else {
       await new Promise((r) => setTimeout(r, 450));

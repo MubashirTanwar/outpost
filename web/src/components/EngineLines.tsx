@@ -32,10 +32,27 @@ function moveNumberPrefix(fen: string): string {
  * chess.com-style engine panel: the top N lines for the current position with live depth.
  * Runs Stockfish in the browser; `onLines` reports the lines so the board can draw arrows.
  */
-export function EngineLines({ fen, onLines, selected, onSelect }: { fen: string; onLines?: (lines: EngineLine[]) => void; selected?: number; onSelect?: (i: number) => void }) {
+export function EngineLines({
+  fen,
+  onLines,
+  selected,
+  onSelect,
+  hidden,
+}: {
+  fen: string;
+  /** Reports lines together with the position they belong to, so callers never mix positions. */
+  onLines?: (lines: EngineLine[], fen: string) => void;
+  selected?: number;
+  onSelect?: (i: number) => void;
+  /** Pause the engine and hide the lines (e.g. while the player is solving a Retry). */
+  hidden?: boolean;
+}) {
   const [enabled, setEnabled] = useState(true);
   const [multipv, setMultipv] = useState(3);
-  const [lines, setLines] = useState<EngineLine[]>([]);
+  // Lines are kept with their position: right after a move, old lines must never be read against the new FEN.
+  const [result, setResult] = useState<{ fen: string; lines: EngineLine[] }>({ fen, lines: [] });
+  const lines = result.fen === fen ? result.lines : [];
+  const on = enabled && !hidden;
 
   useEffect(() => {
     try {
@@ -55,36 +72,21 @@ export function EngineLines({ fen, onLines, selected, onSelect }: { fen: string;
   }, [enabled, multipv]);
 
   useEffect(() => {
-    setLines([]);
-    onLines?.([]);
-    if (!enabled) return;
+    setResult({ fen, lines: [] });
+    onLines?.([], fen);
+    if (!on) return;
     const chess = new Chess(fen);
     if (chess.isGameOver()) return;
-    const engine = getBrowserEngine();
-    engine.setSkill(20);
-    engine.stop();
-    let live = true;
-    engine
-      .analyse(fen, {
-        depth: MAX_DEPTH,
-        multipv,
-        onInfo: (l) => {
-          if (!live) return;
-          setLines([...l]);
-          onLines?.([...l]);
-        },
-      })
-      .then((l) => {
-        if (!live) return;
-        setLines(l);
-        onLines?.(l);
-      });
-    return () => {
-      live = false;
-      engine.stop();
+    const ctrl = new AbortController();
+    const report = (l: EngineLine[]) => {
+      if (ctrl.signal.aborted) return;
+      setResult({ fen, lines: [...l] });
+      onLines?.([...l], fen);
     };
+    getBrowserEngine().analyse(fen, { depth: MAX_DEPTH, multipv, signal: ctrl.signal, onInfo: report }).then(report);
+    return () => ctrl.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fen, enabled, multipv]);
+  }, [fen, on, multipv]);
 
   const turn = fen.split(" ")[1] === "w" ? 1 : -1;
   const depth = lines.reduce((d, l) => Math.max(d, l.depth ?? 0), 0);
@@ -94,7 +96,7 @@ export function EngineLines({ fen, onLines, selected, onSelect }: { fen: string;
       <div className="flex items-center gap-2 border-b border-line px-3 py-2 text-xs font-bold text-muted">
         <Cpu size={14} />
         <span>Stockfish 17.1</span>
-        {enabled && <span className="w-14 text-soft tabular-nums">depth {depth || "…"}</span>}
+        {on && <span className="w-14 text-soft tabular-nums">depth {depth || "…"}</span>}
         <div className="ml-auto flex items-center gap-1">
           {[3, 5].map((n) => (
             <button
@@ -117,7 +119,8 @@ export function EngineLines({ fen, onLines, selected, onSelect }: { fen: string;
           </button>
         </div>
       </div>
-      {enabled && (
+      {enabled && hidden && <div className="px-3 py-2 text-[13px] text-muted">Engine lines are hidden while you look for the move.</div>}
+      {on && (
         <div className="divide-y divide-line/60">
           {/* Always exactly `multipv` one-line rows, so updates never change the panel's height. */}
           {Array.from({ length: multipv }, (_, i) => lines[i] ?? null).map((l, i) => {

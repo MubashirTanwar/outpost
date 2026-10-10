@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight, Crown, BookOpen, Puzzle as PuzzleIcon, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Board } from "@/components/Board";
 import { ClassificationIcon, CLS_LABELS } from "@/components/ClassificationIcon";
 import { Kittu, kittuSays, type KittuMood } from "@/components/Kittu";
@@ -51,6 +51,7 @@ export default function Dashboard({ params }: { params: { username: string } }) 
     setGames(null);
     setGamesError(null);
     setError(null);
+    setProgress(null);
     try {
       const cached = localStorage.getItem(cacheKey(username, day));
       setOverview(cached ? JSON.parse(cached) : null);
@@ -68,20 +69,29 @@ export default function Dashboard({ params }: { params: { username: string } }) 
     };
   }, [username, day]);
 
+  // The running review, cancelled when the day changes or the page is left so a late result
+  // never shows up under a different day.
+  const runCtrl = useRef<AbortController | null>(null);
+  useEffect(() => () => runCtrl.current?.abort(), [username, day]);
+
   const run = useCallback(async () => {
+    runCtrl.current?.abort();
+    const ctrl = new AbortController();
+    runCtrl.current = ctrl;
     setError(null);
     setProgress({ stage: "Starting", value: 0 });
     try {
-      const result = await reviewDay(username, day, (stage, value) => setProgress({ stage, value }));
-      setOverview(result);
-      playSound("notify");
+      const result = await reviewDay(username, day, (stage, value) => !ctrl.signal.aborted && setProgress({ stage, value }), ctrl.signal);
       try {
         localStorage.setItem(cacheKey(username, day), JSON.stringify(result));
       } catch {}
+      if (ctrl.signal.aborted) return;
+      setOverview(result);
+      playSound("notify");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      if (!ctrl.signal.aborted) setError(e instanceof Error ? e.message : String(e));
     } finally {
-      setProgress(null);
+      if (!ctrl.signal.aborted) setProgress(null);
     }
   }, [username, day]);
 

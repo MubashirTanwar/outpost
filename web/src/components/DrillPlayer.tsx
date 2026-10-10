@@ -59,7 +59,6 @@ export function DrillPlayer({ drill, onDone }: { drill: Drill; onDone: (result: 
     async (userMoves: number, userPromoted: boolean) => {
       setThinking(true);
       const engine = getBrowserEngine();
-      engine.setSkill(20);
       const [line] = await engine.analyse(game.current.fen(), { movetime: THINK_MS });
       setThinking(false);
       // The engine is to move, so its score is from its side: flip it for the learner.

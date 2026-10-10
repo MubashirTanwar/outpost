@@ -84,14 +84,18 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
   useEffect(() => {
     isBackendMode().then(setBackend);
     setProgress({ stage: "Loading review", value: 0 });
-    getReview(username, gameId, (stage, value) => setProgress({ stage, value }), search.get("day") ?? undefined)
+    // Leaving the page cancels a browser-side review, so it doesn't hold up the engine for other pages.
+    const ctrl = new AbortController();
+    getReview(username, gameId, (stage, value) => !ctrl.signal.aborted && setProgress({ stage, value }), search.get("day") ?? undefined, ctrl.signal)
       .then((r) => {
+        if (ctrl.signal.aborted) return;
         setReview(r);
         const start = parseInt(search.get("ply") ?? "", 10);
         if (!Number.isNaN(start)) setPly(Math.min(start, r.moves.length));
       })
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)))
-      .finally(() => setProgress(null));
+      .catch((e) => !ctrl.signal.aborted && setError(e instanceof Error ? e.message : String(e)))
+      .finally(() => !ctrl.signal.aborted && setProgress(null));
+    return () => ctrl.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [username, gameId]);
 
@@ -136,7 +140,10 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement)?.tagName === "INPUT") return;
+      // Leave browser shortcuts (Cmd+F, Alt+←) and typing in form fields alone.
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName) || t.isContentEditable)) return;
       if (e.key === "ArrowRight") stepForward();
       else if (e.key === "ArrowLeft") stepBack();
       else if (e.key === "ArrowUp") goTo(0);
@@ -149,7 +156,8 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
     return () => window.removeEventListener("keydown", onKey);
   });
 
-  const [engineLines, setEngineLines] = useState<EngineLine[]>([]);
+  const [engineState, setEngineState] = useState<{ fen: string; lines: EngineLine[] }>({ fen: "", lines: [] });
+  const engineLines = engineState.lines;
   const [lineSel, setLineSel] = useState<number | null>(null);
   useEffect(() => {
     setLineSel(null);
@@ -225,7 +233,8 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
   const exploreLast = exploring ? variation!.moves[variation!.cursor - 1] : undefined;
   const fen = retry ? retry.fen : exploreLast ? exploreLast.fen : gameFen;
   // While exploring, the eval bar follows the live engine; otherwise the stored review eval.
-  const live = exploring && engineLines[0] ? engineLines[0] : null;
+  // Only trust lines computed for the position on the board (a move changes the side to move).
+  const live = exploring && engineState.fen === fen && engineLines[0] ? engineLines[0] : null;
   const liveSign = fen.split(" ")[1] === "w" ? 1 : -1;
   const evalCp = live ? liveSign * live.cp : current ? current.eval_cp : review.start_eval.cp;
   const evalMate = live ? (live.mate !== null ? liveSign * live.mate : null) : current ? current.eval_mate : review.start_eval.mate;
@@ -424,7 +433,11 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
             </div>
           )}
 
-          <EngineLines fen={fen} onLines={setEngineLines} selected={lineSel ?? undefined} onSelect={(i) => setLineSel(lineSel === i ? null : i)} />
+          <EngineLines
+            fen={fen}
+            hidden={retry?.state === "trying"}
+            onLines={(lines, f) => setEngineState({ fen: f, lines })}
+            selected={lineSel ?? undefined} onSelect={(i) => setLineSel(lineSel === i ? null : i)} />
 
           <EvalGraph moves={moves} current={ply} onSelect={goTo} startCp={review.start_eval.cp} />
 

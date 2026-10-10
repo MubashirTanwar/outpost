@@ -77,12 +77,12 @@ function parseClock(comment: string | undefined): number | null {
   return m ? +m[1] * 3600 + +m[2] * 60 + parseFloat(m[3]) : null;
 }
 
-export type Analyser = (fen: string, depth: number, multipv: number) => Promise<EngineLine[]>;
+export type Analyser = (fen: string, depth: number, multipv: number, signal?: AbortSignal) => Promise<EngineLine[]>;
 
 export async function reviewPgn(
   pgn: string,
   analyse: Analyser,
-  opts: { depth?: number; playerColor?: Color | null; onProgress?: (done: number, total: number) => void } = {},
+  opts: { depth?: number; playerColor?: Color | null; onProgress?: (done: number, total: number) => void; signal?: AbortSignal } = {},
 ): Promise<Review> {
   const depth = opts.depth ?? 12;
   const game = new Chess();
@@ -93,12 +93,15 @@ export async function reviewPgn(
 
   const analyses: EngineLine[][] = [];
   for (let i = 0; i < fens.length; i++) {
+    // Cancelled (e.g. the page was left): stop, so a half-analysed game is never returned or cached.
+    if (opts.signal?.aborted) throw new DOMException("Review cancelled", "AbortError");
     const c = new Chess(fens[i]);
     if (c.isCheckmate()) analyses.push([{ cp: -100000, mate: 0, pv: [] }]);
     else if (c.isGameOver()) analyses.push([{ cp: 0, mate: null, pv: [] }]);
-    else analyses.push(await analyse(fens[i], depth, 2));
+    else analyses.push(await analyse(fens[i], depth, 2, opts.signal));
     opts.onProgress?.(i + 1, fens.length);
   }
+  if (opts.signal?.aborted) throw new DOMException("Review cancelled", "AbortError");
 
   const bookSet = openingBook();
   const sans: string[] = [];

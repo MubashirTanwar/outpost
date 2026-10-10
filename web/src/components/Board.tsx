@@ -34,7 +34,10 @@ function squarePosition(square: string, orientation: "white" | "black") {
 }
 
 export function Board({ fen, orientation = "white", onMove, lastMove, arrows = [], badge, highlights = {}, id = "board" }: BoardProps) {
-  const [selected, setSelected] = useState<Square | null>(null);
+  // A selection belongs to the position it was made in: once the position changes it no longer applies.
+  const [selection, setSelection] = useState<{ square: Square; fen: string } | null>(null);
+  const selected = selection?.fen === fen ? selection.square : null;
+  const setSelected = (square: Square | null) => setSelection(square ? { square, fen } : null);
   const chess = useMemo(() => {
     try {
       return new Chess(fen);

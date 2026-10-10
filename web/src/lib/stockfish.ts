@@ -8,8 +8,8 @@ export const STOCKFISH_URL = "/stockfish/stockfish-17.1-lite-single-03e3232.js";
 type Listener = (line: string) => void;
 
 /**
- * Minimal UCI client for Stockfish running in a Web Worker. Searches are serialised:
- * starting a new one stops the previous search first.
+ * Minimal UCI client for Stockfish running in a Web Worker. Searches are serialised; each caller
+ * cancels its own with an AbortSignal.
  */
 export class BrowserEngine {
   private worker: Worker;
@@ -48,27 +48,42 @@ export class BrowserEngine {
   /**
    * Analyse a position. `onInfo` streams intermediate lines (for live eval bars);
    * the promise resolves with the final lines, scores from the side to move's view.
+   *
+   * Searches run one at a time. Abort `signal` to cancel just this search: if it is still waiting
+   * in the queue it never starts (resolves []), and if it is running it is stopped. Other callers'
+   * searches are never touched. `skill` (0-20, default 20) applies to this search only.
    */
   analyse(
     fen: string,
-    opts: { depth?: number; movetime?: number; multipv?: number; onInfo?: (lines: EngineLine[]) => void } = {},
+    opts: {
+      depth?: number;
+      movetime?: number;
+      multipv?: number;
+      skill?: number;
+      signal?: AbortSignal;
+      onInfo?: (lines: EngineLine[]) => void;
+    } = {},
   ): Promise<EngineLine[]> {
     const run = async () => {
       await this.ready;
+      if (opts.signal?.aborted) return [];
       const multipv = opts.multipv ?? 1;
       const lines: EngineLine[] = [];
+      this.send(`setoption name Skill Level value ${Math.max(0, Math.min(20, opts.skill ?? 20))}`);
       this.send(`setoption name MultiPV value ${multipv}`);
       this.send(`position fen ${fen}`);
       return new Promise<EngineLine[]>((resolve) => {
+        const onAbort = () => this.send("stop");
         const l: Listener = (line) => {
           if (line.startsWith("info") && line.includes(" pv ")) {
             const parsed = parseInfo(line);
             if (parsed) {
               lines[parsed.idx] = parsed.line;
-              opts.onInfo?.(lines.filter(Boolean));
+              if (!opts.signal?.aborted) opts.onInfo?.(lines.filter(Boolean));
             }
           } else if (line.startsWith("bestmove")) {
             this.listeners.delete(l);
+            opts.signal?.removeEventListener("abort", onAbort);
             if (!lines.length) {
               const best = line.split(" ")[1];
               resolve(best && best !== "(none)" ? [{ cp: 0, mate: null, pv: [best] }] : []);
@@ -76,22 +91,13 @@ export class BrowserEngine {
           }
         };
         this.listeners.add(l);
+        opts.signal?.addEventListener("abort", onAbort, { once: true });
         this.send(opts.movetime ? `go movetime ${opts.movetime}` : `go depth ${opts.depth ?? 14}`);
       });
     };
     const p = this.queue.then(run, run);
     this.queue = p.catch(() => undefined);
     return p;
-  }
-
-  /** Stop the current search (its promise still resolves with what it found). */
-  stop() {
-    this.send("stop");
-  }
-
-  /** Make the engine play weaker (endgame sparring / opening practice). */
-  setSkill(level: number) {
-    this.send(`setoption name Skill Level value ${Math.max(0, Math.min(20, level))}`);
   }
 
   terminate() {
