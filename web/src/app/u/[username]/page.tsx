@@ -39,7 +39,9 @@ export default function Dashboard({ params }: { params: { username: string } }) 
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
 
-  useEffect(() => rememberUser(username), [username]);
+  useEffect(() => {
+    rememberUser(username);
+  }, [username]);
 
   useEffect(() => {
     getHealth().then((h) => h && api.profile(username).then(setProfile).catch(() => {}));

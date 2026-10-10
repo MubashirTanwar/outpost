@@ -31,7 +31,10 @@ export default function CoachPage({ params }: { params: { username: string } }) 
   useEffect(() => {
     getHealth().then((h) => setAvailable(!!h));
   }, []);
-  useEffect(() => bottom.current?.scrollIntoView({ behavior: "smooth" }), [messages]);
+  // Braces matter: newer browsers return a Promise from scrollIntoView, and React would call it as a cleanup.
+  useEffect(() => {
+    bottom.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const send = async (text: string) => {
     if (!text.trim() || busy) return;

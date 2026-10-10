@@ -151,7 +151,9 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
 
   const [engineLines, setEngineLines] = useState<EngineLine[]>([]);
   const [lineSel, setLineSel] = useState<number | null>(null);
-  useEffect(() => setLineSel(null), [ply]);
+  useEffect(() => {
+    setLineSel(null);
+  }, [ply]);
 
   const arrows = useMemo<Arrow[]>(() => {
     // A clicked engine line: show its first two moves.
