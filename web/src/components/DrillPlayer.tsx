@@ -141,6 +141,7 @@ export function DrillPlayer({ drill, onDone }: { drill: Drill; onDone: (result: 
               if (moves > 0 && !verdict?.ok) setRestarts((r) => r + 1);
               reset();
             }}
+            disabled={thinking} // Stockfish's pending reply belongs to the current position
           >
             <RotateCcw size={16} /> Restart
           </button>

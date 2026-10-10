@@ -2,7 +2,7 @@
 
 import { SkipForward } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Kittu } from "@/components/Kittu";
 import { PuzzlePlayer } from "@/components/PuzzlePlayer";
 import { getPuzzles, recordAttempt } from "@/lib/client";
@@ -26,7 +26,11 @@ export default function PuzzlesPage({ params }: { params: { username: string } }
   }, [username, motif]);
 
   const puzzle = puzzles?.[idx];
-  const motifs = useMemo(() => Array.from(new Set((puzzles ?? []).flatMap((p) => p.motifs))), [puzzles]);
+  // Themes come from the unfiltered set, so picking one doesn't hide the others (or "All").
+  const [motifs, setMotifs] = useState<string[]>([]);
+  useEffect(() => {
+    if (!motif && puzzles) setMotifs(Array.from(new Set(puzzles.flatMap((p) => p.motifs))));
+  }, [motif, puzzles]);
 
   const onFinish = useCallback(
     (solved: boolean) => {
@@ -99,7 +103,7 @@ export default function PuzzlesPage({ params }: { params: { username: string } }
         )}
       </div>
 
-      {motifs.length > 1 && (
+      {(motifs.length > 1 || motif) && (
         <div className="mt-5">
           <h4 className="mb-2 text-xs font-bold uppercase text-muted">Train a theme</h4>
           <div className="flex flex-wrap gap-1.5">

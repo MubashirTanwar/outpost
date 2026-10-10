@@ -66,7 +66,7 @@ function gameHref(ctx: RefContext, gameId: string, ply?: number) {
   const q = new URLSearchParams();
   if (ply) q.set("ply", String(ply));
   if (ctx.day) q.set("day", ctx.day);
-  return `/u/${encodeURIComponent(ctx.username)}/game/${encodeURIComponent(gameId)}${q.size ? `?${q}` : ""}`;
+  return `/u/${encodeURIComponent(ctx.username)}/game/${encodeURIComponent(gameId)}${q.toString() ? `?${q}` : ""}`;
 }
 
 export function MoveRef({ ctx, moment, label, showBest }: { ctx: RefContext; moment: WorstMoment; label: React.ReactNode; showBest?: boolean }) {

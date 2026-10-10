@@ -44,7 +44,19 @@ export function PuzzlePlayer({ puzzle, onFinish }: { puzzle: Puzzle; onFinish: (
   const [message, setMessage] = useState<{ tone: "good" | "bad" | "white"; text: string } | null>(null);
   const [shake, setShake] = useState(0);
   const reported = useRef(false);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  // Every pending timer, and a generation number bumped on reset/reveal/unmount: async work
+  // (engine checks, replies, the solution animation) from an older generation is dropped.
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const gen = useRef(0);
+  const later = (fn: () => void, ms: number) => {
+    const g = gen.current;
+    timers.current.push(setTimeout(() => gen.current === g && fn(), ms));
+  };
+  const cancelPending = () => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+    gen.current++;
+  };
   const learner = puzzle.fen.split(" ")[1] === "w" ? "white" : "black";
   // The user plays every other move of the solution; always at least one, then the opponent's answer.
   const userMoves = Math.max(1, Math.ceil(puzzle.solution.length / 2));
@@ -59,7 +71,7 @@ export function PuzzlePlayer({ puzzle, onFinish }: { puzzle: Puzzle; onFinish: (
   );
 
   const reset = useCallback(() => {
-    clearTimeout(timer.current);
+    cancelPending();
     game.current = new Chess(puzzle.fen);
     setFen(puzzle.fen);
     setLastMove(null);
@@ -74,7 +86,7 @@ export function PuzzlePlayer({ puzzle, onFinish }: { puzzle: Puzzle; onFinish: (
     reset();
     setClean(true);
     reported.current = false;
-    return () => clearTimeout(timer.current);
+    return cancelPending;
   }, [puzzle, reset]);
 
   const play = (uci: string) => {
@@ -88,13 +100,17 @@ export function PuzzlePlayer({ puzzle, onFinish }: { puzzle: Puzzle; onFinish: (
   /** After a correct move: the opponent answers (from the solution, or the engine), then it's your turn again or the puzzle is done. */
   const opponentTurn = async (nextStep: number, userDone: number) => {
     if (game.current.isGameOver()) return finishSolved();
+    // Your last move solves it: no need to wait for an engine reply that's only for show.
+    if (userDone >= userMoves && !puzzle.solution[nextStep]) return finishSolved();
     setStatus("opponent");
+    const g = gen.current;
     let reply = puzzle.solution[nextStep];
     if (!reply) {
       const [line] = await getBrowserEngine().analyse(game.current.fen(), { depth: 12 });
+      if (gen.current !== g) return;
       reply = line?.pv[0];
     }
-    timer.current = setTimeout(() => {
+    later(() => {
       if (reply) play(reply);
       if (userDone >= userMoves || game.current.isGameOver()) finishSolved();
       else {
@@ -139,7 +155,8 @@ export function PuzzlePlayer({ puzzle, onFinish }: { puzzle: Puzzle; onFinish: (
     }
     const uci = mv.from + mv.to + (mv.promotion ?? "");
     const expected = puzzle.solution[step];
-    const exact = expected && (uci === expected || uci.slice(0, 4) === expected.slice(0, 4));
+    // Exact, promotion piece included: promoting to the wrong piece is a different move.
+    const exact = expected && uci === expected;
     const userDone = Math.floor(step / 2) + 1;
 
     if (exact || game.current.isCheckmate()) {
@@ -158,9 +175,11 @@ export function PuzzlePlayer({ puzzle, onFinish }: { puzzle: Puzzle; onFinish: (
     playSound(soundForMove(mv));
     setStatus("checking");
     const engine = getBrowserEngine();
+    const g = gen.current;
     void (async () => {
       const [best] = await engine.analyse(before, { depth: 14 });
       const [after] = await engine.analyse(game.current.fen(), { depth: 12 });
+      if (gen.current !== g) return; // Retry, Solution or the next puzzle happened meanwhile
       const bestScore = best ? (best.mate !== null ? (best.mate > 0 ? 100000 : -100000) : best.cp) : 0;
       const mine = scoreAfter(after);
       if (mine >= bestScore - ALT_TOLERANCE) {
@@ -169,7 +188,7 @@ export function PuzzlePlayer({ puzzle, onFinish }: { puzzle: Puzzle; onFinish: (
         void opponentTurn(Number.MAX_SAFE_INTEGER, userDone);
         return;
       }
-      timer.current = setTimeout(() => {
+      later(() => {
         game.current = new Chess(before);
         setFen(before);
         setLastMove(null);
@@ -189,7 +208,6 @@ export function PuzzlePlayer({ puzzle, onFinish }: { puzzle: Puzzle; onFinish: (
   };
 
   const reveal = () => {
-    clearTimeout(timer.current);
     reset();
     setClean(false);
     setStatus("revealed");
@@ -197,7 +215,7 @@ export function PuzzlePlayer({ puzzle, onFinish }: { puzzle: Puzzle; onFinish: (
     const chess = new Chess(puzzle.fen);
     game.current = chess;
     puzzle.solution.forEach((uci, i) => {
-      timer.current = setTimeout(() => {
+      later(() => {
         const mv = chess.move(toMove(uci));
         setFen(chess.fen());
         setLastMove({ from: mv.from, to: mv.to });

@@ -41,7 +41,7 @@ export default function Home() {
     } finally {
       setBusy(false);
     }
-    rememberUser(u);
+    rememberUser(u, true);
     router.push(`/u/${encodeURIComponent(u)}`);
   };
 

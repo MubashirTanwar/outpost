@@ -58,9 +58,19 @@ export default function PracticePage({ params }: { params: { id: string } }) {
     return true;
   }, [me, bookMoves]);
 
+  // Read through a ref: the bot often moves right after a state change (deviation, new game),
+  // before React has re-rendered with the new value.
+  const inBookRef = useRef(true);
+  inBookRef.current = inBook;
+  const leaveBook = () => {
+    inBookRef.current = false;
+    setInBook(false);
+  };
+
   const botMove = useCallback(async () => {
     const g = game.current;
-    if (g.isGameOver()) return;
+    if (g.isGameOver() || g.turn() === me) return; // e.g. you took your move back before Kittu replied
+    const inBook = inBookRef.current;
     setThinking(true);
     const book = inBook ? bookReply(rep, g.fen()) : null;
     let uci = book?.uci;
@@ -72,20 +82,23 @@ export default function PracticePage({ params }: { params: { id: string } }) {
       await new Promise((r) => setTimeout(r, 450));
     }
     setThinking(false);
-    if (!uci) return;
+    // The game was reset or taken back while Kittu was thinking: that move is for another position.
+    if (!uci || game.current !== g || g.turn() === me) return;
     const mv = g.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] });
+    setHint([]);
     sync();
     setLastMove({ from: mv.from, to: mv.to });
     playSound(soundForMove(mv));
     if (endCheck()) return;
     if (inBook && !book) {
-      setInBook(false);
+      leaveBook();
       setNote({ mood: "thinking", quip: "Off the map now.", text: `${mv.san} isn't in the course. From here you're on your own: play good chess.`, tone: "white" });
     } else if (inBook && !expectedMove(rep, g.fen())) {
-      setInBook(false);
+      leaveBook();
       setNote({ mood: "proud", quip: kittuSays("proud", bookMoves), text: `That's the end of the course line after ${mv.san}. Play the middlegame from here.`, tone: "good" });
     }
-  }, [inBook, rep, level, endCheck, bookMoves]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rep, level, endCheck, bookMoves, me]);
 
   // The bot moves first when you play Black.
   useEffect(() => {
@@ -122,7 +135,9 @@ export default function PracticePage({ params }: { params: { id: string } }) {
         });
         const e = expected.uci;
         setHint([[e.slice(0, 2) as Square, e.slice(2, 4) as Square, "rgba(129,182,76,0.8)"]]);
-        setInBook(false);
+        leaveBook();
+        // Playing on is allowed, so Kittu answers (Take back undoes both moves).
+        if (!endCheck()) setTimeout(() => void botMove(), 900);
         return true;
       }
     }
@@ -140,6 +155,7 @@ export default function PracticePage({ params }: { params: { id: string } }) {
     setHint([]);
     // Back inside the course? Then the bot uses the book again.
     const back = !!expectedMove(rep, g.fen()) || g.history().length === 0;
+    inBookRef.current = back;
     setInBook(back);
     setNote({ mood: "thinking", text: back ? "Taken back. Your move." : "Taken back.", tone: "white" });
   };
@@ -149,6 +165,7 @@ export default function PracticePage({ params }: { params: { id: string } }) {
     sync();
     setLastMove(null);
     setHint([]);
+    inBookRef.current = true;
     setInBook(true);
     setBookMoves(0);
     setDeviations(0);

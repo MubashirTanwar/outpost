@@ -64,17 +64,21 @@ export async function getHistory(username: string, days = 365): Promise<RawGame[
   if (await isBackendMode()) return (await api.history(username, days)).games;
   const me = username.toLowerCase();
   const out: RawGame[] = [];
+  let keys: string[] = [];
   try {
-    for (const key of Object.keys(localStorage)) {
-      if (!key.startsWith(LS_PREFIX)) continue;
+    keys = Object.keys(localStorage).filter((k) => k.startsWith(LS_PREFIX));
+  } catch {}
+  for (const key of keys) {
+    // One unreadable entry (old format, corrupted) skips just that game.
+    try {
       const review: Review = JSON.parse(localStorage.getItem(key)!);
       const g = review.game;
       if (!g || ![g.white, g.black].some((n) => n.toLowerCase() === me)) continue;
       const color = g.white.toLowerCase() === me ? "white" : "black";
       const side = review.summary[color];
       out.push({ ...g, player_color: color, accuracy: side.accuracy, counts: side.counts });
-    }
-  } catch {}
+    } catch {}
+  }
   return out;
 }
 

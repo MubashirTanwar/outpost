@@ -26,6 +26,8 @@ function user(): string | null {
   }
 }
 
+let syncedUser: string | null = null;
+
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;
@@ -33,6 +35,26 @@ function load() {
     const raw = localStorage.getItem(KEY);
     if (raw) state = { ...emptyProgress(), ...JSON.parse(raw) };
   } catch {}
+  syncedUser = user();
+  void pullFromServer();
+  window.addEventListener("cc-user", onUserChange);
+}
+
+/** Progress follows the account: switching to another username loads that account's progress. */
+function onUserChange() {
+  const next = user();
+  if (next?.toLowerCase() === syncedUser?.toLowerCase()) return;
+  const switched = !!syncedUser;
+  syncedUser = next;
+  if (switched) {
+    // This device's progress was already pushed to the previous account; start from the new one's.
+    state = emptyProgress();
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch {}
+    emit();
+  }
+  // First account on this device: progress made before entering a name is merged into it.
   void pullFromServer();
 }
 
@@ -68,6 +90,8 @@ async function pullFromServer() {
 async function pushToServer() {
   const u = user();
   if (!u || !(await getHealth())) return;
+  // Merge in the server's copy first, so progress from another device is never overwritten.
+  await pullFromServer();
   try {
     await fetch(`${API_URL}/api/players/${encodeURIComponent(u)}/progress`, {
       method: "PUT",
