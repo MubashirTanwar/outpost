@@ -3,6 +3,7 @@ import { Chess, type Move, type Square } from "chess.js";
 import type { Classification, MoveReview } from "./types.ts";
 
 export const VALUES: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+export const BRILLIANT_MAX_WIN = 90; // win % (about +6 pawns) above which a sacrifice is no longer brilliant
 export const ERRORS = new Set<Classification>(["inaccuracy", "mistake", "miss", "blunder"]);
 
 export function winPercent(cp: number): number {
@@ -38,7 +39,8 @@ export function classify(i: ClassifyInput): Classification {
   const loss = Math.max(0, i.winBefore - i.winAfter);
   if (i.onlyMove) return "forced";
   if (i.isBook) return "book";
-  if (loss < 2 && i.sacrifice && i.winAfter >= 50) return "brilliant";
+  // Like chess.com: a sound sacrifice that leaves you at least equal, but not when already completely winning.
+  if (loss < 2 && i.sacrifice && i.winAfter >= 50 && i.winBefore < BRILLIANT_MAX_WIN) return "brilliant";
   if (i.playedBest) {
     if (
       !i.givesMate &&

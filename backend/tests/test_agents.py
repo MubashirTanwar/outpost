@@ -13,7 +13,8 @@ def _games():
         {"uuid": "g1", "url": "https://www.chess.com/game/live/1", "pgn": fixture_pgn("scholar.pgn"),
          "end_time": 1_760_000_000, "time_class": "rapid", "time_control": "600", "rated": True, "rules": "chess",
          "white": {"username": "coach_tester", "rating": 1200, "result": "win"},
-         "black": {"username": "opponent1", "rating": 1180, "result": "checkmated"}},
+         "black": {"username": "opponent1", "rating": 1180, "result": "checkmated"},
+         "accuracies": {"white": 73.7, "black": 66.9}},
         {"uuid": "g2", "url": "https://www.chess.com/game/live/2", "pgn": fixture_pgn("hanging_queen.pgn"),
          "end_time": 1_760_000_500, "time_class": "rapid", "time_control": "600", "rated": True, "rules": "chess",
          "white": {"username": "opponent2", "rating": 1250, "result": "win"},
@@ -26,6 +27,9 @@ def test_parse_game_sets_player_color_and_opening():
     games = _games()
     assert games[0]["player_color"] == "white" and games[1]["player_color"] == "black"
     assert games[0]["opening"] == "Bishops Opening"
+    # chess.com's own accuracy comes through when the game was reviewed there, and is absent otherwise.
+    assert (games[0]["chesscom_white_accuracy"], games[0]["chesscom_black_accuracy"]) == (73.7, 66.9)
+    assert games[1]["chesscom_white_accuracy"] is None
 
 
 def test_day_review_graph_end_to_end(monkeypatch, fake_engine, memory_store):
@@ -125,3 +129,15 @@ def test_crashes_come_back_as_json_with_cors(monkeypatch):
     assert res.status_code == 500
     assert res.json()["detail"] == "TypeError: unsupported operand"
     assert res.headers["access-control-allow-origin"]
+
+
+def test_cached_review_picks_up_chesscom_accuracy(monkeypatch, fake_engine, memory_store):
+    monkeypatch.setattr(day_review, "get_engine", lambda: fake_engine)
+    games = _games()
+    games[1]["chesscom_white_accuracy"], games[1]["chesscom_black_accuracy"] = None, None
+    day_review.run_day_review("coach_tester", "2025-10-09", games=games, depth=1)
+    assert memory_store.get_review("g2")["game"]["chesscom_black_accuracy"] is None
+    # Later the game gets reviewed on chess.com; the next day review copies its numbers in.
+    games[1]["chesscom_white_accuracy"], games[1]["chesscom_black_accuracy"] = 88.0, 41.2
+    day_review.run_day_review("coach_tester", "2025-10-09", games=games, depth=1)
+    assert memory_store.get_review("g2")["game"]["chesscom_black_accuracy"] == 41.2

@@ -429,9 +429,9 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
           <EvalGraph moves={moves} current={ply} onSelect={goTo} startCp={review.start_eval.cp} />
 
           <div className="flex items-end justify-center gap-6">
-            <AccuracyBadge label={name("white")} value={review.summary.white.accuracy} light />
+            <AccuracyBadge label={name("white")} value={review.summary.white.accuracy} light chesscom={meta?.chesscom_white_accuracy} />
             <span className="pb-3 text-xs font-bold text-muted">Accuracy</span>
-            <AccuracyBadge label={name("black")} value={review.summary.black.accuracy} />
+            <AccuracyBadge label={name("black")} value={review.summary.black.accuracy} chesscom={meta?.chesscom_black_accuracy} />
           </div>
 
           <ClassificationTable left={review.summary.white.counts} right={review.summary.black.counts} />

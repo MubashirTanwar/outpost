@@ -31,6 +31,8 @@ def test_classify_special_cases():
     assert classify(win_before=55, win_after=55, **{**great, "is_recapture": True}) == "best"
     assert classify(win_before=55, win_after=55, **{**great, "gives_mate": True}) == "best"
     assert classify(win_before=70, win_after=70, **{**BASE, "sacrifice": True}) == "brilliant"
+    # Already completely winning: a sacrifice there is just the best move.
+    assert classify(win_before=95, win_after=95, **{**BASE, "sacrifice": True, "played_best": True}) == "best"
     assert classify(win_before=40, win_after=40, **{**BASE, "sacrifice": True}) == "excellent"
     assert classify(win_before=80, win_after=55, **{**BASE, "prev_opponent_class": "blunder"}) == "miss"
     assert classify(win_before=80, win_after=10, **{**BASE, "prev_opponent_class": "blunder"}) == "blunder"

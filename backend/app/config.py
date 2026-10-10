@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     # Engine. A path to a native Stockfish binary, or a full command line such as
     # "node /opt/stockfish/stockfish.js" for the WASM build.
     stockfish_path: str = "stockfish"
-    engine_depth: int = 14
+    engine_depth: int = 18
     engine_threads: int = 2
     engine_hash_mb: int = 128
 

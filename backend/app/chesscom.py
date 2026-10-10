@@ -37,6 +37,9 @@ class GameSummary:
     eco: str | None
     opening: str | None
     player_color: str | None = None
+    # chess.com's own accuracy, present once the game has been reviewed on chess.com.
+    chesscom_white_accuracy: float | None = None
+    chesscom_black_accuracy: float | None = None
 
     def to_dict(self) -> dict:
         data = asdict(self)
@@ -109,6 +112,8 @@ def parse_game(raw: dict, username: str | None = None) -> GameSummary | None:
         black_result=black.get("result", ""),
         eco=headers.get("ECO"),
         opening=opening_name_from_url(headers.get("ECOUrl")),
+        chesscom_white_accuracy=(raw.get("accuracies") or {}).get("white"),
+        chesscom_black_accuracy=(raw.get("accuracies") or {}).get("black"),
     )
     if username:
         if summary.white.lower() == username.lower():

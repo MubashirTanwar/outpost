@@ -39,7 +39,14 @@ export function loadLocalReview(id: string): Review | null {
 
 async function browserReview(game: GameMeta, progress?: Progress): Promise<Review> {
   const cached = loadLocalReview(game.id);
-  if (cached) return cached;
+  if (cached) {
+    // chess.com's own accuracy appears once the game is reviewed there: carry it into the cache.
+    if (game.chesscom_white_accuracy != null && cached.game?.chesscom_white_accuracy == null) {
+      cached.game = { ...game, pgn: undefined };
+      saveLocal(cached);
+    }
+    return cached;
+  }
   const engine = getBrowserEngine();
   const review = await reviewPgn(game.pgn!, (fen, depth, multipv) => engine.analyse(fen, { depth, multipv }), {
     depth: BROWSER_DEPTH,

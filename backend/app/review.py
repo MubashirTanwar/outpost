@@ -23,6 +23,7 @@ CLASSIFICATIONS = [
     "inaccuracy", "mistake", "miss", "blunder",
 ]
 ERRORS = {"inaccuracy", "mistake", "miss", "blunder"}
+BRILLIANT_MAX_WIN = 90  # win % (about +6 pawns) above which a sacrifice is no longer brilliant
 
 DATA_DIR = Path(__file__).parent / "data"
 
@@ -230,7 +231,9 @@ def classify(
         return "forced"
     if is_book:
         return "book"
-    if loss < 2 and sacrifice and win_after >= 50:
+    # Like chess.com: a sound sacrifice that leaves you at least equal, but not when you were already
+    # completely winning (sacrificing for fun at +6 isn't brilliant).
+    if loss < 2 and sacrifice and win_after >= 50 and win_before < BRILLIANT_MAX_WIN:
         return "brilliant"
     if played_best:
         if (
@@ -263,7 +266,7 @@ def _white_pov(line: Line, turn: chess.Color) -> tuple[int, int | None]:
 def review_pgn(
     pgn: str,
     engine: Engine,
-    depth: int = 14,
+    depth: int = 18,
     player_color: str | None = None,
     progress: Callable[[int, int], None] | None = None,
 ) -> dict:

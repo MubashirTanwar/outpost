@@ -47,7 +47,8 @@ export function ClassificationTable({
   );
 }
 
-export function AccuracyBadge({ value, label, light }: { value: number | null; label: string; light?: boolean }) {
+/** Game accuracy; when chess.com has reviewed the game too, its own number is shown underneath. */
+export function AccuracyBadge({ value, label, light, chesscom }: { value: number | null; label: string; light?: boolean; chesscom?: number | null }) {
   return (
     <div className="text-center">
       <div className="mb-1 text-xs font-bold text-muted">{label}</div>
@@ -56,6 +57,11 @@ export function AccuracyBadge({ value, label, light }: { value: number | null; l
       >
         {value === null ? "–" : value.toFixed(1)}
       </div>
+      {chesscom != null && (
+        <div className="mt-1 text-xs text-muted" title="chess.com's own Game Review accuracy for this game">
+          chess.com <span className="font-bold text-soft">{chesscom.toFixed(1)}</span>
+        </div>
+      )}
     </div>
   );
 }

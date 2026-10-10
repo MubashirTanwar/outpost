@@ -60,14 +60,19 @@ def analyze_games(state: DayState, config: RunnableConfig) -> DayState:
     games, reviews = state["games"], {}
     for idx, game in enumerate(games):
         cached = store.get_review(game["id"])
-        if cached and cached.get("depth", 0) >= state.get("depth", 14):
+        if cached and cached.get("depth", 0) >= state.get("depth", 18):
+            # chess.com's own accuracy appears once the game is reviewed there: carry it into the cache.
+            fresh = {k: v for k, v in game.items() if k != "pgn"}
+            if fresh.get("chesscom_white_accuracy") is not None and cached.get("game") != fresh:
+                cached["game"] = fresh
+                store.save_review(state["username"], game, cached)
             reviews[game["id"]] = cached
             continue
 
         def on_position(done: int, total: int, idx: int = idx) -> None:
             report(f"Analyzing game {idx + 1}/{len(games)}", 0.05 + 0.8 * (idx + done / total) / len(games))
 
-        review = review_pgn(game["pgn"], engine, depth=state.get("depth", 14),
+        review = review_pgn(game["pgn"], engine, depth=state.get("depth", 18),
                             player_color=game.get("player_color"), progress=on_position)
         review["game"] = {k: v for k, v in game.items() if k != "pgn"}
         store.save_review(state["username"], game, review)
@@ -271,7 +276,7 @@ def build_day_review_graph():
     return graph.compile()
 
 
-def run_day_review(username: str, day: str, tz_offset: int = 0, depth: int = 14,
+def run_day_review(username: str, day: str, tz_offset: int = 0, depth: int = 18,
                    games: list[dict] | None = None, progress: Callable[[str, float], None] | None = None) -> dict[str, Any]:
     state: DayState = {"username": username, "day": day, "tz_offset": tz_offset, "depth": depth}
     if games is not None:

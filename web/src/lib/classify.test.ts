@@ -32,6 +32,8 @@ test("special cases", () => {
   assert.equal(classify({ ...great, winBefore: 55, winAfter: 55, isRecapture: true }), "best");
   assert.equal(classify({ ...great, winBefore: 55, winAfter: 55, givesMate: true }), "best");
   assert.equal(classify({ ...BASE, winBefore: 70, winAfter: 70, sacrifice: true }), "brilliant");
+  // Already completely winning: a sacrifice there is just the best move.
+  assert.equal(classify({ ...BASE, winBefore: 95, winAfter: 95, sacrifice: true, playedBest: true }), "best");
   assert.equal(classify({ ...BASE, winBefore: 40, winAfter: 40, sacrifice: true }), "excellent");
   assert.equal(classify({ ...BASE, winBefore: 80, winAfter: 55, prevOpponentClass: "blunder" }), "miss");
   assert.equal(classify({ ...BASE, winBefore: 80, winAfter: 10, prevOpponentClass: "blunder" }), "blunder");

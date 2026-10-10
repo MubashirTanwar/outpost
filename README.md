@@ -80,11 +80,21 @@ Each position is analysed with MultiPV 2. Evaluations are converted to winning c
 
 - **Best**: you played the engine's top move.
 - **Great**: the top move, where the second-best move was at least 15% worse (the only good move).
-- **Brilliant**: a near-best move that sacrifices material (checked along the engine line, or by leaving a piece en prise) and still leaves you at least equal.
+- **Brilliant**: a near-best move that sacrifices material (checked along the engine line, or by leaving a piece en prise), leaves you at least equal, and isn't played from an already completely winning position (above 90% winning chances).
 - **Miss**: a mistake or blunder that failed to punish your opponent's own mistake.
 - **Book / Forced**: opening theory, or the only legal move.
 
-Accuracy uses Lichess' per-move formula, blended from the arithmetic and harmonic means. Mistakes are tagged with motifs: `hanging_piece`, `fork`, `pin`, `allowed_mate`, `back_rank`, `missed_mate`, `missed_tactic`, `weakened_king`, `time_pressure`, plus the game phase. The same logic runs in Python (`backend/app/review.py`) and TypeScript (`web/src/lib/classify.ts`), and both have the same tests.
+Accuracy uses Lichess' per-move formula, blended from the arithmetic and harmonic means. Reviews run at depth 18 by default, about what chess.com uses.
+
+#### Comparing with chess.com
+
+chess.com's review algorithm isn't public, so the numbers won't match exactly. When a game has also been reviewed on chess.com, its API reports chess.com's accuracy, and the review screen shows it under ours. To measure the gap on your own games:
+
+```bash
+cd backend && python scripts/compare_chesscom.py YOUR_USERNAME --games 30
+```
+
+It reviews your recent games that chess.com has reviewed, prints both accuracies side by side with the average error, and reports the win% curve steepness that would have matched chess.com best. The details are saved to `compare-<username>.json`. Mistakes are tagged with motifs: `hanging_piece`, `fork`, `pin`, `allowed_mate`, `back_rank`, `missed_mate`, `missed_tactic`, `weakened_king`, `time_pressure`, plus the game phase. The same logic runs in Python (`backend/app/review.py`) and TypeScript (`web/src/lib/classify.ts`), and both have the same tests.
 
 ## Opening courses
 
@@ -173,7 +183,7 @@ With no backend, the Vercel deploy runs in **browser-only mode**. Game and day r
 | Variable | Default | |
 |---|---|---|
 | `STOCKFISH_PATH` | `stockfish` | Binary path, or a command such as `node /path/stockfish.js` |
-| `ENGINE_DEPTH` | `14` | Depth per position. 16-18 gives better reviews but is slower |
+| `ENGINE_DEPTH` | `18` | Depth per position (about what chess.com uses). Lower it (e.g. 14) on a slow machine |
 | `NEO4J_URI` | *(empty)* | Empty = in-memory graph (lost on restart) |
 | `LLM_PROVIDER` | `none` | `anthropic`, `ollama`, or `none` |
 | `ANTHROPIC_MODEL` | `claude-opus-5-5` | Effort is set by `ANTHROPIC_EFFORT` (default `medium`) |

@@ -26,7 +26,7 @@ services:
       OLLAMA_URL: http://ollama:11434
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      ENGINE_DEPTH: ${ENGINE_DEPTH:-14}
+      ENGINE_DEPTH: ${ENGINE_DEPTH:-18}
       ENGINE_THREADS: ${ENGINE_THREADS:-2}
     ports:
       - "8000:8000"

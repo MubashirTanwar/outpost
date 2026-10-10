@@ -63,6 +63,8 @@ export interface GameMeta {
   player_color: Color | null;
   reviewed?: boolean;
   accuracy?: number | null;
+  chesscom_white_accuracy?: number | null; // chess.com's own number, once reviewed there
+  chesscom_black_accuracy?: number | null;
   pgn?: string;
 }
 

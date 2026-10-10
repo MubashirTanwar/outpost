@@ -14,6 +14,7 @@ interface RawGame {
   rules?: string;
   white: { username: string; rating: number; result: string };
   black: { username: string; rating: number; result: string };
+  accuracies?: { white?: number; black?: number }; // only once reviewed on chess.com
 }
 
 function header(pgn: string, name: string): string | null {
@@ -49,6 +50,8 @@ function toMeta(raw: RawGame, username: string): GameMeta | null {
     eco: header(raw.pgn, "ECO"),
     opening: openingFromUrl(header(raw.pgn, "ECOUrl")),
     player_color: color,
+    chesscom_white_accuracy: raw.accuracies?.white ?? null,
+    chesscom_black_accuracy: raw.accuracies?.black ?? null,
   };
 }
 
