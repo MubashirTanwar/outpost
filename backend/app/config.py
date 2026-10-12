@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     # "node /opt/stockfish/stockfish.js" for the WASM build.
     stockfish_path: str = "stockfish"
     engine_depth: int = 18
+    # The 30-day background analysis only feeds the progress charts, so it uses a quicker depth
+    # (about 5x faster than 18). Opening one of those games re-reviews it at engine_depth.
+    backfill_depth: int = 14
     engine_threads: int = 2
     engine_hash_mb: int = 128
 

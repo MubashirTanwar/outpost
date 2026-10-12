@@ -164,6 +164,7 @@ With no backend, the Vercel deploy runs in **browser-only mode**. Game and day r
 |---|---|---|
 | `STOCKFISH_PATH` | `stockfish` | Binary path, or a command such as `node /path/stockfish.js` |
 | `ENGINE_DEPTH` | `18` | Depth per position (about what chess.com uses). Lower it (e.g. 14) on a slow machine |
+| `BACKFILL_DEPTH` | `14` | Depth for the background "last 30 days" analysis, which only feeds the charts. About 5x faster than 18 |
 | `NEO4J_URI` | *(empty)* | Empty = in-memory graph (lost on restart) |
 | `LLM_PROVIDER` | `none` | `anthropic`, `ollama`, or `none` |
 | `ANTHROPIC_MODEL` | `claude-opus-5-5` | Effort is set by `ANTHROPIC_EFFORT` (default `medium`) |

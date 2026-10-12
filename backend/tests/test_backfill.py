@@ -77,3 +77,18 @@ def test_finished_jobs_are_forgotten(monkeypatch):
     monkeypatch.setattr(jobs, "KEEP_FINISHED_S", -1)
     jobs.submit("next", lambda progress: None)
     assert jobs.get(jid) is None
+
+
+def test_backfill_defaults_to_the_quicker_backfill_depth(monkeypatch):
+    from app import main
+    from app.config import get_settings
+
+    seen = []
+    monkeypatch.setattr(main, "run_backfill", lambda username, days, depth, progress: seen.append(depth) or {})
+    client = TestClient(main.app)
+    job = client.post("/api/players/depth_tester/backfill", json={"days": 30}).json()
+    for _ in range(100):
+        if client.get("/api/players/depth_tester/backfill").json()["job"]["status"] == "done":
+            break
+        time.sleep(0.05)
+    assert job and seen == [get_settings().backfill_depth] and seen[0] < get_settings().engine_depth

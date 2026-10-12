@@ -198,7 +198,7 @@ def start_backfill(username: str, req: BackfillRequest) -> dict:
     current = jobs.get(_backfills.get(user, ""))
     if current and current["status"] in {"queued", "running"}:
         return current
-    depth = req.depth or get_settings().engine_depth
+    depth = req.depth or get_settings().backfill_depth
     job_id = jobs.submit("backfill", lambda progress: run_backfill(username, req.days, depth, progress),
                          background=True)
     _backfills[user] = job_id
