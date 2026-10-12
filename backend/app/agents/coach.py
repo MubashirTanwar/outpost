@@ -16,7 +16,11 @@ from typing import TypedDict
 import chess
 from langgraph.graph import END, START, StateGraph
 
+from langchain_core.runnables import RunnableConfig
+
 from .. import coaching, llm
+from ..config import get_settings
+from . import insights
 from ..engine import get_engine
 from ..graph_store import get_store
 from ..review import _san_line
@@ -25,12 +29,16 @@ from ..review import _san_line
 class CoachState(TypedDict, total=False):
     username: str
     message: str
+    tz_offset: int
+    depth: int
     fen: str | None
     history: list[dict]
     needs: list[str]
     position: dict
     profile: dict
     openings: list[dict]
+    report: dict  # facts about the games the question is about (see insights.py)
+    draft: str  # the deterministic answer built from them
     answer: str
     source: str
 
@@ -43,9 +51,12 @@ OPENING_WORDS = re.compile(r"\b(openings?|repertoire|defen[cs]es?|gambits?|sicil
 def classify_intent(state: CoachState) -> CoachState:
     msg = state["message"]
     needs = []
+    # "What went wrong in my latest game?", "why did I lose rating yesterday?"
+    if insights.wants_games(msg) and not state.get("fen"):
+        needs.append("analyze_games")
     if state.get("fen") and (POSITION_WORDS.search(msg) or not PROFILE_WORDS.search(msg)):
         needs.append("analyze_position")
-    if PROFILE_WORDS.search(msg) or not needs:
+    if (PROFILE_WORDS.search(msg) or not needs) and "analyze_games" not in needs:
         needs.append("load_profile")
     if OPENING_WORDS.search(msg):
         needs.append("load_openings")
@@ -53,7 +64,7 @@ def classify_intent(state: CoachState) -> CoachState:
 
 
 def _next_after(current: str):
-    order = ["analyze_position", "load_profile", "load_openings"]
+    order = ["analyze_games", "analyze_position", "load_profile", "load_openings"]
 
     def route(state: CoachState) -> str:
         later = order[order.index(current) + 1:] if current in order else order
@@ -77,6 +88,13 @@ def analyze_position(state: CoachState) -> CoachState:
     }}
 
 
+def analyze_games(state: CoachState, config: RunnableConfig) -> CoachState:
+    progress = ((config or {}).get("configurable") or {}).get("progress") or (lambda stage, frac: None)
+    out = insights.answer_question(state["username"], state["message"], state.get("depth") or get_settings().engine_depth,
+                                   progress, tz_offset=state.get("tz_offset", 0))
+    return {"report": out["report"], "draft": out["answer"]}
+
+
 def load_profile(state: CoachState) -> CoachState:
     return {"profile": get_store().weakness_profile(state["username"])}
 
@@ -88,6 +106,8 @@ def load_openings(state: CoachState) -> CoachState:
 
 
 def respond(state: CoachState) -> CoachState:
+    if state.get("report"):
+        return _respond_with_report(state)
     context = {k: state[k] for k in ("position", "profile", "openings") if state.get(k)}
     if "profile" in context:
         context["motif_glossary"] = {m["motif"]: coaching.motif_info(m["motif"]) for m in context["profile"]["motifs"][:5]}
@@ -102,6 +122,31 @@ def respond(state: CoachState) -> CoachState:
         return {"answer": llm.generate(prompt, max_tokens=2000), "source": llm.provider()}
     except llm.LLMUnavailable:
         return {"answer": _template_answer(state), "source": "template"}
+
+
+def _respond_with_report(state: CoachState) -> CoachState:
+    """Re-voice the exact answer as Kittu; the facts and links come from the report, never the model."""
+    draft = state["draft"]
+    report = state["report"]
+    if not report["record"]["games"]:
+        return {"answer": draft, "source": "template"}
+    prompt = (
+        f"Student: {state['username']}\nTheir question: {state['message']}\n\n"
+        "Here is the exact analysis of the games the question is about (JSON):\n"
+        f"{json.dumps({k: report[k] for k in ('scope', 'record', 'avg_accuracy', 'rating', 'games', 'moments', 'patterns', 'openings', 'plan')}, indent=1)}\n\n"
+        "And a factual draft answer in Markdown:\n\n" + draft + "\n\n"
+        "Rewrite the draft as their coach, in your voice: open with a one- or two-sentence verdict that "
+        "answers the question directly, then explain WHY the key moments went wrong (the idea behind the best "
+        "move, what the mistake allowed), and finish with the one thing to work on first. The app shows the "
+        "positions and the full study plan as cards under your answer, so don't list them. Keep every number exactly as "
+        "given. Keep every Markdown link exactly as written, including its target (game:..., move:..., "
+        "/u/..., /courses/..., /endgames/...): copy them character for character and never invent new ones. "
+        "Keep it under 400 words."
+    )
+    try:
+        return {"answer": llm.generate(prompt, max_tokens=2000), "source": llm.provider()}
+    except llm.LLMUnavailable:
+        return {"answer": "*Meow. I looked at your games.*\n\n" + draft, "source": "template"}
 
 
 def _template_answer(state: CoachState) -> str:
@@ -130,14 +175,16 @@ def _template_answer(state: CoachState) -> str:
 
 def build_coach_graph():
     graph = StateGraph(CoachState)
-    for name, fn in [("classify_intent", classify_intent), ("analyze_position", analyze_position),
+    for name, fn in [("classify_intent", classify_intent), ("analyze_games", analyze_games),
+                     ("analyze_position", analyze_position),
                      ("load_profile", load_profile), ("load_openings", load_openings), ("respond", respond)]:
         graph.add_node(name, fn)
     graph.add_edge(START, "classify_intent")
-    targets = ["analyze_position", "load_profile", "load_openings", "respond"]
+    targets = ["analyze_games", "analyze_position", "load_profile", "load_openings", "respond"]
     graph.add_conditional_edges("classify_intent", _next_after("classify_intent"), targets)
-    graph.add_conditional_edges("analyze_position", _next_after("analyze_position"), targets[1:])
-    graph.add_conditional_edges("load_profile", _next_after("load_profile"), targets[2:])
+    graph.add_conditional_edges("analyze_games", _next_after("analyze_games"), targets[1:])
+    graph.add_conditional_edges("analyze_position", _next_after("analyze_position"), targets[2:])
+    graph.add_conditional_edges("load_profile", _next_after("load_profile"), targets[3:])
     graph.add_edge("load_openings", "respond")
     graph.add_edge("respond", END)
     return graph.compile()
@@ -146,12 +193,20 @@ def build_coach_graph():
 _coach = None
 
 
-def ask_coach(username: str, message: str, fen: str | None = None, history: list[dict] | None = None) -> dict:
+def ask_coach(username: str, message: str, fen: str | None = None, history: list[dict] | None = None,
+              tz_offset: int = 0, progress=None, depth: int | None = None) -> dict:
     global _coach
     if _coach is None:
         _coach = build_coach_graph()
-    result = _coach.invoke({"username": username, "message": message, "fen": fen, "history": history or []})
-    return {"answer": result["answer"], "source": result["source"], "used": result.get("needs", [])}
+    result = _coach.invoke(
+        {"username": username, "message": message, "fen": fen, "history": history or [], "tz_offset": tz_offset,
+         "depth": depth},
+        config={"configurable": {"progress": progress}} if progress else None,
+    )
+    out = {"answer": result["answer"], "source": result["source"], "used": result.get("needs", [])}
+    if result.get("report"):
+        out["report"] = result["report"]
+    return out
 
 
 def explain_move(move: dict, player_color: str | None) -> dict:

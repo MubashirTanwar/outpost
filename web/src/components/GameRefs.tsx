@@ -62,7 +62,7 @@ function HoverCard({ href, label, children }: { href: string; label: React.React
   );
 }
 
-function gameHref(ctx: RefContext, gameId: string, ply?: number) {
+export function gameHref(ctx: RefContext, gameId: string, ply?: number) {
   const q = new URLSearchParams();
   if (ply) q.set("ply", String(ply));
   if (ctx.day) q.set("day", ctx.day);
@@ -160,6 +160,14 @@ export function RefMarkdown({ children, ctx }: { children: string; ctx: RefConte
               const game = ctx.games.find((g) => g.id === href.slice(5));
               if (game) return <GameRef ctx={ctx} game={game} label={label} />;
               return <>{label}</>; // never a dead "game:" link
+            }
+            if (href?.startsWith("/")) {
+              // App links (puzzles, course lines, endgame lessons) stay in the app.
+              return (
+                <Link href={href} className="font-bold text-brand-light underline decoration-dotted underline-offset-4 hover:text-white">
+                  {label}
+                </Link>
+              );
             }
             return (
               <a href={href} target="_blank" rel="noreferrer" className="text-[#8fc8ff] underline">

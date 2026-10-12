@@ -12,12 +12,18 @@ import type { Puzzle } from "@/lib/types";
 export default function PuzzlesPage({ params }: { params: { username: string } }) {
   const username = decodeURIComponent(params.username);
   const [puzzles, setPuzzles] = useState<Puzzle[] | null>(null);
-  const [motif, setMotif] = useState<string | null>(null);
+  const [motif, setMotif] = useState<string | null | undefined>(undefined); // undefined until the URL is read
   const [idx, setIdx] = useState(0);
   const [finished, setFinished] = useState<boolean | null>(null);
   const [score, setScore] = useState({ solved: 0, failed: 0 });
 
+  // ?motif=fork (e.g. from the coach's study plan) opens straight into that theme.
   useEffect(() => {
+    setMotif(new URLSearchParams(window.location.search).get("motif"));
+  }, []);
+
+  useEffect(() => {
+    if (motif === undefined) return;
     getPuzzles(username, motif ?? undefined).then((p) => {
       setPuzzles(p);
       setIdx(0);

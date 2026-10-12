@@ -1,6 +1,31 @@
-import type { DayOverview, GameMeta, Job, OpeningLine, Profile, Puzzle, Review } from "./types";
+import type { DayGame, DayOverview, GameMeta, Job, OpeningLine, Profile, Puzzle, Review, WorstMoment } from "./types";
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
+
+export interface CoachReport {
+  scope: { label: string; start: number | null; end: number | null; count: number | null };
+  username: string;
+  record: { games: number; wins: number; draws: number; losses: number };
+  avg_accuracy: number | null;
+  rating: { time_class: string; games: number; start: number; end: number; change: number }[];
+  games: (DayGame & { rating: number | null; rating_change: number | null; termination: string | null })[];
+  moments: (WorstMoment & { win_before: number; win_after: number; clock: number | null })[];
+  patterns: {
+    motifs: { motif: string; count: number; all_time: number; title: string; lesson: string; drill: string }[];
+    weakest_phase: string | null;
+    time_trouble_errors: number;
+    lost_on_time: number;
+    loss_streak: number;
+  };
+  plan: { kind: string; title: string; why: string; link: string | null }[];
+}
+
+export interface ChatAnswer {
+  answer: string;
+  source: string;
+  used: string[];
+  report?: CoachReport;
+}
 
 export interface BackfillResult {
   games: number;
@@ -97,8 +122,8 @@ export const api = {
   backfill: (username: string) => request<{ job: Job<BackfillResult> | null }>(`/api/players/${encodeURIComponent(username)}/backfill`),
   stopBackfill: (username: string) => request(`/api/players/${encodeURIComponent(username)}/backfill`, { method: "DELETE" }),
   openings: () => request<{ openings: OpeningLine[] }>("/api/openings"),
-  chat: (body: { username: string; message: string; fen?: string | null; history: { role: string; content: string }[] }) =>
-    request<{ answer: string; source: string; used: string[] }>("/api/coach/chat", {
+  chat: (body: { username: string; message: string; fen?: string | null; history: { role: string; content: string }[]; tz_offset?: number }) =>
+    request<ChatAnswer | { job_id: string }>("/api/coach/chat", {
       method: "POST",
       body: JSON.stringify(body),
     }),

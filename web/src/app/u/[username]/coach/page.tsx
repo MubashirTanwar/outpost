@@ -2,20 +2,27 @@
 
 import { Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { CoachReport, refContext } from "@/components/CoachReport";
+import { RefMarkdown } from "@/components/GameRefs";
 import { Kittu } from "@/components/Kittu";
 import { Markdown } from "@/components/Markdown";
-import { api, getHealth } from "@/lib/api";
+import { Progress } from "@/components/Progress";
+import { api, getHealth, pollJob, type ChatAnswer, type CoachReport as Report } from "@/lib/api";
+import { tzOffset } from "@/lib/chesscom";
 
 interface Msg {
   role: "user" | "assistant";
   content: string;
   meta?: string;
+  report?: Report;
 }
 
 const STARTERS = [
+  "What went wrong in my latest game?",
+  "Why did I lose rating yesterday?",
+  "What should I study from my last 10 games?",
   "What are my biggest weaknesses?",
   "Which openings should I learn for my style?",
-  "How do I stop hanging pieces?",
   "Build me a 7-day training plan.",
 ];
 
@@ -25,6 +32,7 @@ export default function CoachPage({ params }: { params: { username: string } }) 
   const [input, setInput] = useState("");
   const [fen, setFen] = useState("");
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<{ stage: string; value: number } | null>(null);
   const [available, setAvailable] = useState<boolean | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
 
@@ -43,12 +51,19 @@ export default function CoachPage({ params }: { params: { username: string } }) 
     setInput("");
     setBusy(true);
     try {
-      const res = await api.chat({ username, message: text, fen: fen.trim() || null, history });
-      setMessages((m) => [...m, { role: "assistant", content: res.answer, meta: `${res.source} · used ${(res.used ?? []).join(", ") || "nothing"}` }]);
+      const first = await api.chat({ username, message: text, fen: fen.trim() || null, history, tz_offset: tzOffset() });
+      // Questions about your games may need engine reviews first: those come back as a job.
+      const res: ChatAnswer =
+        "job_id" in first ? await pollJob<ChatAnswer>(first.job_id, (j) => setProgress({ stage: j.stage, value: j.progress })) : first;
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", content: res.answer, report: res.report, meta: `${res.source} · used ${(res.used ?? []).join(", ") || "nothing"}` },
+      ]);
     } catch (e) {
       setMessages((m) => [...m, { role: "assistant", content: `Something went wrong: ${e instanceof Error ? e.message : e}` }]);
     } finally {
       setBusy(false);
+      setProgress(null);
     }
   };
 
@@ -93,14 +108,32 @@ export default function CoachPage({ params }: { params: { username: string } }) 
               </div>
             )}
             <div className={`max-w-[85%] rounded-lg px-4 py-3 ${m.role === "user" ? "bg-[#4b4847]" : "bg-panel2"}`}>
-              {m.role === "assistant" ? <Markdown>{m.content}</Markdown> : <p>{m.content}</p>}
+              {m.role === "assistant" ? (
+                m.report ? (
+                  <>
+                    <RefMarkdown ctx={refContext(m.report)}>{m.content}</RefMarkdown>
+                    <CoachReport report={m.report} />
+                  </>
+                ) : (
+                  <Markdown>{m.content}</Markdown>
+                )
+              ) : (
+                <p>{m.content}</p>
+              )}
               {m.meta && <p className="mt-1 text-[11px] text-muted">{m.meta}</p>}
             </div>
           </div>
         ))}
         {busy && (
-          <div className="flex items-center gap-2 text-sm text-muted">
-            <Kittu mood="thinking" size={36} /> Kittu is thinking…
+          <div className="flex items-center gap-3 text-sm text-muted">
+            <Kittu mood="thinking" size={36} />
+            {progress ? (
+              <div className="w-72">
+                <Progress stage={progress.stage} value={progress.value} />
+              </div>
+            ) : (
+              "Kittu is thinking…"
+            )}
           </div>
         )}
         <div ref={bottom} />

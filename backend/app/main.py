@@ -19,6 +19,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from . import chesscom, coaching, jobs, llm
+from .agents import insights
 from .agents.coach import ask_coach, explain_move
 from .agents.day_review import run_day_review
 from .backfill import run_backfill
@@ -312,8 +313,15 @@ class ChatRequest(BaseModel):
     message: str
     fen: str | None = None
     history: list[dict] = []
+    tz_offset: int = Field(0, ge=-840, le=840)
 
 
 @app.post("/api/coach/chat")
 def chat(req: ChatRequest) -> dict:
+    """Coach answer. Questions about your own games may need engine reviews first, so those run as
+    a job ({"job_id"}, poll /api/jobs/...); everything else answers straight away."""
+    if insights.wants_games(req.message) and not req.fen:
+        job_id = jobs.submit("coach", lambda progress: ask_coach(
+            req.username, req.message, req.fen, req.history, tz_offset=req.tz_offset, progress=progress))
+        return {"job_id": job_id}
     return ask_coach(req.username, req.message, req.fen, req.history)
