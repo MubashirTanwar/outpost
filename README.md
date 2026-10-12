@@ -25,7 +25,7 @@ cd backend && .venv/bin/uvicorn app.main:app --reload     # API on :8000
 cd web && npm run dev                                      # web on :3000
 ```
 
-Requirements: Python 3.11+, Node.js 24, Stockfish (`brew install stockfish` / `apt install stockfish`), and optionally Neo4j 5 (leave `NEO4J_URI` empty to use the in-memory graph).
+Requirements: Python 3.11+, Node.js 24, Stockfish (`brew install stockfish` / `apt install stockfish`), and optionally Neo4j 5 (leave `NEO4J_URI` empty to use the in-memory graph, saved to `backend/.data/store.json`).
 
 **Option C, Vercel (web only):** import this repo in Vercel and set **Root Directory** to `web`. With no `NEXT_PUBLIC_API_URL`, it runs in browser-only mode (see below).
 
@@ -51,7 +51,7 @@ The UI copies the look of chess.com: dark theme, cream-and-brown board, animated
 
 - **Web app** (Next.js): everything you see. It runs Stockfish 17.1 in the browser, so with no backend it still reviews games and keeps your progress in localStorage.
 - **Backend** (FastAPI): fetches games from chess.com, reviews them with native Stockfish, and runs two LangGraph agents. The **day review** walks a fixed pipeline; the **coach** routes each question to only the steps it needs (your games, a position, your profile, your openings), then streams the answer.
-- **Neo4j**: every reviewed game, mistake, position, motif, puzzle and course line, linked together. Positions are keyed by FEN, so the coach can see that you went wrong in the *same position* in different games, or keep making the same kind of mistake. With `NEO4J_URI` empty an in-memory store stands in.
+- **Neo4j**: every reviewed game, mistake, position, motif, puzzle and course line, linked together. Positions are keyed by FEN, so the coach can see that you went wrong in the *same position* in different games, or keep making the same kind of mistake. With `NEO4J_URI` empty an in-memory store stands in, saved to a JSON file so restarts keep your games.
 - **LLM** (optional): Claude or a local Ollama model gives Kittu his voice. The facts (evals, best moves, counts, rating changes) always come from the engine and the graph; with no LLM the coach uses templates.
 
 ### How moves are classified
@@ -165,7 +165,8 @@ With no backend, the Vercel deploy runs in **browser-only mode**. Game and day r
 | `STOCKFISH_PATH` | `stockfish` | Binary path, or a command such as `node /path/stockfish.js` |
 | `ENGINE_DEPTH` | `18` | Depth per position (about what chess.com uses). Lower it (e.g. 14) on a slow machine |
 | `BACKFILL_DEPTH` | `14` | Depth for the background "last 30 days" analysis, which only feeds the charts. About 5x faster than 18 |
-| `NEO4J_URI` | *(empty)* | Empty = in-memory graph (lost on restart) |
+| `NEO4J_URI` | *(empty)* | Empty = in-memory graph, saved to `MEMORY_STORE_FILE` |
+| `MEMORY_STORE_FILE` | `.data/store.json` | Where the in-memory graph is saved (relative to `backend/`). Empty = keep nothing |
 | `LLM_PROVIDER` | `none` | `anthropic`, `ollama`, or `none` |
 | `ANTHROPIC_MODEL` | `claude-opus-5-5` | Effort is set by `ANTHROPIC_EFFORT` (default `medium`) |
 | `OLLAMA_MODEL` | `llama3.1` | Any model you have pulled |
