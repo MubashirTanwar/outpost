@@ -92,3 +92,18 @@ def test_backfill_defaults_to_the_quicker_backfill_depth(monkeypatch):
             break
         time.sleep(0.05)
     assert job and seen == [get_settings().backfill_depth] and seen[0] < get_settings().engine_depth
+
+
+def test_health_does_not_wait_for_a_running_search():
+    import threading
+
+    from app.engine import Engine
+
+    eng = Engine.__new__(Engine)
+
+    eng._lock = threading.Lock()
+    eng._lock.acquire()  # a search in progress
+    t = time.time()
+    assert eng.available() is True
+    assert time.time() - t < 0.1
+    eng._lock.release()

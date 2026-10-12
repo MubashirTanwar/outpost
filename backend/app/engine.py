@@ -90,14 +90,18 @@ class Engine:
         return [_score_to_line(info) for info in infos]
 
     def available(self) -> bool:
+        # Busy with a search (a review or the 30-day analysis) means it's up: don't make the health
+        # check, which every page load waits on, queue behind that search.
+        if not self._lock.acquire(blocking=False):
+            return True
         try:
-            with self._lock:
-                self._ensure()
+            self._ensure()
             return True
         except (OSError, chess.engine.EngineError, TimeoutError):
-            with self._lock:
-                self._discard()
+            self._discard()
             return False
+        finally:
+            self._lock.release()
 
     def close(self) -> None:
         with self._lock:
