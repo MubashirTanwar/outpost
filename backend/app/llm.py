@@ -8,7 +8,9 @@ Providers:
 
 from __future__ import annotations
 
+import json
 import logging
+from typing import Iterator
 
 import httpx
 
@@ -98,3 +100,63 @@ def _ollama(prompt: str, system: str) -> str:
     if not text:
         raise LLMUnavailable("Empty response")
     return text
+
+
+def stream_text(prompt: str, system: str = COACH_PERSONA, max_tokens: int = 4000) -> Iterator[str]:
+    """Yield the model's text as it's generated. Raises LLMUnavailable (before the first chunk when
+    the provider can't be reached) so callers can fall back to a template."""
+    name = provider()
+    if name not in {"anthropic", "ollama"}:
+        raise LLMUnavailable("No LLM provider configured")
+    produced = False
+    try:
+        for chunk in (_anthropic_stream if name == "anthropic" else _ollama_stream)(prompt, system, max_tokens):
+            if chunk:
+                produced = True
+                yield chunk
+    except LLMUnavailable:
+        raise
+    except Exception as exc:  # network errors, bad keys, model not pulled...
+        log.warning("LLM provider %s failed while streaming: %s", name, exc)
+        raise LLMUnavailable(str(exc)) from exc
+    if not produced:
+        raise LLMUnavailable("Empty response")
+
+
+def _anthropic_stream(prompt: str, system: str, max_tokens: int) -> Iterator[str]:
+    import anthropic
+
+    global _anthropic_client
+    if _anthropic_client is None:
+        _anthropic_client = anthropic.Anthropic()
+    settings = get_settings()
+    with _anthropic_client.beta.messages.stream(
+        model=settings.anthropic_model,
+        max_tokens=max_tokens,
+        system=system,
+        output_config={"effort": settings.anthropic_effort},
+        betas=["server-side-fallback-2026-07-01"],
+        fallbacks="default",
+        messages=[{"role": "user", "content": prompt}],
+    ) as stream:
+        yield from stream.text_stream
+        if stream.get_final_message().stop_reason == "refusal":
+            raise LLMUnavailable("The model declined this request")
+
+
+def _ollama_stream(prompt: str, system: str, max_tokens: int) -> Iterator[str]:
+    settings = get_settings()
+    with httpx.stream(
+        "POST",
+        f"{settings.ollama_url.rstrip('/')}/api/chat",
+        json={
+            "model": settings.ollama_model,
+            "stream": True,
+            "messages": [{"role": "system", "content": system}, {"role": "user", "content": prompt}],
+        },
+        timeout=180,
+    ) as resp:
+        resp.raise_for_status()
+        for line in resp.iter_lines():  # one JSON object per line
+            if line.strip():
+                yield json.loads(line).get("message", {}).get("content", "")

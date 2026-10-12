@@ -7,8 +7,16 @@ import { RefMarkdown } from "@/components/GameRefs";
 import { Kittu } from "@/components/Kittu";
 import { Markdown } from "@/components/Markdown";
 import { Progress } from "@/components/Progress";
-import { api, getHealth, pollJob, type ChatAnswer, type CoachReport as Report } from "@/lib/api";
+import { API_URL, api, getHealth, pollJob, type ChatAnswer, type CoachReport as Report } from "@/lib/api";
+import { postSSE } from "@/lib/sse";
 import { tzOffset } from "@/lib/chesscom";
+
+type CoachEvent =
+  | { type: "progress"; stage: string; value: number }
+  | { type: "report"; report: Report }
+  | { type: "delta"; text: string }
+  | { type: "done"; source: string; used: string[] }
+  | { type: "error"; detail: string };
 
 interface Msg {
   role: "user" | "assistant";
@@ -44,23 +52,40 @@ export default function CoachPage({ params }: { params: { username: string } }) 
     bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Patch the assistant message being written (always the last one while busy).
+  const patchLast = (fn: (m: Msg) => Msg) => setMessages((all) => [...all.slice(0, -1), fn(all[all.length - 1])]);
+
   const send = async (text: string) => {
     if (!text.trim() || busy) return;
     const history = messages.map(({ role, content }) => ({ role, content }));
-    setMessages((m) => [...m, { role: "user", content: text }]);
+    const body = { username, message: text, fen: fen.trim() || null, history, tz_offset: tzOffset() };
+    setMessages((m) => [...m, { role: "user", content: text }, { role: "assistant", content: "" }]);
     setInput("");
     setBusy(true);
     try {
-      const first = await api.chat({ username, message: text, fen: fen.trim() || null, history, tz_offset: tzOffset() });
-      // Questions about your games may need engine reviews first: those come back as a job.
-      const res: ChatAnswer =
-        "job_id" in first ? await pollJob<ChatAnswer>(first.job_id, (j) => setProgress({ stage: j.stage, value: j.progress })) : first;
-      setMessages((m) => [
-        ...m,
-        { role: "assistant", content: res.answer, report: res.report, meta: `${res.source} · used ${(res.used ?? []).join(", ") || "nothing"}` },
-      ]);
+      // Streamed: progress while games are reviewed, the report (positions + plan), then the text as it's written.
+      await postSSE(`${API_URL}/api/coach/stream`, body, (raw) => {
+        const e = raw as CoachEvent;
+        if (e.type === "progress") setProgress({ stage: e.stage, value: e.value });
+        else if (e.type === "report") {
+          setProgress(null);
+          patchLast((m) => ({ ...m, report: e.report }));
+        } else if (e.type === "delta") {
+          setProgress(null);
+          patchLast((m) => ({ ...m, content: m.content + e.text }));
+        } else if (e.type === "done") patchLast((m) => ({ ...m, meta: `${e.source} · used ${(e.used ?? []).join(", ") || "nothing"}` }));
+        else if (e.type === "error") patchLast((m) => ({ ...m, content: `${m.content}\n\nSomething went wrong: ${e.detail}` }));
+      });
     } catch (e) {
-      setMessages((m) => [...m, { role: "assistant", content: `Something went wrong: ${e instanceof Error ? e.message : e}` }]);
+      // An older backend without the stream endpoint: ask the regular way.
+      try {
+        const first = await api.chat(body);
+        const res: ChatAnswer =
+          "job_id" in first ? await pollJob<ChatAnswer>(first.job_id, (j) => setProgress({ stage: j.stage, value: j.progress })) : first;
+        patchLast(() => ({ role: "assistant", content: res.answer, report: res.report, meta: `${res.source} · used ${(res.used ?? []).join(", ") || "nothing"}` }));
+      } catch (e2) {
+        patchLast(() => ({ role: "assistant", content: `Something went wrong: ${e2 instanceof Error ? e2.message : e2}` }));
+      }
     } finally {
       setBusy(false);
       setProgress(null);
@@ -100,7 +125,7 @@ export default function CoachPage({ params }: { params: { username: string } }) 
             </div>
           </div>
         )}
-        {messages.map((m, i) => (
+        {messages.map((m, i) => (m.role === "assistant" && !m.content && !m.report ? null : (
           <div key={i} className={`flex gap-3 ${m.role === "user" ? "justify-end" : ""}`}>
             {m.role === "assistant" && (
               <div className="shrink-0">
@@ -123,8 +148,8 @@ export default function CoachPage({ params }: { params: { username: string } }) 
               {m.meta && <p className="mt-1 text-[11px] text-muted">{m.meta}</p>}
             </div>
           </div>
-        ))}
-        {busy && (
+        )))}
+        {busy && !messages[messages.length - 1]?.content && (
           <div className="flex items-center gap-3 text-sm text-muted">
             <Kittu mood="thinking" size={36} />
             {progress ? (

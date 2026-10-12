@@ -15,12 +15,12 @@ import chess.pgn
 import httpx
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from . import chesscom, coaching, jobs, llm
 from .agents import insights
-from .agents.coach import ask_coach, explain_move
+from .agents.coach import ask_coach, explain_move, stream_coach
 from .agents.day_review import run_day_review
 from .backfill import run_backfill
 from .config import get_settings
@@ -314,6 +314,23 @@ class ChatRequest(BaseModel):
     fen: str | None = None
     history: list[dict] = []
     tz_offset: int = Field(0, ge=-840, le=840)
+
+
+@app.post("/api/coach/stream")
+def chat_stream(req: ChatRequest) -> StreamingResponse:
+    """The coach answer as server-sent events: progress while games are reviewed, the report,
+    then the answer text piece by piece as the model writes it."""
+
+    def events():
+        try:
+            for event in stream_coach(req.username, req.message, req.fen, req.history, tz_offset=req.tz_offset):
+                yield f"data: {json.dumps(event)}\n\n"
+        except Exception as exc:  # noqa: BLE001 - the stream has started, so report it in-band
+            log.exception("Coach stream failed")
+            yield f"data: {json.dumps({'type': 'error', 'detail': f'{type(exc).__name__}: {exc}'})}\n\n"
+
+    return StreamingResponse(events(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
 @app.post("/api/coach/chat")

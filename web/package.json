@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --experimental-strip-types src/lib/classify.test.ts src/lib/progress.test.ts src/lib/endgame-rules.test.ts src/lib/linkify.test.ts src/lib/repertoire.test.ts src/lib/stats.test.ts src/lib/variation.test.ts src/lib/material.test.ts"
+    "test": "node --test --experimental-strip-types src/lib/classify.test.ts src/lib/progress.test.ts src/lib/endgame-rules.test.ts src/lib/linkify.test.ts src/lib/repertoire.test.ts src/lib/stats.test.ts src/lib/variation.test.ts src/lib/material.test.ts src/lib/sse.test.ts"
   },
   "dependencies": {
     "chess.js": "1.4.0",

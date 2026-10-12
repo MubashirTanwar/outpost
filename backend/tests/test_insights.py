@@ -106,3 +106,42 @@ def test_games_in_any_order_give_the_same_rating_story(monkeypatch, fake_engine,
     newest_first = lambda u, s, e: list(reversed(_fetch(raws)(u, s, e)))  # noqa: E731
     report = insights.answer_question("coach_tester", "my last 2 games", 1, lambda s, f: None, fetch=newest_first)["report"]
     assert report["rating"][0]["change"] == -45 and [g["id"] for g in report["games"]] == ["q1", "q2"]
+
+
+def _sse(text: str) -> list[dict]:
+    import json
+
+    return [json.loads(line[6:]) for line in text.splitlines() if line.startswith("data: ")]
+
+
+def test_coach_stream_sends_progress_report_then_text(monkeypatch, fake_engine, memory_store):
+    from app import chesscom, llm, main
+
+    monkeypatch.setattr(insights, "get_engine", lambda: fake_engine)
+    now = int(time.time())
+    monkeypatch.setattr(chesscom, "fetch_games_between", _fetch([_raw("q1", "hanging_queen.pgn", now - 600, False, 1205, "loss")]))
+    monkeypatch.setattr(llm, "provider", lambda: "ollama")
+    monkeypatch.setattr(llm, "stream_text", lambda prompt, **kw: iter(["You hung ", "your queen ", "on move 3."]))
+    client = TestClient(main.app)
+    res = client.post("/api/coach/stream", json={"username": "coach_tester", "message": "What went wrong in my latest game?"})
+    assert res.headers["content-type"].startswith("text/event-stream")
+    events = _sse(res.text)
+    kinds = [e["type"] for e in events]
+    # Progress while the game is reviewed, then the facts, then the answer piece by piece.
+    assert kinds[0] == "progress" and "report" in kinds
+    assert kinds.index("report") < kinds.index("delta")
+    assert "".join(e["text"] for e in events if e["type"] == "delta") == "You hung your queen on move 3."
+    assert events[-1] == {"type": "done", "source": "ollama", "used": ["analyze_games"]}
+
+
+def test_coach_stream_without_a_model_sends_the_template(monkeypatch, memory_store):
+    from app import llm, main
+
+    def unavailable(prompt, **kw):
+        raise llm.LLMUnavailable("no model")
+        yield  # pragma: no cover
+
+    monkeypatch.setattr(llm, "stream_text", unavailable)
+    events = _sse(TestClient(main.app).post("/api/coach/stream", json={"username": "coach_tester", "message": "Explain the London"}).text)
+    assert [e["type"] for e in events] == ["delta", "done"] and events[-1]["source"] == "template"
+    assert "Meow" in events[0]["text"]

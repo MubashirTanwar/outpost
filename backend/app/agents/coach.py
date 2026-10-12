@@ -17,6 +17,7 @@ import chess
 from langgraph.graph import END, START, StateGraph
 
 from langchain_core.runnables import RunnableConfig
+from langgraph.config import get_stream_writer
 
 from .. import coaching, llm
 from ..config import get_settings
@@ -89,9 +90,18 @@ def analyze_position(state: CoachState) -> CoachState:
 
 
 def analyze_games(state: CoachState, config: RunnableConfig) -> CoachState:
-    progress = ((config or {}).get("configurable") or {}).get("progress") or (lambda stage, frac: None)
+    writer = get_stream_writer()
+    job_progress = ((config or {}).get("configurable") or {}).get("progress")
+
+    def progress(stage: str, frac: float) -> None:
+        if job_progress:
+            job_progress(stage, frac)
+        writer({"type": "progress", "stage": stage, "value": frac})
+
     out = insights.answer_question(state["username"], state["message"], state.get("depth") or get_settings().engine_depth,
                                    progress, tz_offset=state.get("tz_offset", 0))
+    # Send the facts first, so the positions and study plan show up while the answer is written.
+    writer({"type": "report", "report": out["report"]})
     return {"report": out["report"], "draft": out["answer"]}
 
 
@@ -118,10 +128,7 @@ def respond(state: CoachState) -> CoachState:
         + (f"Conversation so far:\n{history}\n\n" if history else "")
         + f"Student's question: {state['message']}\n\nAnswer as their coach, concisely."
     )
-    try:
-        return {"answer": llm.generate(prompt, max_tokens=2000), "source": llm.provider()}
-    except llm.LLMUnavailable:
-        return {"answer": _template_answer(state), "source": "template"}
+    return _write(prompt, lambda: _template_answer(state))
 
 
 def _respond_with_report(state: CoachState) -> CoachState:
@@ -129,6 +136,7 @@ def _respond_with_report(state: CoachState) -> CoachState:
     draft = state["draft"]
     report = state["report"]
     if not report["record"]["games"]:
+        get_stream_writer()({"type": "delta", "text": draft})
         return {"answer": draft, "source": "template"}
     prompt = (
         f"Student: {state['username']}\nTheir question: {state['message']}\n\n"
@@ -143,10 +151,28 @@ def _respond_with_report(state: CoachState) -> CoachState:
         "/u/..., /courses/..., /endgames/...): copy them character for character and never invent new ones. "
         "Keep it under 400 words."
     )
+    return _write(prompt, lambda: "*Meow. I looked at your games.*\n\n" + draft)
+
+
+def _write(prompt: str, fallback) -> CoachState:
+    """Generate the answer, streaming each piece of text out of the graph as it arrives.
+
+    `get_stream_writer()` sends custom events to whoever runs the graph with
+    `stream_mode="custom"` (the /api/coach/stream endpoint); under a plain `invoke()` it's a no-op.
+    """
+    writer = get_stream_writer()
+    parts: list[str] = []
     try:
-        return {"answer": llm.generate(prompt, max_tokens=2000), "source": llm.provider()}
+        for chunk in llm.stream_text(prompt, max_tokens=2000):
+            parts.append(chunk)
+            writer({"type": "delta", "text": chunk})
+        return {"answer": "".join(parts), "source": llm.provider()}
     except llm.LLMUnavailable:
-        return {"answer": "*Meow. I looked at your games.*\n\n" + draft, "source": "template"}
+        if parts:  # the provider failed mid-answer: keep what was already said
+            return {"answer": "".join(parts), "source": llm.provider()}
+        text = fallback()
+        writer({"type": "delta", "text": text})
+        return {"answer": text, "source": "template"}
 
 
 def _template_answer(state: CoachState) -> str:
@@ -191,6 +217,23 @@ def build_coach_graph():
 
 
 _coach = None
+
+
+def stream_coach(username: str, message: str, fen: str | None = None, history: list[dict] | None = None,
+                 tz_offset: int = 0, depth: int | None = None):
+    """Run the coach graph and yield its events as they happen: progress, report, answer deltas, done."""
+    global _coach
+    if _coach is None:
+        _coach = build_coach_graph()
+    final: dict = {}
+    inputs = {"username": username, "message": message, "fen": fen, "history": history or [], "tz_offset": tz_offset,
+              "depth": depth}
+    for mode, data in _coach.stream(inputs, stream_mode=["custom", "values"]):
+        if mode == "custom":
+            yield data
+        else:
+            final = data
+    yield {"type": "done", "source": final.get("source"), "used": final.get("needs", [])}
 
 
 def ask_coach(username: str, message: str, fen: str | None = None, history: list[dict] | None = None,
