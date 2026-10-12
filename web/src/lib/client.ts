@@ -7,6 +7,7 @@
 import { api, getHealth, pollJob, type BackfillResult } from "./api";
 import { fetchDayGames, fetchGamesBetween, playerResult, tzOffset } from "./chesscom";
 import { reviewPgn } from "./review";
+import type { InsightSource } from "./insights";
 import type { RawGame } from "./stats";
 import { getBrowserEngine } from "./stockfish";
 import { CLASSIFICATIONS, type Classification, type DayOverview, type GameMeta, type Puzzle, type Review } from "./types";
@@ -77,6 +78,27 @@ export async function getHistory(username: string, days = 365): Promise<RawGame[
       const color = g.white.toLowerCase() === me ? "white" : "black";
       const side = review.summary[color];
       out.push({ ...g, player_color: color, accuracy: side.accuracy, counts: side.counts });
+    } catch {}
+  }
+  return out;
+}
+
+/** Reviewed games with their moves, for the Insights section: from the backend, or this browser's reviews. */
+export async function getInsightSources(username: string, days = 365): Promise<InsightSource[]> {
+  if (await isBackendMode()) return (await api.reviews(username, days)).games;
+  const me = username.toLowerCase();
+  const since = Date.now() / 1000 - days * 86400;
+  const out: InsightSource[] = [];
+  let keys: string[] = [];
+  try {
+    keys = Object.keys(localStorage).filter((k) => k.startsWith(LS_PREFIX));
+  } catch {}
+  for (const key of keys) {
+    try {
+      const review: Review = JSON.parse(localStorage.getItem(key)!);
+      const g = review.game;
+      if (!g || g.end_time < since || ![g.white, g.black].some((n) => n.toLowerCase() === me)) continue;
+      out.push({ ...review, game: { ...g, player_color: g.white.toLowerCase() === me ? "white" : "black" } });
     } catch {}
   }
   return out;

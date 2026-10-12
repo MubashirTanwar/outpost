@@ -40,3 +40,14 @@ def check_both_players_keep_their_side(store, fake_engine):
     assert theirs["accuracy"] == review["summary"]["white"]["accuracy"]
     assert store.weakness_profile("opponent2")["games_analyzed"] == 1
     assert store.weakness_profile("coach_tester")["games_analyzed"] == 1
+
+
+def check_list_reviews(store, fake_engine):
+    review = review_pgn(fixture_pgn("hanging_queen.pgn"), fake_engine, depth=1, player_color="black")
+    store.save_review("coach_tester", _game("black"), review)
+    store.save_review("opponent2", _game("white"), review_for(review, "white"))
+    [(row, full)] = store.list_reviews("coach_tester")
+    assert row["id"] == "shared" and row["player_color"] == "black" and row["result"] == "loss"
+    assert [m["san"] for m in full["moves"]] == [m["san"] for m in review["moves"]]
+    assert store.list_reviews("coach_tester", since=1_760_000_001) == []
+    assert store.list_reviews("nobody") == []

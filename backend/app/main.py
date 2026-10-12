@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gzip
 import hashlib
 import io
 import json
@@ -15,7 +16,7 @@ import chess.pgn
 import httpx
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field
 
 from . import chesscom, coaching, jobs, llm
@@ -251,6 +252,30 @@ def profile(username: str) -> dict:
 def history(username: str, days: int = 365) -> dict:
     since = int(time.time()) - days * 86400
     return {"games": get_store().list_games(username, since=since)}
+
+
+# What the Insights cards need from each move; the rest (FENs, engine lines) stays on the server.
+INSIGHT_MOVE_FIELDS = ("ply", "move_number", "color", "san", "classification", "win_before", "win_after",
+                       "clock", "phase", "motifs", "best_san")
+
+
+def compact_review(row: dict, review: dict) -> dict:
+    return {
+        "game": row,
+        "summary": {c: {"accuracy": review["summary"][c]["accuracy"]} for c in ("white", "black")},
+        "moves": [{k: m.get(k) for k in INSIGHT_MOVE_FIELDS} for m in review["moves"]],
+    }
+
+
+@app.get("/api/players/{username}/reviews")
+def reviews(username: str, request: Request, days: int = Query(365, ge=1, le=3650)) -> Response:
+    """Every reviewed game with its moves (trimmed), for the Insights section. Gzipped: it can be large."""
+    since = int(time.time()) - days * 86400
+    body = json.dumps({"games": [compact_review(row, rv) for row, rv in get_store().list_reviews(username, since=since)]}).encode()
+    if "gzip" in request.headers.get("accept-encoding", ""):
+        return Response(gzip.compress(body, 5), media_type="application/json",
+                        headers={"Content-Encoding": "gzip", "Vary": "Accept-Encoding"})
+    return Response(body, media_type="application/json")
 
 
 @app.get("/api/players/{username}/puzzles")

@@ -3,13 +3,15 @@
 import { ArrowDownRight, ArrowUpRight, BarChart3, Table2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BackfillCard } from "@/components/BackfillCard";
 import { BarChart, Legend, LineChart, SERIES_COLORS, type LineSeries } from "@/components/Charts";
+import { Insights } from "@/components/Insights";
 import { Kittu, type KittuMood } from "@/components/Kittu";
 import { StatsBar } from "@/components/StatsBar";
 import { TimeClassIcon } from "@/components/TimeClassIcon";
-import { getHistory } from "@/lib/client";
+import { getHistory, getInsightSources } from "@/lib/client";
+import { toIGame, type IGame } from "@/lib/insights";
 import { COURSES, lineIds } from "@/lib/courses";
 import { ALL_DRILLS, STAGES } from "@/lib/endgames";
 import { courseSummary } from "@/lib/progress";
@@ -35,10 +37,21 @@ export default function ProgressPage({ params }: { params: { username: string } 
   const tick = useNow();
   const now = tick || Date.now();
 
+  const [insightGames, setInsightGames] = useState<IGame[] | null>(null);
+  const [insightError, setInsightError] = useState<string | null>(null);
+  const insightsFetched = useRef(0);
+
   const load = useCallback(() => {
     getHistory(username, 365)
       .then((games) => setRows(games.map(toRow)))
       .catch((e) => setError(String(e.message ?? e)));
+    // The charts refresh after every game a running analysis saves; the insights need every move of
+    // every game, so fetch them at most every 30 seconds.
+    if (Date.now() - insightsFetched.current < 30_000) return;
+    insightsFetched.current = Date.now();
+    getInsightSources(username, 365)
+      .then((src) => setInsightGames(src.flatMap((s) => toIGame(s) ?? [])))
+      .catch((e) => setInsightError(String(e.message ?? e)));
   }, [username]);
   useEffect(() => {
     rememberUser(username);
@@ -192,6 +205,20 @@ export default function ProgressPage({ params }: { params: { username: string } 
             </div>
           ) : (
             <GameTable rows={[...current].reverse()} username={username} />
+          )}
+
+          {rows.length > 0 && (
+            <section className="mt-8">
+              <h2 className="mb-1 text-xl font-extrabold">Insights</h2>
+              <p className="mb-3 text-sm text-muted">
+                Patterns across your reviewed games in this range. Click an example to open that position.
+              </p>
+              {insightGames === null ? (
+                <div className="card p-5 text-muted">{insightError ? `Couldn't load insights: ${insightError}` : "Working out your patterns…"}</div>
+              ) : (
+                <Insights username={username} games={insightGames.filter((g) => g.t > now - days * 86400_000 && g.t <= now)} />
+              )}
+            </section>
           )}
         </>
       )}

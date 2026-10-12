@@ -1,4 +1,5 @@
 import type { DayGame, DayOverview, GameMeta, Job, OpeningLine, Profile, Puzzle, Review, WorstMoment } from "./types";
+import type { InsightSource } from "./insights";
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
@@ -114,6 +115,8 @@ export const api = {
     request<{ games: (GameMeta & { rating?: number | null; blunders?: number; mistakes?: number; inaccuracies?: number })[] }>(
       `/api/players/${encodeURIComponent(username)}/history?days=${days}`,
     ),
+  reviews: (username: string, days: number) =>
+    request<{ games: InsightSource[] }>(`/api/players/${encodeURIComponent(username)}/reviews?days=${days}`),
   startBackfill: (username: string, days: number) =>
     request<Job<BackfillResult>>(`/api/players/${encodeURIComponent(username)}/backfill`, {
       method: "POST",

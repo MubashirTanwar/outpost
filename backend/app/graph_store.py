@@ -99,6 +99,7 @@ class GraphStore(Protocol):
     def save_review(self, username: str, game: dict, review: dict) -> None: ...
     def get_review(self, game_id: str) -> dict | None: ...
     def list_games(self, username: str, since: int | None = None, until: int | None = None) -> list[dict]: ...
+    def list_reviews(self, username: str, since: int | None = None) -> list[tuple[dict, dict]]: ...
     def weakness_profile(self, username: str) -> dict: ...
     def puzzles(self, username: str, motif: str | None = None, limit: int = 20) -> list[dict]: ...
     def record_attempt(self, username: str, puzzle_id: str, solved: bool) -> dict: ...
@@ -241,6 +242,12 @@ class MemoryGraphStore:
             rows = [self._games[(user, g)] for g in self._player_games.get(user, ())]
         rows = [r for r in rows if (since is None or r["end_time"] >= since) and (until is None or r["end_time"] < until)]
         return sorted(rows, key=lambda r: r["end_time"], reverse=True)
+
+    def list_reviews(self, username: str, since: int | None = None) -> list[tuple[dict, dict]]:
+        """(game row, full review) for each game this player reviewed, newest first."""
+        rows = self.list_games(username, since)
+        with self._lock:
+            return [(r, self._reviews[r["id"]]) for r in rows if r["id"] in self._reviews]
 
     def weakness_profile(self, username: str) -> dict:
         user = username.lower()
@@ -479,6 +486,19 @@ class Neo4jGraphStore:
                     row.update(blunders=edge.get("blunders"), mistakes=edge.get("mistakes"), inaccuracies=edge.get("inaccuracies"))
                 rows.append(row)
             return rows
+
+    def list_reviews(self, username: str, since: int | None = None) -> list[tuple[dict, dict]]:
+        with self._driver.session() as s:
+            result = s.run(
+                """
+                MATCH (:Player {username: $user})-[r:PLAYED]->(g:Game)
+                WHERE r.result IS NOT NULL AND ($since IS NULL OR g.end_time >= $since) AND g.review IS NOT NULL
+                RETURN g.id AS id, g.review AS review
+                """,
+                user=username.lower(), since=since,
+            )
+            reviews = {rec["id"]: json.loads(rec["review"]) for rec in result}
+        return [(row, reviews[row["id"]]) for row in self.list_games(username, since) if row["id"] in reviews]
 
     def weakness_profile(self, username: str) -> dict:
         user = username.lower()

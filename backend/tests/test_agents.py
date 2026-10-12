@@ -174,3 +174,29 @@ def test_get_review_from_each_players_side(monkeypatch, fake_engine, memory_stor
     assert memory_store.list_games("opponent2")[0]["player_color"] == "white"
     mine_row = next(r for r in memory_store.list_games("coach_tester") if r["id"] == "g2")
     assert mine_row["player_color"] == "black", "the opponent's review must not change my row"
+
+
+def test_memory_store_list_reviews(fake_engine, memory_store):
+    from .store_contract import check_list_reviews
+
+    check_list_reviews(memory_store, fake_engine)
+
+
+def test_reviews_endpoint_is_trimmed_and_gzipped(fake_engine, memory_store):
+    import time
+
+    from app import main
+    from app.review import review_pgn
+
+    from .store_contract import _game
+
+    game = {**_game("black"), "end_time": int(time.time()) - 3600}
+    memory_store.save_review("coach_tester", game, review_pgn(game["pgn"], fake_engine, depth=1, player_color="black"))
+    client = TestClient(main.app)
+    data = client.get("/api/players/coach_tester/reviews?days=30").json()  # the client un-gzips
+    [g] = data["games"]
+    assert g["game"]["player_color"] == "black" and g["summary"]["black"]["accuracy"] is not None
+    assert set(g["moves"][0]) == set(main.INSIGHT_MOVE_FIELDS)
+    raw = client.get("/api/players/coach_tester/reviews?days=30", headers={"accept-encoding": "gzip"})
+    assert raw.headers["content-encoding"] == "gzip"
+    assert client.get("/api/players/coach_tester/reviews?days=0").status_code == 422

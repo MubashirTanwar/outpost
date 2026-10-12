@@ -87,3 +87,9 @@ def test_neo4j_two_players(fake_engine, neo4j_store):
     from .store_contract import check_both_players_keep_their_side
 
     check_both_players_keep_their_side(neo4j_store, fake_engine)
+
+
+def test_neo4j_list_reviews(fake_engine, neo4j_store):
+    from .store_contract import check_list_reviews
+
+    check_list_reviews(neo4j_store, fake_engine)
