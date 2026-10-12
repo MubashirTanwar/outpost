@@ -145,3 +145,21 @@ def test_coach_stream_without_a_model_sends_the_template(monkeypatch, memory_sto
     events = _sse(TestClient(main.app).post("/api/coach/stream", json={"username": "coach_tester", "message": "Explain the London"}).text)
     assert [e["type"] for e in events] == ["delta", "done"] and events[-1]["source"] == "template"
     assert "Meow" in events[0]["text"]
+
+
+def test_coach_reuses_games_the_30_day_analysis_already_reviewed(monkeypatch, fake_engine, memory_store):
+    from app import backfill
+    from app.config import get_settings
+
+    monkeypatch.setattr(insights, "get_engine", lambda: fake_engine)
+    monkeypatch.setattr(backfill, "get_engine", lambda: fake_engine)
+    now = int(time.time())
+    raws = [_raw("q1", "hanging_queen.pgn", now - 3600, False, 1230, "loss"),
+            _raw("q2", "scholar.pgn", now - 600, True, 1240, "win")]
+    s = get_settings()
+    backfill.run_backfill("coach_tester", 30, s.backfill_depth, lambda *a: None, fetch=_fetch(raws))
+    stages = []
+    out = insights.answer_question("coach_tester", "what went wrong in my last 2 games?", s.engine_depth,
+                                   lambda st, f: stages.append(st), fetch=_fetch(raws))
+    assert out["report"]["record"]["games"] == 2
+    assert not any("Reviewing game" in st for st in stages)

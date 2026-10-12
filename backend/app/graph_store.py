@@ -1,7 +1,8 @@
 """Knowledge graph of a player's games, mistakes, motifs, positions, openings and puzzles.
 
 Neo4j is the real backend. `MemoryGraphStore` mirrors the same API in-process so the app
-(and the tests) work without a database; it does not persist across restarts.
+(and the tests) work without a database. Given a file path it saves itself there (a JSON
+snapshot, written shortly after each change), so a restart or a `--reload` keeps your games.
 
 Graph model (Neo4j):
 
@@ -17,6 +18,8 @@ Graph model (Neo4j):
 from __future__ import annotations
 
 import json
+import logging
+import os
 import threading
 import time
 from collections import Counter, defaultdict
@@ -24,6 +27,8 @@ from typing import Protocol
 
 from .config import get_settings
 from .review import ERRORS
+
+log = logging.getLogger(__name__)
 
 
 def position_key(fen: str) -> str:
@@ -133,8 +138,11 @@ def _player_result(game: dict, color: str | None) -> str:
 
 class MemoryGraphStore:
     backend = "memory"
+    FLUSH_DELAY_S = 1.0  # a 30-day analysis saves a game every few seconds; batch the writes
 
-    def __init__(self) -> None:
+    def __init__(self, path: str | None = None) -> None:
+        self._path = path
+        self._flush_timer: threading.Timer | None = None
         self._lock = threading.Lock()
         self._reviews: dict[str, dict] = {}
         self._games: dict[tuple[str, str], dict] = {}  # (player, game_id) -> that player's row
@@ -144,6 +152,66 @@ class MemoryGraphStore:
         self._player_puzzles: dict[str, list[str]] = defaultdict(list)
         self._attempts: dict[tuple[str, str], dict] = {}
         self._progress: dict[str, dict] = {}
+        if path:
+            self._load(path)
+
+    # Persistence: one JSON snapshot. Tuple keys are stored as [a, b] pairs.
+    def _snapshot(self) -> dict:
+        return {
+            "version": 1,
+            "reviews": self._reviews,
+            "games": [[u, g, row] for (u, g), row in self._games.items()],
+            "player_games": {u: sorted(ids) for u, ids in self._player_games.items()},
+            "mistakes": self._mistakes,
+            "puzzles": self._puzzles,
+            "player_puzzles": self._player_puzzles,
+            "attempts": [[u, p, a] for (u, p), a in self._attempts.items()],
+            "progress": self._progress,
+        }
+
+    def _load(self, path: str) -> None:
+        try:
+            with open(path) as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            return
+        except (OSError, ValueError) as e:
+            # Keep the unreadable file for inspection rather than overwriting it with an empty store.
+            log.warning("Could not read %s (%s); starting empty and moving it to %s.bad", path, e, path)
+            try:
+                os.replace(path, path + ".bad")
+            except OSError:
+                pass
+            return
+        self._reviews = data.get("reviews", {})
+        self._games = {(u, g): row for u, g, row in data.get("games", [])}
+        self._player_games = defaultdict(set, {u: set(ids) for u, ids in data.get("player_games", {}).items()})
+        self._mistakes = defaultdict(list, data.get("mistakes", {}))
+        self._puzzles = data.get("puzzles", {})
+        self._player_puzzles = defaultdict(list, data.get("player_puzzles", {}))
+        self._attempts = {(u, p): a for u, p, a in data.get("attempts", [])}
+        self._progress = data.get("progress", {})
+        log.info("Loaded %d reviewed games from %s", len(self._reviews), path)
+
+    def _changed(self) -> None:
+        """Schedule a save (call with the lock held)."""
+        if not self._path or self._flush_timer is not None:
+            return
+        self._flush_timer = threading.Timer(self.FLUSH_DELAY_S, self.flush)
+        self._flush_timer.daemon = True
+        self._flush_timer.start()
+
+    def flush(self) -> None:
+        if not self._path:
+            return
+        with self._lock:
+            self._flush_timer = None
+            payload = json.dumps(self._snapshot(), separators=(",", ":"))
+        os.makedirs(os.path.dirname(os.path.abspath(self._path)), exist_ok=True)
+        tmp = f"{self._path}.tmp"
+        with open(tmp, "w") as f:
+            f.write(payload)
+        os.replace(tmp, self._path)  # atomic: a crash mid-write never leaves half a file
 
     def save_review(self, username: str, game: dict, review: dict) -> None:
         user = username.lower()
@@ -161,6 +229,7 @@ class MemoryGraphStore:
             for pz in records["puzzles"]:
                 self._puzzles[pz["id"]] = pz
                 self._player_puzzles[user].append(pz["id"])
+            self._changed()
 
     def get_review(self, game_id: str) -> dict | None:
         with self._lock:
@@ -240,6 +309,7 @@ class MemoryGraphStore:
                 "last_at": int(time.time()),
             }
             self._attempts[key] = att
+            self._changed()
         return att
 
     def get_progress(self, username: str) -> dict | None:
@@ -248,9 +318,14 @@ class MemoryGraphStore:
     def save_progress(self, username: str, progress: dict) -> None:
         with self._lock:
             self._progress[username.lower()] = progress
+            self._changed()
 
     def close(self) -> None:
-        pass
+        with self._lock:
+            timer, self._flush_timer = self._flush_timer, None
+        if timer:
+            timer.cancel()
+        self.flush()
 
 
 def _puzzle_priority(pz: dict) -> tuple:
@@ -517,5 +592,5 @@ def get_store() -> GraphStore:
             if settings.neo4j_uri:
                 _store = Neo4jGraphStore(settings.neo4j_uri, settings.neo4j_user, settings.neo4j_password)
             else:
-                _store = MemoryGraphStore()
+                _store = MemoryGraphStore(settings.memory_store_file or None)
         return _store

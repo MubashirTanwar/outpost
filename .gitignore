@@ -15,3 +15,6 @@ web/public/stockfish/
 next-env.d.ts
 
 .DS_Store
+
+# Saved in-memory graph store
+backend/.data/

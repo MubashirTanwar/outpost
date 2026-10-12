@@ -18,8 +18,10 @@ class Settings(BaseSettings):
     engine_threads: int = 2
     engine_hash_mb: int = 128
 
-    # Graph database. Leave neo4j_uri empty to use the in-memory graph store.
+    # Graph database. Leave neo4j_uri empty to use the in-memory graph store, which is saved to
+    # memory_store_file so restarts keep your games (set it to "" to keep nothing).
     neo4j_uri: str = ""
+    memory_store_file: str = ".data/store.json"
     neo4j_user: str = "neo4j"
     neo4j_password: str = "chesscoach"
 

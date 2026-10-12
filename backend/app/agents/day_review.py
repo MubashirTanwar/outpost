@@ -21,7 +21,7 @@ from langgraph.graph import END, START, StateGraph
 from .. import chesscom, coaching, llm, repertoire
 from ..engine import get_engine
 from ..graph_store import get_store
-from ..review_cache import cached_review
+from ..review_cache import cached_review, reuse_depth
 from ..review import CLASSIFICATIONS, review_pgn
 
 
@@ -60,7 +60,7 @@ def analyze_games(state: DayState, config: RunnableConfig) -> DayState:
     store, engine, report = get_store(), get_engine(), _progress(config)
     games, reviews = state["games"], {}
     for idx, game in enumerate(games):
-        cached = cached_review(store, state["username"], game["id"], state.get("depth", 18), game)
+        cached = cached_review(store, state["username"], game["id"], reuse_depth(state.get("depth", 18)), game)
         if cached:
             reviews[game["id"]] = cached
             continue

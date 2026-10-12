@@ -6,7 +6,17 @@ same for both; only the point of view differs (player_color, key moments, their 
 
 from __future__ import annotations
 
+from .config import get_settings
 from .review import review_for
+
+
+def reuse_depth(depth: int) -> int:
+    """The shallowest stored review worth reusing for a request at `depth`.
+
+    The 30-day background analysis saves reviews at backfill_depth. Summaries (the coach, the day
+    review) reuse those instead of analysing the same games again.
+    """
+    return min(depth, get_settings().backfill_depth)
 
 
 def color_of(review: dict, username: str | None) -> str | None:

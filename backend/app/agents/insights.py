@@ -24,7 +24,7 @@ from .. import chesscom, coaching, repertoire
 from ..engine import get_engine
 from ..graph_store import get_store
 from ..review import review_pgn
-from ..review_cache import cached_review
+from ..review_cache import cached_review, reuse_depth
 
 MAX_REVIEW = 20  # games reviewed on demand for one question
 ERRORS = {"blunder", "mistake", "miss"}
@@ -107,7 +107,7 @@ def gather_games(username: str, scope: Scope, depth: int, progress: Progress,
     store, reviews = get_store(), {}
     todo = []
     for g in in_scope:
-        cached = cached_review(store, username, g["id"], depth, g)
+        cached = cached_review(store, username, g["id"], reuse_depth(depth), g)
         if cached:
             reviews[g["id"]] = cached
         else:
