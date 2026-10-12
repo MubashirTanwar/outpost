@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1130" viewBox="0 0 1200 1130" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9a9895"/>
+    </marker>
+    <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#81b64c"/>
+    </marker>
+    <style>
+      .t { fill: #e8e6e3; }
+      .m { fill: #9a9895; }
+      .h { font-size: 13px; font-weight: 700; letter-spacing: .08em; }
+      .b { font-size: 15px; font-weight: 700; }
+      .s { font-size: 13px; }
+      .xs { font-size: 11.5px; }
+      .node { fill: #34322e; stroke: #4a4844; }
+      .lg { fill: #2d3b22; stroke: #81b64c; }
+      .chip { fill: #34322e; }
+      .line { stroke: #9a9895; stroke-width: 1.6; fill: none; }
+      .gline { stroke: #81b64c; stroke-width: 1.6; fill: none; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="1130" fill="#1f1e1b"/>
+  <text x="40" y="46" class="t" font-size="24" font-weight="800">Outpost: how it fits together</text>
+  <text x="40" y="70" class="m s">Runs fully in the browser on its own; the backend adds agents, the graph, native Stockfish and an LLM.</text>
+
+  <!-- ============ WEB ============ -->
+  <rect x="40" y="92" width="840" height="168" rx="14" fill="#262522" stroke="#3c3a37"/>
+  <text x="60" y="120" class="m h">WEB APP · NEXT.JS 14 (VERCEL OR LOCAL)</text>
+  <g class="s">
+    <rect x="60" y="136" width="190" height="48" rx="8" class="chip"/>
+    <text x="74" y="157" class="t b" font-size="14">Game review</text>
+    <text x="74" y="175" class="m xs">eval bar, engine lines, variations</text>
+
+    <rect x="262" y="136" width="190" height="48" rx="8" class="chip"/>
+    <text x="276" y="157" class="t b" font-size="14">Courses &amp; endgames</text>
+    <text x="276" y="175" class="m xs">spaced repetition, XP, drills</text>
+
+    <rect x="464" y="136" width="190" height="48" rx="8" class="chip"/>
+    <text x="478" y="157" class="t b" font-size="14">Coach chat</text>
+    <text x="478" y="175" class="m xs">streams the answer (SSE)</text>
+
+    <rect x="666" y="136" width="196" height="48" rx="8" class="chip"/>
+    <text x="680" y="157" class="t b" font-size="14">Progress &amp; puzzles</text>
+    <text x="680" y="175" class="m xs">charts, your own mistakes</text>
+
+    <rect x="60" y="196" width="392" height="48" rx="8" fill="#2d3b22" stroke="#81b64c"/>
+    <text x="74" y="217" class="t b" font-size="14">Stockfish 17.1 (WebAssembly, in a Web Worker)</text>
+    <text x="74" y="235" class="m xs">live engine lines; reviews games when there is no backend</text>
+
+    <rect x="464" y="196" width="398" height="48" rx="8" class="chip"/>
+    <text x="478" y="217" class="t b" font-size="14">localStorage</text>
+    <text x="478" y="235" class="m xs">course progress and reviews; synced to the graph when a backend runs</text>
+  </g>
+
+  <!-- chess.com -->
+  <rect x="910" y="92" width="250" height="168" rx="14" fill="#262522" stroke="#3c3a37" stroke-dasharray="6 5"/>
+  <text x="930" y="120" class="m h">EXTERNAL</text>
+  <text x="930" y="152" class="t b">chess.com public API</text>
+  <text x="930" y="174" class="m s">monthly game archives (PGN,</text>
+  <text x="930" y="192" class="m s">ratings, clocks, chess.com's</text>
+  <text x="930" y="210" class="m s">own accuracy when available)</text>
+  <path d="M 880 176 L 906 176" class="line" marker-end="url(#arr)"/>
+
+  <!-- web -> api -->
+  <path d="M 460 260 L 460 300" class="line" marker-end="url(#arr)"/>
+  <text x="472" y="285" class="m xs">REST + server-sent events  (NEXT_PUBLIC_API_URL)</text>
+
+  <!-- ============ API ============ -->
+  <rect x="40" y="304" width="1120" height="420" rx="14" fill="#262522" stroke="#3c3a37"/>
+  <text x="60" y="332" class="m h">BACKEND · FASTAPI (PYTHON)</text>
+
+  <!-- review engine column -->
+  <rect x="60" y="348" width="300" height="356" rx="10" fill="#2a2926" stroke="#3c3a37"/>
+  <text x="76" y="374" class="t b">Game review pipeline</text>
+  <g class="s">
+    <rect x="76" y="388" width="268" height="40" rx="7" class="chip"/>
+    <text x="90" y="413" class="t">chess.com fetch (by day or range)</text>
+    <path d="M 210 428 L 210 444" class="line" marker-end="url(#arr)"/>
+    <rect x="76" y="446" width="268" height="54" rx="7" fill="#2d3b22" stroke="#81b64c"/>
+    <text x="90" y="468" class="t">review.py + native Stockfish</text>
+    <text x="90" y="487" class="m xs">MultiPV 2, depth 18, win% per move</text>
+    <path d="M 210 500 L 210 516" class="line" marker-end="url(#arr)"/>
+    <rect x="76" y="518" width="268" height="54" rx="7" class="chip"/>
+    <text x="90" y="540" class="t">Brilliant … Blunder, accuracy</text>
+    <text x="90" y="559" class="m xs">motifs: fork, pin, hanging piece, time…</text>
+    <path d="M 210 572 L 210 588" class="line" marker-end="url(#arr)"/>
+    <rect x="76" y="590" width="268" height="40" rx="7" class="chip"/>
+    <text x="90" y="615" class="t">puzzles from your own mistakes</text>
+    <text x="76" y="660" class="m xs">Background jobs: day reviews, coach questions</text>
+    <text x="76" y="678" class="m xs">and "analyse my last 30 days" (cancellable).</text>
+  </g>
+
+  <!-- LangGraph column -->
+  <rect x="376" y="348" width="560" height="356" rx="10" fill="#2a2926" stroke="#3c3a37"/>
+  <text x="392" y="374" class="t b">LangGraph agents</text>
+  <text x="392" y="393" class="m xs">Each box is a node: a Python function that reads the shared state and returns updates.</text>
+
+  <text x="392" y="420" class="m h" font-size="11.5">DAY REVIEW</text>
+  <g class="xs">
+    <rect x="392" y="430" width="94" height="30" rx="6" class="node"/><text x="439" y="449" class="t" text-anchor="middle">fetch_games</text>
+    <path d="M 486 445 L 496 445" class="line" marker-end="url(#arr)"/>
+    <rect x="498" y="430" width="102" height="30" rx="6" class="node"/><text x="549" y="449" class="t" text-anchor="middle">analyze_games</text>
+    <path d="M 600 445 L 610 445" class="line" marker-end="url(#arr)"/>
+    <rect x="612" y="430" width="110" height="30" rx="6" class="node"/><text x="667" y="449" class="t" text-anchor="middle">summarize_day</text>
+    <path d="M 722 445 L 732 445" class="line" marker-end="url(#arr)"/>
+    <rect x="734" y="430" width="186" height="30" rx="6" class="node"/><text x="827" y="449" class="t" text-anchor="middle">mine_patterns (graph history)</text>
+    <path d="M 827 460 L 827 474" class="line" marker-end="url(#arr)"/>
+    <rect x="734" y="476" width="88" height="30" rx="6" class="lg"/><text x="778" y="495" class="t" text-anchor="middle">coach_lesson</text>
+    <path d="M 822 491 L 832 491" class="line" marker-end="url(#arr)"/>
+    <rect x="834" y="476" width="86" height="30" rx="6" class="node"/><text x="877" y="495" class="t" text-anchor="middle">training_plan</text>
+  </g>
+
+  <text x="392" y="540" class="m h" font-size="11.5">COACH CHAT</text>
+  <g class="xs">
+    <rect x="392" y="552" width="104" height="30" rx="6" class="node"/><text x="444" y="571" class="t" text-anchor="middle">classify_intent</text>
+    <!-- branches -->
+    <path d="M 496 567 L 520 567" class="line"/>
+    <path d="M 520 567 L 520 615" class="line"/>
+    <path d="M 520 567 L 520 552" class="line"/>
+    <rect x="532" y="548" width="168" height="26" rx="6" class="node"/><text x="616" y="565" class="t" text-anchor="middle">analyze_games (your games)</text>
+    <rect x="532" y="580" width="168" height="26" rx="6" class="node"/><text x="616" y="597" class="t" text-anchor="middle">analyze_position (FEN)</text>
+    <rect x="532" y="612" width="168" height="26" rx="6" class="node"/><text x="616" y="629" class="t" text-anchor="middle">load_profile (graph)</text>
+    <rect x="532" y="644" width="168" height="26" rx="6" class="node"/><text x="616" y="661" class="t" text-anchor="middle">load_openings (courses)</text>
+    <path d="M 520 561 L 530 561" class="line" marker-end="url(#arr)"/>
+    <path d="M 520 593 L 530 593" class="line" marker-end="url(#arr)"/>
+    <path d="M 520 625 L 530 625" class="line" marker-end="url(#arr)"/>
+    <path d="M 520 615 L 520 657 L 530 657" class="line" marker-end="url(#arr)"/>
+    <path d="M 700 561 L 716 561 L 716 657 L 700 657" class="line"/>
+    <path d="M 700 593 L 716 593 M 700 625 L 716 625" class="line"/>
+    <path d="M 716 609 L 744 609" class="line" marker-end="url(#arr)"/>
+    <rect x="746" y="592" width="174" height="34" rx="6" class="lg"/>
+    <text x="833" y="607" class="t" text-anchor="middle">respond</text>
+    <text x="833" y="620" class="m" text-anchor="middle" font-size="10.5">streams text via the stream writer</text>
+    <text x="532" y="682" class="m xs">Only the nodes a question needs run. Facts come from</text>
+    <text x="532" y="696" class="m xs">the engine and the graph; the LLM only phrases them.</text>
+  </g>
+
+  <!-- LLM column -->
+  <rect x="952" y="348" width="188" height="356" rx="10" fill="#2a2926" stroke="#3c3a37"/>
+  <text x="968" y="374" class="t b">LLM (optional)</text>
+  <g class="s">
+    <rect x="968" y="390" width="156" height="50" rx="7" class="chip"/>
+    <text x="982" y="411" class="t">Claude</text>
+    <text x="982" y="429" class="m xs">Anthropic API</text>
+    <rect x="968" y="450" width="156" height="50" rx="7" class="chip"/>
+    <text x="982" y="471" class="t">Ollama</text>
+    <text x="982" y="489" class="m xs">free, local models</text>
+    <rect x="968" y="510" width="156" height="50" rx="7" class="chip"/>
+    <text x="982" y="531" class="t">None</text>
+    <text x="982" y="549" class="m xs">template coaching</text>
+    <text x="968" y="590" class="m xs">Gives Kittu his voice:</text>
+    <text x="968" y="607" class="m xs">smug, sassy, roasts</text>
+    <text x="968" y="624" class="m xs">moves (never you).</text>
+  </g>
+  <path d="M 920 491 L 950 491" class="gline" marker-end="url(#arrg)"/>
+  <path d="M 920 609 L 950 609" class="gline" marker-end="url(#arrg)"/>
+
+  <!-- api -> graph -->
+  <path d="M 600 724 L 600 760" class="line" marker-end="url(#arr)"/>
+  <text x="612" y="747" class="m xs">Bolt · or an in-memory store when NEO4J_URI is empty</text>
+
+  <!-- ============ GRAPH ============ -->
+  <rect x="40" y="764" width="1120" height="346" rx="14" fill="#262522" stroke="#3c3a37"/>
+  <text x="60" y="792" class="m h">NEO4J KNOWLEDGE GRAPH</text>
+  <text x="60" y="812" class="m xs">Positions are stored by FEN and shared between games, so the coach can tell a one-off slip from a habit.</text>
+
+  <g class="xs">
+    <!-- edges (drawn first, under the nodes) -->
+    <path d="M 160 924 L 330 896" class="line" marker-end="url(#arr)"/>
+    <text x="236" y="898" class="m" paint-order="stroke" stroke="#262522" stroke-width="5" stroke-linejoin="round">MADE</text>
+    <path d="M 160 966 L 340 992" class="line" marker-end="url(#arr)"/>
+    <text x="232" y="998" class="m" paint-order="stroke" stroke="#262522" stroke-width="5" stroke-linejoin="round">PLAYED</text>
+    <path d="M 380 910 L 380 962" class="line" marker-end="url(#arr)"/>
+    <text x="388" y="942" class="m" paint-order="stroke" stroke="#262522" stroke-width="5" stroke-linejoin="round">IN_GAME</text>
+    <path d="M 418 1000 L 576 1000" class="line" marker-end="url(#arr)"/>
+    <text x="458" y="992" class="m" paint-order="stroke" stroke="#262522" stroke-width="5" stroke-linejoin="round">IN_OPENING</text>
+    <path d="M 420 890 L 576 890" class="line" marker-end="url(#arr)"/>
+    <text x="452" y="882" class="m" paint-order="stroke" stroke="#262522" stroke-width="5" stroke-linejoin="round">AT_POSITION</text>
+    <path d="M 410 872 C 520 824 740 824 836 864" class="line" marker-end="url(#arr)"/>
+    <text x="608" y="840" class="m" paint-order="stroke" stroke="#262522" stroke-width="5" stroke-linejoin="round">HAS_MOTIF</text>
+    <path d="M 828 982 C 700 946 520 946 414 908" class="line" marker-end="url(#arr)"/>
+    <text x="592" y="960" class="m" paint-order="stroke" stroke="#262522" stroke-width="5" stroke-linejoin="round">FROM_MISTAKE</text>
+    <path d="M 132 988 C 230 1080 720 1080 840 1030" class="line" marker-end="url(#arr)"/>
+    <text x="480" y="1068" class="m" paint-order="stroke" stroke="#262522" stroke-width="5" stroke-linejoin="round">ATTEMPTED {attempts, streak}</text>
+    <path d="M 110 990 C 200 1120 1000 1120 1066 990" class="line" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+    <text x="760" y="1096" class="m" paint-order="stroke" stroke="#262522" stroke-width="5" stroke-linejoin="round">STUDIED {stage, due}: course progress</text>
+  </g>
+
+  <g font-size="12.5" font-weight="700" text-anchor="middle">
+    <circle cx="120" cy="945" r="46" fill="#2d3b22" stroke="#81b64c" stroke-width="2"/><text x="120" y="950" class="t">Player</text>
+    <rect x="336" y="872" width="88" height="38" rx="19" fill="#3a2a22" stroke="#e6912c" stroke-width="2"/><text x="380" y="896" class="t">Mistake</text>
+    <circle cx="380" cy="1000" r="36" fill="#34322e" stroke="#749bbf" stroke-width="2"/><text x="380" y="1005" class="t">Game</text>
+    <circle cx="620" cy="890" r="42" fill="#34322e" stroke="#749bbf" stroke-width="2"/><text x="620" y="895" class="t">Position</text>
+    <circle cx="620" cy="1000" r="42" fill="#34322e" stroke="#749bbf" stroke-width="2"/><text x="620" y="1005" class="t">Opening</text>
+    <circle cx="872" cy="886" r="36" fill="#3a2a22" stroke="#e6912c" stroke-width="2"/><text x="872" y="891" class="t">Motif</text>
+    <circle cx="872" cy="1000" r="36" fill="#2d3b22" stroke="#81b64c" stroke-width="2"/><text x="872" y="1005" class="t">Puzzle</text>
+    <circle cx="1080" cy="945" r="54" fill="#34322e" stroke="#749bbf" stroke-width="2"/><text x="1080" y="950" class="t">CourseLine</text>
+  </g>
+</svg>

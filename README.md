@@ -2,7 +2,7 @@
 
 Chess training with **Kittu**, a smug cat coach who roasts your moves (never you) and still teaches.
 
-![Kittu's reactions](docs/kittu-reactions.png)
+![Outpost: game review, the coach, opening courses and progress](docs/screenshots.png)
 
 ## Getting started
 
@@ -45,34 +45,12 @@ The UI copies the look of chess.com: dark theme, cream-and-brown board, animated
 
 ## Architecture
 
-```
-                 ┌──────────────────────── web (Next.js, Vercel-ready) ────────────────────────┐
-                 │  React UI · react-chessboard · chess.js · Stockfish WASM in a Web Worker    │
-                 │  Browser-only mode: in-browser review + localStorage when no API is set     │
-                 └───────────────────────────────┬─────────────────────────────────────────────┘
-                                                 │ REST (NEXT_PUBLIC_API_URL)
-┌──────────────────────────────────── api (FastAPI) ───────────────────────────────────────────┐
-│  chess.com public API → review.py (native Stockfish, multipv 2) → classifications/motifs     │
-│                                                                                              │
-│  LangGraph agents                                                                            │
-│   day_review:  fetch_games → analyze_games → summarize_day → mine_patterns → coach_lesson    │
-│                → training_plan                                                               │
-│   coach chat:  classify_intent → [analyze_position] → [load_profile] → [load_openings]       │
-│                → respond                                                                     │
-│                                                                                              │
-│  LLM: Claude (Anthropic API) · Ollama (free, local) · or none (template coaching)            │
-└───────────────────────────────┬──────────────────────────────────────────────────────────────┘
-                                │ Bolt
-                ┌───────────── Neo4j knowledge graph ─────────────┐
-                │ (Player)-[:PLAYED]->(Game)-[:IN_OPENING]->(Opening)
-                │ (Player)-[:MADE]->(Mistake)-[:AT_POSITION]->(Position)
-                │ (Mistake)-[:HAS_MOTIF]->(Motif)
-                │ (Puzzle)-[:FROM_MISTAKE]->(Mistake)
-                │ (Player)-[:ATTEMPTED {streak}]->(Puzzle)
-                └──────────────────────────────────────────────────┘
-```
+![Architecture: the Next.js app, the FastAPI backend with its LangGraph agents, and the Neo4j graph](docs/architecture.svg)
 
-The graph lets the coach tell a one-off slip from a habit. It can see, for example, that you keep hanging pieces, or that you have gone wrong in the same position more than once across different games, because positions are stored by FEN and shared between games.
+- **Web app** (Next.js): everything you see. It runs Stockfish 17.1 in the browser, so with no backend it still reviews games and keeps your progress in localStorage.
+- **Backend** (FastAPI): fetches games from chess.com, reviews them with native Stockfish, and runs two LangGraph agents. The **day review** walks a fixed pipeline; the **coach** routes each question to only the steps it needs (your games, a position, your profile, your openings), then streams the answer.
+- **Neo4j**: every reviewed game, mistake, position, motif, puzzle and course line, linked together. Positions are keyed by FEN, so the coach can see that you went wrong in the *same position* in different games, or keep making the same kind of mistake. With `NEO4J_URI` empty an in-memory store stands in.
+- **LLM** (optional): Claude or a local Ollama model gives Kittu his voice. The facts (evals, best moves, counts, rating changes) always come from the engine and the graph; with no LLM the coach uses templates.
 
 ### How moves are classified
 
