@@ -1,3 +1,5 @@
+<img src="docs/logo.svg" width="96" height="96" alt="Outpost logo: smug Kittu on a chessboard, rating his own move Brilliant">
+
 # Outpost
 
 Chess training with **Kittu**, a smug cat coach who roasts your moves (never you) and still teaches.
