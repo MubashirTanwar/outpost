@@ -8,6 +8,7 @@ import { BackfillCard } from "@/components/BackfillCard";
 import { BarChart, Legend, LineChart, SERIES_COLORS, type LineSeries } from "@/components/Charts";
 import { Kittu, type KittuMood } from "@/components/Kittu";
 import { StatsBar } from "@/components/StatsBar";
+import { TimeClassIcon } from "@/components/TimeClassIcon";
 import { getHistory } from "@/lib/client";
 import { COURSES, lineIds } from "@/lib/courses";
 import { ALL_DRILLS, STAGES } from "@/lib/endgames";
@@ -278,7 +279,9 @@ function GameTable({ rows, username }: { rows: HistoryRow[]; username: string })
                   {r.opponent || "?"}
                 </Link>
               </td>
-              <td className="px-3 py-2 text-soft">{cap(r.timeClass)}</td>
+              <td className="px-3 py-2">
+                <TimeClassIcon timeClass={r.timeClass} size={18} />
+              </td>
               <td className="px-3 py-2 text-soft">{r.result ? cap(r.result) : "–"}</td>
               <td className="px-3 py-2 tabular-nums text-soft">{r.rating ?? "–"}</td>
               <td className="px-3 py-2 tabular-nums text-white">{r.accuracy == null ? "–" : r.accuracy.toFixed(1)}</td>

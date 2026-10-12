@@ -10,14 +10,18 @@ import { RefMarkdown } from "@/components/GameRefs";
 import { Progress } from "@/components/Progress";
 import { ClassificationTable } from "@/components/ReviewSummary";
 import { api, getHealth } from "@/lib/api";
-import { fetchDayGames, localDay, playerResult, tzOffset } from "@/lib/chesscom";
+import { TimeClassIcon, timeClassName } from "@/components/TimeClassIcon";
+import { fetchGamesBetween, localDay, playerResult, tzOffset } from "@/lib/chesscom";
 import { reviewDay } from "@/lib/client";
 import { prettyMotif } from "@/lib/format";
 import { playSound } from "@/lib/sounds";
 import type { DayOverview, GameMeta, Profile } from "@/lib/types";
+import { myRating, ratingChanges, ratingSummary, timeControlLabel } from "@/lib/timecontrol";
 import { rememberUser } from "@/lib/user";
 
 const RESULT_STYLE = { win: "bg-brand", loss: "bg-[#fa412d]", draw: "bg-[#989795]" } as const;
+/** Games fetched from before the day, so the day's first game in each time control has a rating change. */
+const LOOKBACK_MS = 14 * 86400_000;
 
 function shiftDay(day: string, delta: number) {
   const d = new Date(`${day}T12:00:00`);
@@ -33,6 +37,7 @@ export default function Dashboard({ params }: { params: { username: string } }) 
   const username = decodeURIComponent(params.username);
   const [day, setDay] = useState(localDay());
   const [games, setGames] = useState<GameMeta[] | null>(null);
+  const [changes, setChanges] = useState<Record<string, number | null>>({});
   const [gamesError, setGamesError] = useState<string | null>(null);
   const [overview, setOverview] = useState<DayOverview | null>(null);
   const [progress, setProgress] = useState<{ stage: string; value: number } | null>(null);
@@ -59,10 +64,16 @@ export default function Dashboard({ params }: { params: { username: string } }) 
       setOverview(null);
     }
     let cancelled = false;
-    fetchDayGames(username, day)
+    const start = new Date(`${day}T00:00:00`).getTime();
+    fetchGamesBetween(username, start - LOOKBACK_MS, start + 86400_000)
+      .then((all) => ({ all, today: all.filter((g) => g.end_time * 1000 >= start) }))
       // chess.com unreachable from the browser? Ask the backend instead.
-      .catch(() => api.games(username, day, tzOffset(day)).then((d) => d.games))
-      .then((g: GameMeta[]) => !cancelled && setGames(g))
+      .catch(() => api.games(username, day, tzOffset(day)).then((d) => ({ all: d.games, today: d.games })))
+      .then(({ all, today }: { all: GameMeta[]; today: GameMeta[] }) => {
+        if (cancelled) return;
+        setChanges(ratingChanges(all));
+        setGames(today);
+      })
       .catch((e) => !cancelled && setGamesError(String(e)));
     return () => {
       cancelled = true;
@@ -97,6 +108,7 @@ export default function Dashboard({ params }: { params: { username: string } }) 
 
   const s = overview?.summary;
   const today = localDay();
+  const ratings = games ? ratingSummary(games, changes) : [];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
@@ -126,7 +138,7 @@ export default function Dashboard({ params }: { params: { username: string } }) 
         <div className="space-y-5">
           {/* Run card */}
           <div className="card p-5">
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="flex-1">
                 <h2 className="text-xl font-extrabold">Day Review</h2>
                 <p className="text-sm text-soft">
@@ -134,6 +146,17 @@ export default function Dashboard({ params }: { params: { username: string } }) 
                     ? "Loading games…"
                     : `${games.length} game${games.length === 1 ? "" : "s"} on ${new Date(`${day}T12:00:00`).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}`}
                 </p>
+                {ratings.length > 0 && (
+                  <div className="mt-2.5 flex flex-wrap gap-2">
+                    {ratings.map((r) => (
+                      <span key={r.timeClass} className="flex items-center gap-1.5 rounded-md bg-panel2 px-2.5 py-1.5" title={`${timeClassName(r.timeClass)} rating after ${r.games} game${r.games === 1 ? "" : "s"}`}>
+                        <TimeClassIcon timeClass={r.timeClass} size={18} />
+                        <b className="tabular-nums text-white">{r.end}</b>
+                        {r.change != null && <RatingDelta value={r.change} />}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               <button className="btn-primary" onClick={run} disabled={!!progress || games?.length === 0}>
                 <Sparkles size={20} /> {overview ? "Re-run review" : "Review my day"}
@@ -222,25 +245,37 @@ export default function Dashboard({ params }: { params: { username: string } }) 
             {(games ?? []).map((g) => {
               const res = playerResult(g);
               const pg = s?.per_game.find((p) => p.id === g.id);
-              const opp = g.player_color === "white" ? g.black : g.white;
-              const oppRating = g.player_color === "white" ? g.black_rating : g.white_rating;
+              const change = changes[g.id];
+              const rows = (["white", "black"] as const).map((c) => ({
+                color: c,
+                name: g[c],
+                rating: g[`${c}_rating`],
+                me: g.player_color === c,
+              }));
               return (
                 <Link
                   key={g.id}
                   href={`/u/${encodeURIComponent(username)}/game/${encodeURIComponent(g.id)}?day=${day}`}
-                  className="flex items-center gap-3 border-b border-line/60 px-5 py-3 last:border-0 hover:bg-[#2d2b28]"
+                  className="flex items-center gap-3 border-b border-line/60 px-4 py-3 last:border-0 hover:bg-[#2d2b28] sm:px-5"
                 >
-                  <span className={`h-3 w-3 rounded-sm ${g.player_color === "white" ? "bg-white" : "bg-[#1a1a1a] ring-1 ring-[#666]"}`} />
+                  <div className="flex w-12 shrink-0 flex-col items-center gap-0.5 text-[11px] text-muted">
+                    <TimeClassIcon timeClass={g.time_class} size={24} />
+                    <span className="whitespace-nowrap">{timeControlLabel(g.time_control)}</span>
+                  </div>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate font-bold">
-                      {opp} <span className="font-normal text-muted">({oppRating ?? "?"})</span>
-                    </div>
-                    <div className="truncate text-xs text-muted">
-                      {g.time_class} · {g.opening ?? g.eco ?? "Unknown opening"}
+                    {rows.map((p) => (
+                      <div key={p.color} className="flex items-center gap-2 text-[15px] leading-6">
+                        <span className={`h-3 w-3 shrink-0 rounded-sm ${p.color === "white" ? "bg-white" : "bg-[#1a1a1a] ring-1 ring-[#666]"}`} />
+                        <span className={`truncate ${p.me ? "font-bold text-white" : "text-soft"}`}>{p.name}</span>
+                        <span className="shrink-0 tabular-nums text-muted">({p.rating ?? "?"})</span>
+                      </div>
+                    ))}
+                    <div className="mt-0.5 truncate text-xs text-muted">
+                      {new Date(g.end_time * 1000).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })} · {g.opening ?? g.eco ?? "Unknown opening"}
                     </div>
                   </div>
                   {pg && (
-                    <div className="hidden items-center gap-2 text-xs sm:flex">
+                    <div className="hidden items-center gap-2 text-xs md:flex">
                       {(["brilliant", "great", "mistake", "blunder"] as const).map((c) =>
                         pg.counts[c] ? (
                           <span key={c} className="flex items-center gap-0.5" title={CLS_LABELS[c]}>
@@ -248,10 +283,17 @@ export default function Dashboard({ params }: { params: { username: string } }) 
                           </span>
                         ) : null,
                       )}
-                      <span className="ml-1 rounded bg-[#403d39] px-2 py-0.5 font-bold">{pg.accuracy?.toFixed(1) ?? "–"}</span>
                     </div>
                   )}
-                  <span className={`rounded px-2 py-0.5 text-xs font-extrabold uppercase ${RESULT_STYLE[res]}`}>{res}</span>
+                  {pg && <span className="rounded bg-[#403d39] px-2 py-0.5 text-sm font-bold tabular-nums" title="Your accuracy">{pg.accuracy?.toFixed(1) ?? "–"}</span>}
+                  <div className="flex w-14 shrink-0 flex-col items-center gap-1">
+                    <span className={`w-full rounded px-1.5 py-0.5 text-center text-xs font-extrabold uppercase ${RESULT_STYLE[res]}`}>{res}</span>
+                    {change != null ? (
+                      <RatingDelta value={change} small />
+                    ) : (
+                      <span className="text-[11px] text-muted">{g.rated ? (myRating(g) ?? "") : "unrated"}</span>
+                    )}
+                  </div>
                 </Link>
               );
             })}
@@ -385,6 +427,16 @@ function Stat({ label, value, sub, accent, danger }: { label: string; value: Rea
       <div className={`mt-1 text-3xl font-extrabold ${accent ? "text-brand" : danger ? "text-[#fa412d]" : ""}`}>{value}</div>
       {sub && <div className="text-xs text-muted">{sub}</div>}
     </div>
+  );
+}
+
+function RatingDelta({ value, small }: { value: number; small?: boolean }) {
+  const cls = value > 0 ? "text-brand-light" : value < 0 ? "text-[#ff8a7a]" : "text-muted";
+  return (
+    <span className={`font-bold tabular-nums ${small ? "text-xs" : "text-sm"} ${cls}`}>
+      {value > 0 ? "+" : ""}
+      {value}
+    </span>
   );
 }
 

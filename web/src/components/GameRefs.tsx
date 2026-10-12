@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import ReactMarkdown from "react-markdown";
 import { Board } from "@/components/Board";
 import { CLS_LABELS, ClassificationIcon } from "@/components/ClassificationIcon";
+import { TimeClassIcon } from "@/components/TimeClassIcon";
 import { linkify, type RefContext } from "@/lib/linkify";
 import type { WorstMoment } from "@/lib/types";
 
@@ -113,8 +114,9 @@ export function GameRef({ ctx, game, label }: { ctx: RefContext; game: RefContex
         vs {game.opponent}
         <span className={`text-xs font-extrabold uppercase ${RESULT_COLOR[game.result]}`}>{game.result}</span>
       </span>
-      <span className="mt-1 block text-xs">
-        {game.time_class} · you had {game.color} · {game.opening ?? game.eco ?? "unknown opening"}
+      <span className="mt-1 flex items-center gap-1.5 text-xs">
+        <TimeClassIcon timeClass={game.time_class} size={14} />
+        <span className="truncate">you had {game.color} · {game.opening ?? game.eco ?? "unknown opening"}</span>
       </span>
       <span className="mt-2 flex gap-3 text-xs">
         <span>

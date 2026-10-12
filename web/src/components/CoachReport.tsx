@@ -6,6 +6,7 @@ import { BookOpen, Clock, Crown, Puzzle, RotateCcw, Target } from "lucide-react"
 import Link from "next/link";
 import { Board } from "@/components/Board";
 import { CLS_LABELS, ClassificationIcon } from "@/components/ClassificationIcon";
+import { TimeClassIcon } from "@/components/TimeClassIcon";
 import { gameHref, type RefContext } from "@/components/GameRefs";
 import type { CoachReport as Report } from "@/lib/api";
 
@@ -32,8 +33,9 @@ export function CoachReport({ report }: { report: Report }) {
           </span>
         )}
         {report.rating.map((r) => (
-          <span key={r.time_class} className="rounded-md bg-[#3c3a37] px-2.5 py-1 capitalize">
-            {r.time_class} {r.start} → {r.end}{" "}
+          <span key={r.time_class} className="flex items-center gap-1.5 rounded-md bg-[#3c3a37] px-2.5 py-1">
+            <TimeClassIcon timeClass={r.time_class} size={16} />
+            {r.start} → {r.end}{" "}
             <b className={r.change > 0 ? "text-brand-light" : r.change < 0 ? "text-[#ff8a7a]" : "text-soft"}>
               {r.change > 0 ? "+" : ""}
               {r.change}
