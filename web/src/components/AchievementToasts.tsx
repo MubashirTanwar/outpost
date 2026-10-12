@@ -16,7 +16,7 @@ export function AchievementToasts() {
   useAchievementToasts(onUnlock);
 
   return (
-    <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+    <div className="pointer-events-none fixed bottom-[calc(72px+env(safe-area-inset-bottom))] right-4 z-50 md:bottom-4 flex flex-col gap-2">
       {toasts.map((a) => (
         <div key={a.key} className="animate-pop flex items-center gap-3 rounded-xl bg-[#f7c631] px-4 py-3 text-[#2b2210] shadow-xl">
           <span className="text-3xl">{a.icon}</span>

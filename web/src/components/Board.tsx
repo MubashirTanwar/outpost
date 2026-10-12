@@ -18,6 +18,8 @@ export interface BoardProps {
   badge?: { square: string; cls: Classification } | null;
   highlights?: Record<string, string>;
   id?: string;
+  /** Rank and file labels; off for thumbnail boards, where they would cover the pieces. */
+  notation?: boolean;
 }
 
 const LIGHT = "#edd6b0";
@@ -33,7 +35,7 @@ function squarePosition(square: string, orientation: "white" | "black") {
   return { left: `${col * 12.5}%`, top: `${row * 12.5}%` };
 }
 
-export function Board({ fen, orientation = "white", onMove, lastMove, arrows = [], badge, highlights = {}, id = "board" }: BoardProps) {
+export function Board({ fen, orientation = "white", onMove, lastMove, arrows = [], badge, highlights = {}, id = "board", notation = true }: BoardProps) {
   // A selection belongs to the position it was made in: once the position changes it no longer applies.
   const [selection, setSelection] = useState<{ square: Square; fen: string } | null>(null);
   const selected = selection?.fen === fen ? selection.square : null;
@@ -120,6 +122,7 @@ export function Board({ fen, orientation = "white", onMove, lastMove, arrows = [
         customDarkSquareStyle={{ backgroundColor: DARK }}
         customLightSquareStyle={{ backgroundColor: LIGHT }}
         customBoardStyle={{ borderRadius: "3px", boxShadow: "0 6px 18px rgba(0,0,0,0.45)" }}
+        showBoardNotation={notation}
         customNotationStyle={{ fontWeight: 700, fontSize: "11px" }}
         customDropSquareStyle={{ boxShadow: "inset 0 0 0 4px rgba(255,255,255,0.65)" }}
       />

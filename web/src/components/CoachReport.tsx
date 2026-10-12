@@ -103,7 +103,7 @@ function PositionCard({ ctx, moment }: { ctx: RefContext; moment: Report["moment
   return (
     <Link href={gameHref(ctx, moment.game_id, moment.ply)} className="group rounded-md bg-[#2b2a27] p-1.5 hover:bg-[#363431]" title="Open this moment in the review">
       <div className="pointer-events-none">
-        <Board fen={moment.fen_before} orientation={orientation} arrows={arrows} id={`coach-${moment.game_id}-${moment.ply}`} />
+        <Board fen={moment.fen_before} orientation={orientation} arrows={arrows} notation={false} id={`coach-${moment.game_id}-${moment.ply}`} />
       </div>
       <div className="mt-1.5 flex items-center gap-1 text-xs font-bold text-white">
         <ClassificationIcon cls={moment.classification} size={14} />

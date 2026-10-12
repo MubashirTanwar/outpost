@@ -187,6 +187,7 @@ export default function Dashboard({ params }: { params: { username: string } }) 
                             id={`km-${w.game_id}-${w.ply}`}
                             fen={w.fen_before}
                             orientation={w.fen_before.split(" ")[1] === "w" ? "white" : "black"}
+                            notation={false}
                           />
                         </div>
                         <div className="mt-2 flex items-center gap-2 text-sm">

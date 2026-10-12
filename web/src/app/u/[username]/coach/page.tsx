@@ -106,9 +106,9 @@ export default function CoachPage({ params }: { params: { username: string } }) 
     );
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-56px)] max-w-3xl flex-col p-3 md:h-screen md:p-5">
-      <h1 className="mb-3 text-2xl font-extrabold">Coach Kittu</h1>
-      <div className="card flex-1 space-y-4 overflow-y-auto p-4">
+    <div className="mx-auto flex h-[calc(100dvh-108px-env(safe-area-inset-bottom))] max-w-3xl flex-col p-2 sm:p-3 md:h-screen md:p-5">
+      <h1 className="mb-2 hidden text-2xl font-extrabold sm:block md:mb-3">Coach Kittu</h1>
+      <div className="card flex-1 space-y-4 overflow-y-auto p-2.5 sm:p-4">
         {messages.length === 0 && (
           <div className="py-8 text-center">
             <div className="mx-auto w-fit">
@@ -128,11 +128,11 @@ export default function CoachPage({ params }: { params: { username: string } }) 
         {messages.map((m, i) => (m.role === "assistant" && !m.content && !m.report ? null : (
           <div key={i} className={`flex gap-3 ${m.role === "user" ? "justify-end" : ""}`}>
             {m.role === "assistant" && (
-              <div className="shrink-0">
+              <div className="hidden shrink-0 sm:block">
                 <Kittu mood={i === messages.length - 1 ? "smug" : "neutral"} size={44} />
               </div>
             )}
-            <div className={`max-w-[85%] rounded-lg px-4 py-3 ${m.role === "user" ? "bg-[#4b4847]" : "bg-panel2"}`}>
+            <div className={`rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 ${m.role === "user" ? "max-w-[85%] bg-[#4b4847]" : "min-w-0 max-w-full bg-panel2 sm:max-w-[85%]"}`}>
               {m.role === "assistant" ? (
                 m.report ? (
                   <>
@@ -164,7 +164,7 @@ export default function CoachPage({ params }: { params: { username: string } }) 
         <div ref={bottom} />
       </div>
       <form
-        className="mt-3 space-y-2"
+        className="mt-2 space-y-2 sm:mt-3"
         onSubmit={(e) => {
           e.preventDefault();
           send(input);

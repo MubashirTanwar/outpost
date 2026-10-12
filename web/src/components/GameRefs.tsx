@@ -84,7 +84,7 @@ export function MoveRef({ ctx, moment, label, showBest }: { ctx: RefContext; mom
   return (
     <HoverCard href={gameHref(ctx, moment.game_id, moment.ply)} label={label}>
       <div>
-        <Board fen={fen} orientation={orientation} arrows={arrows} id={`ref-${moment.game_id}-${moment.ply}`} />
+        <Board fen={fen} orientation={orientation} arrows={arrows} notation={false} id={`ref-${moment.game_id}-${moment.ply}`} />
       </div>
       <span className="mt-2 flex items-center gap-1.5 font-bold text-white">
         <ClassificationIcon cls={moment.classification} size={16} />
