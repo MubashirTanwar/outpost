@@ -88,6 +88,25 @@ export async function fetchGamesBetween(username: string, startMs: number, endMs
   return games.sort((a, b) => a.end_time - b.end_time);
 }
 
+/**
+ * One of `username`'s games by its chess.com game number (the digits at the end of its link),
+ * searching their monthly archives from the newest back. Null if it isn't among them.
+ */
+export async function findGameByNumber(username: string, number: string, maxMonths = 36): Promise<GameMeta | null> {
+  const res = await fetch(`${API}/player/${username.toLowerCase()}/games/archives`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`chess.com returned ${res.status}`);
+  const { archives = [] }: { archives?: string[] } = await res.json();
+  for (const url of archives.slice(-maxMonths).reverse()) {
+    const month = await fetch(url);
+    if (!month.ok) continue;
+    const data: { games: RawGame[] } = await month.json();
+    const raw = data.games.find((g) => g.url.replace(/\/$/, "").endsWith(`/${number}`));
+    if (raw) return toMeta(raw, username);
+  }
+  return null;
+}
+
 export async function playerExists(username: string): Promise<boolean> {
   const res = await fetch(`${API}/player/${username.toLowerCase()}`);
   return res.ok;

@@ -115,21 +115,56 @@ class GameReviewRequest(BaseModel):
     depth: int | None = Field(None, ge=1, le=30)
 
 
+def _pgn_time(h) -> int:
+    """When a pasted game ended: chess.com's EndDate/EndTime (UTC), else UTCDate/UTCTime, else now."""
+    for d, t in (("EndDate", "EndTime"), ("UTCDate", "UTCTime"), ("Date", None)):
+        try:
+            day = datetime.strptime(h.get(d, ""), "%Y.%m.%d")
+            clock = datetime.strptime(h.get(t, ""), "%H:%M:%S").time() if t and h.get(t) else datetime.min.time()
+            return int(datetime.combine(day.date(), clock, tzinfo=timezone.utc).timestamp())
+        except ValueError:
+            continue
+    return int(time.time())
+
+
+def _time_class(tc: str) -> str:
+    """chess.com's buckets from a TimeControl header ("300+2", "1/86400")."""
+    if not tc or "/" in tc:
+        return "daily" if tc else ""
+    try:
+        base, _, inc = tc.partition("+")
+        total = int(base) + 40 * int(inc or 0)
+    except ValueError:
+        return ""
+    return "bullet" if total < 180 else "blitz" if total < 600 else "rapid"
+
+
+def _game_from_pgn(pgn: str, username: str, game_id: str | None) -> dict:
+    game = chess.pgn.read_game(io.StringIO(pgn))
+    if game is None:
+        raise HTTPException(400, "Invalid PGN")
+    h = game.headers
+    color = "white" if h.get("White", "").lower() == username.lower() else (
+        "black" if h.get("Black", "").lower() == username.lower() else None)
+    result = h.get("Result")
+
+    def side(win: str) -> str:
+        return "agreed" if result == "1/2-1/2" else "win" if result == win else "unknown" if result in (None, "*") else "resigned"
+
+    def elo(name: str) -> int | None:
+        return int(h[name]) if h.get(name, "").isdigit() else None
+
+    return {"id": game_id or "pgn-" + hashlib.sha1(pgn.encode()).hexdigest()[:12], "url": h.get("Link", ""),
+            "pgn": pgn, "end_time": _pgn_time(h), "time_class": _time_class(h.get("TimeControl", "")),
+            "time_control": h.get("TimeControl", ""), "rated": False, "white": h.get("White", "?"), "black": h.get("Black", "?"),
+            "white_rating": elo("WhiteElo"), "black_rating": elo("BlackElo"),
+            "white_result": side("1-0"), "black_result": side("0-1"),
+            "eco": h.get("ECO"), "opening": chesscom.opening_name_from_url(h.get("ECOUrl")), "player_color": color}
+
+
 def _find_game(req: GameReviewRequest) -> dict:
     if req.pgn:
-        game = chess.pgn.read_game(io.StringIO(req.pgn))
-        if game is None:
-            raise HTTPException(400, "Invalid PGN")
-        h = game.headers
-        color = "white" if h.get("White", "").lower() == req.username.lower() else (
-            "black" if h.get("Black", "").lower() == req.username.lower() else None)
-        return {"id": req.game_id or "pgn-" + hashlib.sha1(req.pgn.encode()).hexdigest()[:12], "url": h.get("Link", ""),
-                "pgn": req.pgn, "end_time": int(time.time()), "time_class": "", "time_control": h.get("TimeControl", ""),
-                "rated": False, "white": h.get("White", "?"), "black": h.get("Black", "?"),
-                "white_rating": None, "black_rating": None,
-                "white_result": "win" if h.get("Result") == "1-0" else ("agreed" if h.get("Result") == "1/2-1/2" else "lose"),
-                "black_result": "win" if h.get("Result") == "0-1" else ("agreed" if h.get("Result") == "1/2-1/2" else "lose"),
-                "eco": h.get("ECO"), "opening": chesscom.opening_name_from_url(h.get("ECOUrl")), "player_color": color}
+        return _game_from_pgn(req.pgn, req.username, req.game_id)
     try:
         candidates = (chesscom.fetch_games_for_day(req.username, req.day, req.tz_offset) if req.day
                       else chesscom.fetch_recent_games(req.username, limit=100))

@@ -240,7 +240,9 @@ class MemoryGraphStore:
         user = username.lower()
         with self._lock:  # job threads add games while requests read them
             rows = [self._games[(user, g)] for g in self._player_games.get(user, ())]
-        rows = [r for r in rows if (since is None or r["end_time"] >= since) and (until is None or r["end_time"] < until)]
+        # A pasted game this player didn't play has no side to chart.
+        rows = [r for r in rows if r.get("player_color") and (since is None or r["end_time"] >= since)
+                and (until is None or r["end_time"] < until)]
         return sorted(rows, key=lambda r: r["end_time"], reverse=True)
 
     def list_reviews(self, username: str, since: int | None = None) -> list[tuple[dict, dict]]:
@@ -465,7 +467,7 @@ class Neo4jGraphStore:
             result = s.run(
                 """
                 MATCH (:Player {username: $user})-[r:PLAYED]->(g:Game)
-                WHERE r.result IS NOT NULL
+                WHERE r.result IS NOT NULL AND r.color IS NOT NULL
                   AND ($since IS NULL OR g.end_time >= $since) AND ($until IS NULL OR g.end_time < $until)
                 RETURN g {.*, review: null} AS game, r {.*} AS edge,
                        CASE WHEN r.blunders IS NULL THEN g.review END AS old_review

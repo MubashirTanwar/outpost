@@ -7,6 +7,7 @@ import { Board } from "@/components/Board";
 import { ClassificationIcon, CLS_LABELS } from "@/components/ClassificationIcon";
 import { Kittu, kittuSays, type KittuMood } from "@/components/Kittu";
 import { RefMarkdown } from "@/components/GameRefs";
+import { ReviewOneGame } from "@/components/ReviewOneGame";
 import { Progress } from "@/components/Progress";
 import { ClassificationTable } from "@/components/ReviewSummary";
 import { api, getHealth } from "@/lib/api";
@@ -170,6 +171,8 @@ export default function Dashboard({ params }: { params: { username: string } }) 
             {error && <p className="mt-3 text-sm text-[#fa412d]">{error}</p>}
             {gamesError && <p className="mt-3 text-sm text-[#fa412d]">Couldn&apos;t load games: {gamesError}</p>}
           </div>
+
+          <ReviewOneGame username={username} />
 
           {/* Overview */}
           {s && (

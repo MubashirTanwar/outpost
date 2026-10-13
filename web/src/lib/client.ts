@@ -5,7 +5,8 @@
  * when it's reachable, else falls back to browser-only mode (WASM Stockfish + localStorage).
  */
 import { api, getHealth, pollJob, type BackfillResult } from "./api";
-import { fetchDayGames, fetchGamesBetween, playerResult, tzOffset } from "./chesscom";
+import { fetchDayGames, fetchGamesBetween, findGameByNumber, localDay, playerResult, tzOffset } from "./chesscom";
+import { metaFromPgn, type GameInput } from "./gamelink";
 import { reviewPgn } from "./review";
 import type { InsightSource } from "./insights";
 import type { RawGame } from "./stats";
@@ -16,6 +17,7 @@ export type Progress = (stage: string, fraction: number) => void;
 
 const BROWSER_DEPTH = 12;
 const LS_PREFIX = "cc-review:";
+const PASTED_PREFIX = "cc-pasted:"; // games pasted as PGN, kept until they're reviewed
 
 function saveLocal(review: Review) {
   try {
@@ -108,12 +110,51 @@ export async function isBackendMode(): Promise<boolean> {
   return (await getHealth()) !== null;
 }
 
+function loadPasted(id: string): (GameMeta & { pgn: string }) | null {
+  try {
+    const raw = localStorage.getItem(PASTED_PREFIX + id);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Where to open a pasted game: its review page path. chess.com links are looked up in the player's
+ * archive; a PGN is kept locally so the review page can analyse it.
+ */
+export async function locateGame(username: string, input: GameInput): Promise<string> {
+  const base = `/u/${encodeURIComponent(username)}/game/`;
+  if (input.kind === "pgn") {
+    const meta = metaFromPgn(input.pgn, username);
+    try {
+      localStorage.setItem(PASTED_PREFIX + meta.id, JSON.stringify(meta));
+    } catch {
+      throw new Error("Couldn't save the PGN in this browser (storage full?).");
+    }
+    return base + encodeURIComponent(meta.id);
+  }
+  let game: GameMeta | null;
+  try {
+    game = await findGameByNumber(username, input.number);
+  } catch (e) {
+    throw new Error(`Couldn't reach chess.com (${e instanceof Error ? e.message : e}). Paste the game's PGN instead.`);
+  }
+  if (!game) {
+    throw new Error(`Game ${input.number} isn't in ${username}'s chess.com games. If it's someone else's game, paste its PGN instead (on chess.com: Share → PGN).`);
+  }
+  return `${base}${encodeURIComponent(game.id)}?day=${localDay(new Date(game.end_time * 1000))}`;
+}
+
 export async function getReview(username: string, gameId: string, progress?: Progress, day?: string, signal?: AbortSignal): Promise<Review> {
+  const pasted = loadPasted(gameId);
   if (await isBackendMode()) {
     try {
       return await api.getReview(gameId, username);
     } catch {
-      const res = await api.reviewGame({ username, game_id: gameId, day, tz_offset: tzOffset(day) });
+      const res = await api.reviewGame(
+        pasted ? { username, game_id: gameId, pgn: pasted.pgn } : { username, game_id: gameId, day, tz_offset: tzOffset(day) },
+      );
       if (res.review) return res.review;
       const out = await pollJob<{ review: Review }>(res.job_id!, (j) => progress?.(j.stage, j.progress));
       return out.review;
@@ -121,6 +162,7 @@ export async function getReview(username: string, gameId: string, progress?: Pro
   }
   const local = loadLocalReview(gameId);
   if (local) return local;
+  if (pasted) return browserReview(pasted, progress, signal);
   if (!day) throw new Error("Game not reviewed yet: open it from the day overview.");
   const game = (await fetchDayGames(username, day)).find((g) => g.id === gameId);
   if (!game) throw new Error("Game not found on chess.com");

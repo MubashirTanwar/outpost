@@ -200,3 +200,53 @@ def test_reviews_endpoint_is_trimmed_and_gzipped(fake_engine, memory_store):
     raw = client.get("/api/players/coach_tester/reviews?days=30", headers={"accept-encoding": "gzip"})
     assert raw.headers["content-encoding"] == "gzip"
     assert client.get("/api/players/coach_tester/reviews?days=0").status_code == 422
+
+
+PASTED = """[Event "Live Chess"]
+[White "coach_tester"]
+[Black "rival"]
+[Result "1-0"]
+[WhiteElo "1210"]
+[BlackElo "1250"]
+[TimeControl "180+2"]
+[EndDate "2026.10.12"]
+[EndTime "18:04:11"]
+
+1. e4 e5 2. Bc4 Nc6 3. Qh5 Nf6 4. Qxf7# 1-0"""
+
+
+def test_pasted_pgn_review_keeps_its_details(fake_engine, memory_store, monkeypatch):
+    from app import main
+
+    monkeypatch.setattr(main, "get_engine", lambda: fake_engine)
+    client = TestClient(main.app)
+    res = client.post("/api/review/game", json={"username": "coach_tester", "pgn": PASTED, "game_id": "pgn-abc"}).json()
+    for _ in range(100):
+        job = client.get(f"/api/jobs/{res['job_id']}").json()
+        if job["status"] == "done":
+            break
+        time.sleep(0.05)
+    game = job["result"]["review"]["game"]
+    assert game["id"] == "pgn-abc" and game["player_color"] == "white"
+    assert (game["white_rating"], game["black_rating"], game["time_class"]) == (1210, 1250, "blitz")
+    assert game["end_time"] == 1791828251  # 2026-10-12 18:04:11 UTC
+    assert client.get("/api/review/game/pgn-abc?username=coach_tester").status_code == 200
+    [row] = memory_store.list_games("coach_tester")
+    assert row["result"] == "win"
+
+    # Someone else's game can be reviewed, but it doesn't land in your history.
+    other = PASTED.replace("coach_tester", "magnus")
+    res = client.post("/api/review/game", json={"username": "coach_tester", "pgn": other, "game_id": "pgn-other"}).json()
+    for _ in range(100):
+        if client.get(f"/api/jobs/{res['job_id']}").json()["status"] == "done":
+            break
+        time.sleep(0.05)
+    assert client.get("/api/review/game/pgn-other").status_code == 200
+    assert [r["id"] for r in memory_store.list_games("coach_tester")] == ["pgn-abc"]
+
+
+def test_time_class_from_time_control():
+    from app.main import _time_class
+
+    assert [_time_class(t) for t in ("60", "120+1", "180+2", "600", "900+10", "1/86400", "", "x")] == \
+        ["bullet", "bullet", "blitz", "rapid", "rapid", "daily", "", ""]
