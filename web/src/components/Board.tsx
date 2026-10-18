@@ -22,8 +22,8 @@ export interface BoardProps {
   notation?: boolean;
 }
 
-const LIGHT = "#edd6b0";
-const DARK = "#b88762";
+export const LIGHT = "#edd6b0";
+export const DARK = "#b88762";
 const LAST_MOVE = "rgba(255, 255, 51, 0.45)";
 const SELECTED = "rgba(255, 255, 51, 0.6)";
 
