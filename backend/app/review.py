@@ -383,7 +383,7 @@ def review_pgn(
         ))
         prev_class = cls
 
-    start_cp, start_mate = _white_pov(analyses[0][0], chess.WHITE)
+    start_cp, start_mate = _white_pov(analyses[0][0], boards[0].turn)  # a set-up position may start with Black to move
     summary = {}
     for color in ("white", "black"):
         mine = [m for m in moves if m.color == color]

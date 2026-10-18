@@ -96,3 +96,10 @@ def test_match_opening():
     # "Opening" must not match "Open Sicilian".
     assert coaching.match_opening("C23", "Bishops Opening", "white") is None
     assert coaching.match_opening("C50", "Italian Game Giuoco Piano", "white")["id"] == "italian-giuoco-piano"
+
+
+def test_start_eval_is_from_whites_side_when_black_moves_first(fake_engine):
+    # Black to move and a rook up: the start position is good for Black, so negative for White.
+    pgn = '[SetUp "1"]\n[FEN "r3k3/8/8/8/8/8/8/4K3 b - - 0 1"]\n\n1... Kd7 2. Ke2 *'
+    review = review_pgn(pgn, fake_engine, depth=1)
+    assert review["start_eval"]["cp"] < 0

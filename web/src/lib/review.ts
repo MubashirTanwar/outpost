@@ -190,12 +190,14 @@ export async function reviewPgn(
     .sort((a, b) => a - b);
 
   const headers = game.getHeaders();
+  const startSign = fens[0].split(" ")[1] === "w" ? 1 : -1;
   return {
     headers,
     player_color: opts.playerColor ?? null,
     result: headers.Result ?? "*",
     eco: headers.ECO ?? null,
-    start_eval: { cp: analyses[0][0]?.cp ?? 0, mate: analyses[0][0]?.mate ?? null },
+    // Engine scores are from the side to move: a set-up position may start with Black to move.
+    start_eval: { cp: startSign * (analyses[0][0]?.cp ?? 0), mate: analyses[0][0]?.mate == null ? null : startSign * analyses[0][0].mate },
     summary,
     moves,
     key_moments: key,

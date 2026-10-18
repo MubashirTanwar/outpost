@@ -232,9 +232,11 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
   const gameFen = current ? current.fen_after : moves[0]?.fen_before ?? new Chess().fen();
   const exploreLast = exploring ? variation!.moves[variation!.cursor - 1] : undefined;
   const fen = retry ? retry.fen : exploreLast ? exploreLast.fen : gameFen;
-  // While exploring, the eval bar follows the live engine; otherwise the stored review eval.
+  // The eval bar follows the live engine once it has searched at least as deep as the stored review
+  // (so the bar and the engine lines agree), and always while exploring; otherwise the stored eval.
   // Only trust lines computed for the position on the board (a move changes the side to move).
-  const live = exploring && engineState.fen === fen && engineLines[0] ? engineLines[0] : null;
+  const liveTop = engineState.fen === fen ? engineLines[0] : undefined;
+  const live = liveTop && (exploring || (liveTop.depth ?? 0) >= (review?.depth ?? 0)) ? liveTop : null;
   const liveSign = fen.split(" ")[1] === "w" ? 1 : -1;
   const evalCp = live ? liveSign * live.cp : current ? current.eval_cp : review.start_eval.cp;
   const evalMate = live ? (live.mate !== null ? liveSign * live.mate : null) : current ? current.eval_mate : review.start_eval.mate;

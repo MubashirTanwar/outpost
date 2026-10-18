@@ -28,7 +28,9 @@ export default function AnalysisPage() {
   const fen = fenAt(line);
   const lines = engine.fen === fen ? engine.lines : [];
   const top = lines[0];
-  const turn = fen.split(" ")[1] === "w" ? 1 : -1;
+  // The bar keeps the last evaluation until the engine has one for the new position, instead of
+  // dropping to 0.0 after every move. Stored from White's point of view.
+  const [bar, setBar] = useState<{ cp: number; mate: number | null }>({ cp: 0, mate: null });
   const status = useMemo(() => {
     const c = new Chess(fen);
     if (c.isCheckmate()) return `Checkmate: ${c.turn() === "w" ? "Black" : "White"} wins.`;
@@ -85,6 +87,10 @@ export default function AnalysisPage() {
     }
   };
 
+  // Game over: the bar shows the result, not the last search.
+  const mated = status?.startsWith("Checkmate") ? (fen.split(" ")[1] === "w" ? -1 : 1) : 0;
+  const shownBar = mated ? { cp: mated, mate: 0 } : status ? { cp: 0, mate: null } : bar;
+
   const arrows = useMemo<Arrow[]>(() => (top?.pv[0] ? [[top.pv[0].slice(0, 2) as Square, top.pv[0].slice(2, 4) as Square, BEST_ARROW]] : []), [top]);
 
   if (mode === "setup") {
@@ -103,7 +109,7 @@ export default function AnalysisPage() {
   return (
     <div className="mx-auto flex max-w-[1250px] flex-col gap-5 p-3 lg:flex-row lg:p-5">
       <div className="mx-auto flex w-full max-w-[min(80vh,680px)] gap-2 lg:flex-1">
-        <EvalBar cp={top ? turn * top.cp : 0} mate={top?.mate != null ? turn * top.mate : null} orientation={orientation} />
+        <EvalBar {...shownBar} orientation={orientation} />
         <div className="min-w-0 flex-1">
           <SideBar c={orientation === "white" ? "black" : "white"} fen={fen} />
           <Board fen={fen} orientation={orientation} onMove={onMove} lastMove={lastMove(line)} arrows={arrows} id="analysis" />
@@ -125,7 +131,13 @@ export default function AnalysisPage() {
             ) : (
               <EngineLines
                 fen={fen}
-                onLines={(l, f) => setEngine({ fen: f, lines: l })}
+                onLines={(l, f) => {
+                  setEngine({ fen: f, lines: l });
+                  if (l[0]) {
+                    const sign = f.split(" ")[1] === "w" ? 1 : -1;
+                    setBar({ cp: sign * l[0].cp, mate: l[0].mate !== null ? sign * l[0].mate : null });
+                  }
+                }}
                 // Clicking a line plays its first move.
                 onSelect={(i) => lines[i]?.pv[0] && update(playUci(line, lines[i].pv[0]))}
               />

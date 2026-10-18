@@ -1,5 +1,6 @@
 "use client";
 
+import { Chess } from "chess.js";
 import type { EngineLine } from "./types";
 
 // Single-threaded WASM build copied into public/ by scripts/copy-stockfish.mjs.
@@ -68,6 +69,8 @@ export class BrowserEngine {
       await this.ready;
       if (opts.signal?.aborted) return [];
       const multipv = opts.multipv ?? 1;
+      // Stockfish prints one line per legal move at most.
+      const expected = Math.max(1, Math.min(multipv, legalMoveCount(fen)));
       const lines: EngineLine[] = [];
       this.send(`setoption name Skill Level value ${Math.max(0, Math.min(20, opts.skill ?? 20))}`);
       this.send(`setoption name MultiPV value ${multipv}`);
@@ -76,10 +79,13 @@ export class BrowserEngine {
         const onAbort = () => this.send("stop");
         const l: Listener = (line) => {
           if (line.startsWith("info") && line.includes(" pv ")) {
+            // Aspiration-window results ("lowerbound"/"upperbound") are limits, not evaluations.
+            if (/ (lower|upper)bound /.test(line)) return;
             const parsed = parseInfo(line);
             if (parsed) {
               lines[parsed.idx] = parsed.line;
-              if (!opts.signal?.aborted) opts.onInfo?.(lines.filter(Boolean));
+              // Report each depth once all its lines are in, so lines from two depths never mix.
+              if (parsed.idx === expected - 1 && !opts.signal?.aborted) opts.onInfo?.(lines.slice(0, expected).filter(Boolean));
             }
           } else if (line.startsWith("bestmove")) {
             this.listeners.delete(l);
@@ -87,7 +93,7 @@ export class BrowserEngine {
             if (!lines.length) {
               const best = line.split(" ")[1];
               resolve(best && best !== "(none)" ? [{ cp: 0, mate: null, pv: [best] }] : []);
-            } else resolve(lines.filter(Boolean));
+            } else resolve(lines.slice(0, expected).filter(Boolean));
           }
         };
         this.listeners.add(l);
@@ -103,6 +109,14 @@ export class BrowserEngine {
   terminate() {
     this.worker.terminate();
     this.listeners.clear();
+  }
+}
+
+function legalMoveCount(fen: string): number {
+  try {
+    return new Chess(fen).moves().length;
+  } catch {
+    return 1;
   }
 }
 
