@@ -2,6 +2,7 @@
 
     python courses/build.py            # validate + write JSON for backend and web
     python courses/build.py --engine "stockfish" --depth 16   # also engine-check every repertoire move
+    python courses/build.py --dry-run --engine "stockfish" --only london   # check one course, write nothing
 
 Course file format (one key per line, values may continue on following lines):
 
@@ -192,6 +193,7 @@ def main() -> int:
     ap.add_argument("--threshold", type=int, default=70)
     ap.add_argument("--check", action="store_true", help="fail if the JSON outputs are out of date")
     ap.add_argument("--only", nargs="*", help="limit the engine check to these course ids")
+    ap.add_argument("--dry-run", action="store_true", help="validate (and engine-check) without writing the JSON outputs")
     args = ap.parse_args()
 
     courses = [build_course(p) for p in sorted(ROOT.glob("*.course"))]
@@ -210,6 +212,8 @@ def main() -> int:
         if problems:
             return 1
 
+    if args.dry_run:
+        return 0
     payload = json.dumps({"courses": courses}, ensure_ascii=False, separators=(",", ":")) + "\n"
     for out in OUTPUTS:
         if args.check:
