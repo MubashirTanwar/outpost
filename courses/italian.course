@@ -3,15 +3,15 @@ name: Italian Game
 color: white
 eco: C50 C53 C54 C55 C41 C42 C40
 tagline: Aim at f7, castle fast, and outplay them in a slow, rich middlegame.
-description: 1.e4 e5 2.Nf3 Nc6 3.Bc4 with the modern c3 + d3 setup that top players use. You'll learn one plan against 3...Bc5 and 3...Nf6, the traps Black sets on move 3, and what to do when Black avoids 2...Nc6.
+description: 1.e4 e5 2.Nf3 Nc6 3.Bc4 with the modern c3 + d3 setup that top players use. You'll learn one flexible system against 3...Bc5 and 3...Nf6, taken deep into the middlegame: the Nd2-f1-g3 knight tour, the a4-a5 clamp, when to break with d4, and how to answer Black's ...d5 strikes and ...Bg4 pins. Then the traps Black sets on move 3 (...Nd4, ...f5, ...Be7), and solid answers when Black avoids 2...Nc6: the Philidor, the Petrov and the Latvian.
 
 chapter: piano
 title: Giuoco Pianissimo: 3...Bc5
-intro: Black mirrors you with ...Bc5. You answer with c3 and d3, castle, and put a rook on e1. Then you either push d4 or bring the queen's knight to g3 via d2 and f1. The ideas carry over from game to game, so you'll recognise these positions quickly.
+intro: Black mirrors you with ...Bc5. You answer with c3 and d3, castle, and put a rook on e1. Then come three slow but powerful ideas: a4 to gain queenside space, h3 to keep Black's pieces off g4, and the knight tour Nbd2-f1-g3, heading for f5. Only when everything is ready do you break with d4. Black's best tries are to strike first with ...d5 or to pin your knight with ...Bg4, and you'll learn calm answers to both.
 
 line: piano-main
 name: Main line: ...d6, ...a6 and ...Ba7
-moves: 1.e4 {Grab the centre and open lines for the queen and bishop.} e5 2.Nf3 {Develop with a threat: the e5 pawn is attacked.} Nc6 3.Bc4 {The Italian bishop eyes f7, the weakest square in Black's camp since only the king defends it.} Bc5 4.c3 {Prepares d4 and gives the bishop a safe retreat on c2 later.} Nf6 5.d3 {The modern approach: protect e4 calmly and keep the centre flexible. You can still play d4 later with more preparation.} d6 6.O-O {King safety first.} O-O 7.Re1 {The rook supports e4 and backs up a future d4 break.} a6 8.a4 {Grab space on the queenside and stop ...b5 from chasing your bishop.} Ba7 9.h3 {A useful waiting move: no ...Bg4 pin and no ...Ng4 jumps.} h6 10.Nbd2 Re8 11.Nf1 {The famous Italian knight tour: Nd2-f1-g3, heading for f5.} Be6 12.Bxe6 {Trade before Black trades on c4 and gets the open file.} Rxe6 13.Ng3 {A typical Italian middlegame. Plans: d4 in the centre, or Nh4-f5 against the king.}
+moves: 1.e4 {Grab the centre and open lines for the queen and bishop.} e5 2.Nf3 {Develop with a threat: the e5 pawn is attacked.} Nc6 3.Bc4 {The Italian bishop eyes f7, the weakest square in Black's camp since only the king defends it.} Bc5 4.c3 {Prepares d4 and gives the bishop a safe retreat on c2 later.} Nf6 5.d3 {The modern approach: protect e4 calmly and keep the centre flexible. You can still play d4 later with more preparation.} d6 6.O-O {King safety first.} O-O 7.Re1 {The rook supports e4 and backs up a future d4 break.} a6 8.a4 {Grab space on the queenside and stop ...b5 from chasing your bishop.} Ba7 {The bishop hides on a7, where it still aims at f2 and can't be hit by d4 or b4.} 9.h3 {A useful waiting move: no ...Bg4 pin and no ...Ng4 jumps.} h6 {Black copies the idea, keeping your pieces off g5.} 10.Nbd2 {The queen's knight starts its journey. It can't go to c3, because that's where your pawn is.} Re8 11.Nf1 {The famous Italian knight tour: Nd2-f1-g3, heading for f5.} Be6 {Black offers a bishop trade to blunt your c4 bishop.} 12.Bxe6 {Trade before Black trades on c4 and gets the open file.} Rxe6 13.Ng3 {The knight is on g3, eyeing f5 and h5.} Qd7 {Black connects the rooks and keeps an eye on f5.} 14.Be3 {Offer to trade Black's best piece. The a7 bishop pins down f2, and without it Black's dark squares get weak.} Bxe3 15.Rxe3 {The rook is useful on e3, and can swing to the kingside. Your plan now is d4, backed by Qb3 or Qc2, or Nh4-f5 against the king. The a4-a5 push can also fix Black's queenside.}
 
 line: piano-d6-first
 name: 4...d6 move order
@@ -27,19 +27,55 @@ moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 d5 {Black opens the centre stra
 
 line: piano-qe7
 name: 4...Qe7
-moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Qe7 {Black overprotects e5 and prepares ...d6 without allowing d4 tricks.} 5.d3 {Same plan as ever.} Nf6 6.O-O d6 7.Re1 O-O 8.h3 a6 9.a4 Ba7 10.Nbd2 {Knight to f1 and g3 is next.}
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Qe7 {Black overprotects e5 and prepares ...d6 without allowing d4 tricks.} 5.d3 {Same plan as ever.} Nf6 6.O-O d6 7.Re1 O-O 8.h3 a6 9.a4 Ba7 10.Nbd2 {Knight to f1 and g3 is next.} Be6 11.Bxe6 {Same rule as in the main line: trade on e6 before Black trades on c4.} Qxe6 12.Nf1 {Carry on with the tour.} h6 13.Ng3 {Typical Italian set-up. The plans are d4 in the centre, b4 with a4-a5 on the queenside, or Nh4-f5 towards Black's king.}
 
 line: piano-bb6
 name: 4...Bb6: an early retreat
-moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Bb6 {Black steps back before d4 can hit the bishop.} 5.d3 {No need to change the plan.} Nf6 6.O-O d6 7.Re1 O-O 8.h3 {Keep the knight and bishop off g4.} h6 9.Nbd2 Re8 10.Nf1 {The knight tour, as always.}
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Bb6 {Black steps back before d4 can hit the bishop.} 5.d3 {No need to change the plan.} Nf6 6.O-O d6 7.Re1 O-O 8.h3 {Keep the knight and bishop off g4.} h6 9.Nbd2 Re8 10.Nf1 {The knight tour, as always.} Be6 11.Bxe6 {Trade before Black trades on c4.} Rxe6 12.b4 {Black has not played ...a6, so the bishop on b6 is a target. b4 grabs space and prepares a4-a5.} a6 13.a4 {The clamp. Next a5 pushes the bishop back to a7, where it is shut out once you play d4, and Black's queenside is frozen.}
 
 line: piano-castle-first
 name: 5...O-O move order
 moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 O-O 6.O-O d6 7.Re1 a6 8.a4 Ba7 9.h3 {Main-line position again.}
 
+line: piano-castle-d5
+name: 5...O-O 6...d5: the central strike
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 O-O 6.O-O d5 {Black breaks in the centre after castling. This is a serious try, not a mistake.} 7.exd5 {Take. Keeping the tension lets Black take on e4 or c4 with an easy game.} Nxd5 8.Re1 {Now the e5 pawn is the target. The rook, the f3 knight and later a knight on d2 or e4 all aim at it.} Bg4 {Black pins the knight that attacks e5.} 9.h3 {Ask the bishop at once.} Bh5 10.Nbd2 {Develop. The knight can come to e4, where it eyes c5, f6 and g5.} Bb6 {The bishop leaves c5, where it could be hit by b4 or d4.} 11.a4 {Space on the queenside, threatening a5 to push the bishop around.} a5 12.Ne4 {The knight lands on a great square. Plans: Ng3 to chase the h5 bishop, g4 if it helps, and pressure on e5. Black's pieces look active, but e5 is a lasting weakness.}
+
+line: piano-bg4
+name: 5...d6 6...Bg4: the pin
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 d6 6.O-O Bg4 {Black pins your knight before castling.} 7.h3 {Ask the question straight away. If ...Bxf3 Qxf3, you get the two bishops and an active queen.} Bh5 {Black keeps the pin.} 8.Re1 {Normal development. Now e4 is protected so the pinned knight isn't a worry.} Bb6 9.a4 {Space, and a threat to trap the bishop with a5.} a5 10.Nbd2 {The knight heads for f1 and g3, where it will chase the h5 bishop.} O-O 11.Nf1 h6 12.g4 {Now that Black has castled short, g4 is safe and strong: it breaks the pin with gain of time.} Bg6 13.Ng3 {The plan is Nh4, hitting the g6 bishop and heading for f5. Your kingside looks loose, but the knights cover the light squares and Black has no way in.}
+
+line: piano-bg4-h5
+name: 6...Bg4 7...h5: the h-file trap
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 d6 6.O-O Bg4 7.h3 h5 {A famous club trap. Black offers the bishop to open the h-file towards your king.} 8.hxg4 {Here you can take, because Black's king is still in the centre and your knight has a strong jump.} hxg4 9.Ng5 {The key move. The knight dodges the pawn and hits f7 together with the c4 bishop, so you attack first.} g3 {Black's best try: hoping for ...gxf2 check. If you grab f7 with Nxf7 now, Black's attack crashes through.} 10.Be3 {Calm defence. You trade off the c5 bishop that supports the attack on f2, and you'll answer ...Bxe3 with fxe3, so the g3 pawn has no bishop behind it. You're a piece up, and f7 is still hanging.}
+
+line: piano-ng4
+name: 7...Ng4: the jump at f2
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 d6 6.O-O O-O 7.Re1 Ng4 {Black attacks f2 twice, with the knight and the c5 bishop.} 8.Re2 {The best defence: the rook guards f2 along the second rank. Rf1 also holds, but don't panic with d4, which just loses a pawn.} Bb6 9.h3 {Now kick the knight.} Nf6 10.a4 {Space, as usual. The rook will go back to e1 later, and you have gained h3 and a4 for free.} a5 11.Na3 {With the a-pawns locked, the knight heads for c4 via a3, where it can trade off the b6 bishop.} Be6 12.Bxe6 fxe6 13.Nc4 {The knight attacks the b6 bishop. Plans: Qb3 hitting e6 and b7, Be3, and the rook back to e1.}
+
+chapter: plans
+title: Middlegame plans: the slow build-up
+intro: The Italian is about plans, not memory. In this chapter you'll learn the main middlegame ideas. Play d4 only when your pieces support it, usually after Re1, h3 and the knight tour. Use Qb3 when Black trades on e6 and gets doubled pawns. Use a4-a5 to clamp the queenside. And bring your knights to g3, h4 and f5 to attack the king.
+
+line: plans-ne7-ng6
+name: Main line 11...Ne7: the d4 break
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 d6 6.O-O O-O 7.Re1 a6 8.a4 Ba7 9.h3 h6 10.Nbd2 Re8 11.Nf1 Ne7 {Black copies your knight tour: ...Ne7-g6. But the knight no longer presses on d4.} 12.Ng3 Ng6 13.Qb3 {The queen lines up behind the bishop against f7, hits b7, and supports d4. Now is the right time for the break.} Qd7 14.d4 {The d4 break. With the c6 knight gone from the queenside, Black can't easily pressure your centre. If Black takes on d4, recapture with the c-pawn and you get a big centre, with e5 coming.}
+
+line: plans-be6-fxe6
+name: Main line 10...Be6: doubled e-pawns
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 d6 6.O-O O-O 7.Re1 a6 8.a4 Ba7 9.h3 h6 10.Nbd2 Be6 {Black offers the trade one move earlier.} 11.Bxe6 fxe6 {Black's pawns are doubled, but the f-file is open for Black's rook.} 12.b4 {Grab queenside space. With a4 and b4 played, b5 can open lines against Black's queenside.} Nh5 {Black heads for f4, the typical square after ...fxe6.} 13.Nf1 {Bring the knight round to g3 to cover f5 and h5.} Qf6 14.Be3 {Trade off the a7 bishop and keep the f2 square safe. Your plan is Ng3 to kick the h5 knight, then b5 or d4. The e6 pawn is a long-term weakness.}
+
+line: plans-qb3
+name: 7...Be6: Qb3 against the doubled pawns
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 d6 6.O-O O-O 7.Re1 Be6 {Black challenges your bishop before ...a6.} 8.Bxe6 {Take, and Black is left with doubled pawns.} fxe6 9.Qb3 {The queen hits both e6 and b7. This is the standard reply to ...fxe6.} Qc8 {Black defends both pawns, but the queen is passive.} 10.Nbd2 h6 {Black stops the Ng5 jump, which would add a second attacker on e6.} 11.Nf1 a5 12.a4 Qd7 13.Be3 {Trade Black's good bishop.} Bxe3 14.Rxe3 {Black is left with a bad structure. Plan: Ng3, Rae1, and d4 at the right moment, aiming at the e6 pawn.}
+
+line: plans-d5-qb3
+name: Main line 13...d5: the queen joins in
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 Nf6 5.d3 d6 6.O-O O-O 7.Re1 a6 8.a4 Ba7 9.h3 h6 10.Nbd2 Re8 11.Nf1 Be6 12.Bxe6 Rxe6 13.Ng3 d5 {Black strikes in the centre now that your bishop is gone.} 14.Qb3 {The queen hits d5 and b7 at once.} Na5 {Black chases the queen.} 15.Qc2 {Keep e4 protected.} dxe4 16.dxe4 {Recapture with the pawn. The knight on a5 is far from the action. Plans: Be3 to trade the a7 bishop, Rad1 for the open file, and Nf5 or Nh4-f5 towards the king.}
+
 chapter: two-knights
 title: Two Knights: 3...Nf6
-intro: 3...Nf6 attacks e4. Instead of the wild 4.Ng5 lines you calmly defend with 4.d3. Black's most popular answers are ...Bc5 (back into the Giuoco) and ...Be7. Against ...Be7 you meet the typical ...Na5 idea by keeping your bishop.
+intro: 3...Nf6 attacks e4. Instead of the wild 4.Ng5 lines you calmly defend with 4.d3. Black's most popular answers are ...Bc5 (back into the Giuoco) and ...Be7. Against ...Be7 you meet the typical ...Na5 idea by keeping your bishop. Watch out for ...d5 and ...Nd4: the first needs accurate play with h3 and Nbd2, the second is a trick you punish by taking.
 
 line: tk-bc5
 name: 4...Bc5: back to the Giuoco
@@ -49,21 +85,33 @@ line: tk-be7
 name: 4...Be7 and the ...Na5 hunt
 moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d3 Be7 {A solid, Ruy Lopez-style setup.} 5.O-O O-O 6.Re1 d6 7.c3 {Prepare d4 and make the c2 square available for the bishop.} Na5 {Black tries to trade off your best bishop.} 8.Bb5 {Keep it! It retreats via a4 to c2, where it still aims at the kingside.} a6 9.Ba4 b5 10.Bc2 c5 11.Nbd2 Nc6 12.Nf1 {The same knight tour as in the Giuoco.}
 
+line: tk-d6
+name: 4...d6: transposing to ...Be7
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d3 d6 {A quiet move order.} 5.c3 {Same setup: c3, castle, Re1.} Be7 6.O-O O-O 7.Re1 {This is the 4...Be7 position. If Black now plays ...Na5, keep the bishop with Bb5, Ba4 and Bc2.}
+
 line: tk-h6
 name: 4...h6 kingside fianchetto
-moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d3 h6 {Rules out Bg5 and Ng5.} 5.O-O d6 6.c3 g6 7.Re1 Bg7 8.Nbd2 O-O 9.a4 {Space first, then Nf1 and d4.}
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d3 h6 {Rules out Bg5 and Ng5.} 5.O-O d6 6.c3 g6 7.Re1 Bg7 8.Nbd2 O-O 9.a4 {Space first, then Nf1 and d4.} Be6 10.Bxe6 {Take, and Black gets doubled pawns.} fxe6 11.Qb3 {Hit e6 and b7 at once, just as in the Giuoco.} Qc8 12.d4 {Now is the time for the d4 break. Black's queen is passive and the e6 pawn is weak, so opening the centre helps you.}
 
 line: tk-na5
 name: 4...Na5?: punish it by taking e5
 moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d3 Na5 {Black goes after the bishop, but the knight no longer defends e5.} 5.Nxe5 {Take the pawn! The knight on c6 was e5's only defender.} Nxc4 6.Nxc4 d5 7.exd5 Nxd5 8.O-O {You're a clean pawn up with a safe king.}
 
+line: tk-nd4
+name: 4...Nd4: the knight jump
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d3 Nd4 {Black's knight jumps forward, just like in the Blackburne trap.} 5.Nxd4 {Take it. Black has to recapture with a pawn and gets a doubled, weak pawn on d4.} exd4 6.O-O {Castle first, then open the e-file.} d5 7.exd5 Nxd5 8.Re1+ {Check on the open file, before Black can castle.} Be7 9.Qe2 {The queen lines up against the pinned bishop. If Black castles, Bxd5 and Qxe7 win a piece.} Be6 10.Qe5 {The queen hits g7 and the d4 pawn. Black's king is stuck in the centre and you have a clear edge.}
+
 line: tk-d5
 name: 4...d5: early break
-moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d3 d5 {Black hits the centre before you've castled.} 5.exd5 Nxd5 6.O-O {Castle, then rook to e1 to target e5.} Be7 7.Re1 Bg4 8.h3 {Ask the bishop.} Bh5 9.Nbd2 {Development with a purpose: Ne4 or Nb3 next.}
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d3 d5 {Black hits the centre before you've castled.} 5.exd5 Nxd5 6.O-O {Castle, then rook to e1 to target e5.} Be7 7.Re1 Bg4 8.h3 {Ask the bishop.} Bh5 9.Nbd2 {Development with a purpose: Ne4 or Nb3 next.} O-O 10.Ne4 {A great square: the knight eyes c5, f6 and g5, and heads for g3 to chase the bishop.} Nb6 11.Ng3 {Hit the h5 bishop.} Bg6 12.Bb3 {Keep the bishop on the a2-g8 diagonal. Plans: a4-a5 to kick the b6 knight, then pressure on e5 with your rook and knights.}
+
+line: tk-d5-nb6
+name: 4...d5 9...Nb6: pressure on e5
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d3 d5 5.exd5 Nxd5 6.O-O Be7 7.Re1 Bg4 8.h3 Bh5 9.Nbd2 Nb6 {Black hits your bishop before castling.} 10.Bb5 {Pin the knight that defends e5. Black's king is still in the centre.} f6 {Black has to shore up e5, which weakens the light squares.} 11.Nf1 {The knight tour again.} O-O 12.Bxc6 {Give up the bishop to damage Black's pawns.} bxc6 13.Ng3 {Chase the h5 bishop. Black's c-pawns are doubled and the e5 pawn needs care. Plans: d4, b3 with Ba3, and Nf5.}
 
 chapter: move-three
-title: Move-three tricks: ...Be7, ...d6, ...Nd4
-intro: Not every opponent plays the main lines. The Hungarian (...Be7) and ...d6 lead to quiet positions where you use the same setup. Then there's ...Nd4, the Blackburne Shilling Gambit, which is a trap: learn the one move that refutes it.
+title: Move-three tricks: ...Be7, ...d6, ...Nd4, ...f5
+intro: Not every opponent plays the main lines. The Hungarian (...Be7) and ...d6 lead to quiet positions where you use the same setup. Then come the tricks. 3...Nd4, the Blackburne Shilling Gambit, is a trap: learn the one move that refutes it. And 3...f5, the Rousseau Gambit, opens lines in front of Black's own king, so you hit f7 with Ng5.
 
 line: hungarian
 name: 3...Be7 (Hungarian)
@@ -77,25 +125,41 @@ line: blackburne
 name: 3...Nd4: the Blackburne Shilling Gambit trap
 moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nd4 {A trap: it hopes for 4.Nxe5?? Qg5!, hitting e5 and g2 at once.} 4.Nxd4 {Just take the knight.} exd4 5.c3 {Open up the centre while Black is behind in development.} dxc3 6.Nxc3 d6 7.d4 {A big centre and much faster development. White is clearly better.} Nf6 8.Qb3 {Hit f7 and b7: the queen and bishop line up on the weak f7 pawn.} Be6 9.Bxe6 fxe6 10.O-O {Castle first. The e6 and b7 pawns are weak and aren't running away.}
 
+line: blackburne-bc5
+name: 3...Nd4 5...Bc5?: the f7 fork
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nd4 4.Nxd4 exd4 5.c3 Bc5 {A natural move, but a mistake: the bishop is loose.} 6.Bxf7+ {Strike on f7. If the king takes, Qh5 check forks the king and the c5 bishop.} Kxf7 7.Qh5+ g6 8.Qxc5 {You've won a pawn and Black's king has lost the right to castle.} d6 9.Qxd4 {You're two pawns up with a safe position. Castle, play d3 and develop the rest. Black has no compensation.}
+
 line: rousseau
 name: 3...f5: the Rousseau Gambit
-moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 f5 {An aggressive try that weakens Black's king.} 4.d3 {Keep the centre solid; the c4 bishop now eyes a weakened g8.} Nf6 5.Nc3 Bb4 6.O-O {Develop and castle. Black's king will struggle to castle safely.}
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 f5 {An aggressive try that weakens Black's king.} 4.d3 {Keep the centre solid; the c4 bishop now eyes a weakened g8.} Nf6 5.Nc3 Bb4 6.O-O {Develop and castle. Black's king will struggle to castle safely.} Bxc3 7.bxc3 fxe4 8.dxe4 d6 9.Bg5 {Pin the knight. With the two bishops and Black's king stuck in the centre, you're clearly better. Plan: Nh4 heading for f5, Qd3 and Rad1.}
+
+line: rousseau-fxe4
+name: 3...f5 4...fxe4: Ng5 hits f7
+moves: 1.e4 e5 2.Nf3 Nc6 3.Bc4 f5 4.d3 fxe4 {Black opens the f-file at once.} 5.dxe4 {Recapture. Now the a2-g8 diagonal is wide open.} Nf6 6.Ng5 {The Ng5 jump. The knight and bishop both hit f7, and Black has no f-pawn to block with.} d5 {Black has to give back material to block the diagonal.} 7.exd5 Na5 8.Bb5+ {Check, keeping the bishop.} c6 9.dxc6 {You've won a pawn, Black's king is exposed, and you're ready to castle.}
 
 chapter: second-move
 title: Second-move alternatives
-intro: Some opponents don't play 2...Nc6. You'll learn a sensible line against the Philidor (2...d6), the Petrov (2...Nf6) and the risky Latvian Gambit (2...f5).
+intro: Some opponents don't play 2...Nc6. You'll learn a sensible line against the Philidor (2...d6), including the old ...Bg4 trap, the main lines of the Petrov (2...Nf6), and how to punish the risky Latvian Gambit (2...f5).
 
 line: philidor
 name: 2...d6 Philidor: ...exd4
-moves: 1.e4 e5 2.Nf3 d6 {Solid but passive.} 3.d4 {Challenge the centre while Black is cramped.} exd4 4.Nxd4 Nf6 5.Nc3 Be7 6.Bc4 {The Italian bishop belongs here.} O-O 7.O-O {More space and easier development.}
+moves: 1.e4 e5 2.Nf3 d6 {Solid but passive.} 3.d4 {Challenge the centre while Black is cramped.} exd4 4.Nxd4 Nf6 5.Nc3 Be7 6.Bc4 {The Italian bishop belongs here.} O-O 7.O-O {More space and easier development.} Re8 8.Bf4 {Develop the last minor piece and eye the d6 pawn.} Nc6 9.Re1 {Every piece is active. Black's d6 pawn is a target and you can expand with Qd2 and Rad1.}
 
 line: philidor-nbd7
 name: 2...d6 Philidor: Hanham setup
-moves: 1.e4 e5 2.Nf3 d6 3.d4 Nf6 4.Nc3 Nbd7 {Black holds e5.} 5.Bc4 Be7 6.O-O O-O 7.Re1 {Keep the pressure on e5.} c6 8.a4 {Stop ...b5. You have the space advantage.}
+moves: 1.e4 e5 2.Nf3 d6 3.d4 Nf6 4.Nc3 Nbd7 {Black holds e5.} 5.Bc4 Be7 6.O-O O-O 7.Re1 {Keep the pressure on e5.} c6 8.a4 {Stop ...b5. You have the space advantage.} Qc7 9.h3 {Keep Black's pieces off g4.} h6 10.a5 {The clamp: a5 stops ...b5 and ...b6 for good, and Black's queenside stays cramped.}
+
+line: philidor-bg4
+name: 2...d6 3...Bg4: the old trap
+moves: 1.e4 e5 2.Nf3 d6 3.d4 Bg4 {Natural but a mistake: Black gives up the centre.} 4.dxe5 {Take the pawn. Black has to give up the bishop to regain it.} Bxf3 5.Qxf3 {Recapture with the queen: it now eyes f7 and b7.} dxe5 6.Bc4 {Queen and bishop both aim at f7. Black must defend it.} Nf6 7.Qb3 {The double attack: Bxf7 check and Qxb7 are both threatened.} Qe7 8.Nc3 {Develop. Black's queen blocks the bishop, and you have the bishop pair and a big lead in development. Plan: Bg5, O-O-O and Nd5.}
 
 line: petrov
 name: 2...Nf6 Petrov
-moves: 1.e4 e5 2.Nf3 Nf6 {Black counterattacks e4.} 3.Nxe5 {Take e5 first.} d6 {Correct: chase the knight away before taking e4.} 4.Nf3 Nxe4 5.d4 d5 6.Bd3 Nc6 7.O-O Be7 8.c4 {Attack the d5 pawn that supports Black's knight.} Nb4 9.Be2 O-O 10.Nc3 {Main-line Petrov: a small, lasting edge.}
+moves: 1.e4 e5 2.Nf3 Nf6 {Black counterattacks e4.} 3.Nxe5 {Take e5 first.} d6 {Correct: chase the knight away before taking e4.} 4.Nf3 Nxe4 5.d4 d5 6.Bd3 Nc6 7.O-O Be7 8.c4 {Attack the d5 pawn that supports Black's knight.} Nb4 9.Be2 O-O 10.Nc3 {Main-line Petrov: a small, lasting edge.} Bf5 11.a3 {Kick the b4 knight.} Nxc3 12.bxc3 Nc6 13.Re1 {Pressure on the e-file. Your c3 and d4 pawns control the centre.} dxc4 14.Bxc4 Bd6 15.Bg5 {Active pieces everywhere. Plans: Qd2 or Qb3, Rad1, and d5 at the right moment.}
+
+line: petrov-bg4
+name: 2...Nf6 Petrov: 7...Bg4
+moves: 1.e4 e5 2.Nf3 Nf6 3.Nxe5 d6 4.Nf3 Nxe4 5.d4 d5 6.Bd3 Nc6 7.O-O Bg4 {Black pins your knight.} 8.c4 {Same plan: undermine d5.} Nf6 9.Nc3 dxc4 10.Bxc4 Be7 11.Be3 {You have an isolated d4 pawn but very active pieces. Plans: h3, Qb3 hitting b7, and the d5 push.}
 
 line: petrov-copycat
 name: 2...Nf6 3...Nxe4?: punish the copycat
@@ -103,7 +167,11 @@ moves: 1.e4 e5 2.Nf3 Nf6 3.Nxe5 Nxe4 {A mistake: copying White doesn't work here
 
 line: latvian
 name: 2...f5 Latvian Gambit
-moves: 1.e4 e5 2.Nf3 f5 {A risky gambit.} 3.Nxe5 {Take the centre pawn.} Qf6 4.d4 d6 5.Nc4 fxe4 6.Nc3 Qg6 7.f3 {Break up Black's centre. White's development is far ahead.}
+moves: 1.e4 e5 2.Nf3 f5 {A risky gambit.} 3.Nxe5 {Take the centre pawn.} Qf6 4.d4 d6 5.Nc4 fxe4 6.Nc3 Qg6 7.f3 {Break up Black's centre. White's development is far ahead.} exf3 8.Qxf3 {The queen comes out with the f-file open.} Nc6 9.Bd3 {Develop with gain of time on the g6 queen.} Qg4 10.Qe3+ {Avoid the queen trade with check.} Be7 11.O-O {Castle. If Black grabs the d4 pawn, Nb5 brings huge threats against c7. You're much faster.}
+
+line: latvian-nc6
+name: 2...f5 3...Nc6
+moves: 1.e4 e5 2.Nf3 f5 3.Nxe5 Nc6 {Black develops and challenges your knight.} 4.Nxc6 {Simple and good: trade, and Black's structure is ruined.} dxc6 5.Nc3 {Develop. If ...fxe4, Nxe4 and your knight is superb.} Be6 6.d4 {Take the centre. Black's king has no safe home, and the e-file will open in your favour.}
 
 line: petrov-bd6
 name: 2...Nf6 Petrov: 6...Bd6
@@ -116,12 +184,33 @@ w: Back to d2 to protect e4
 w: To e3 to block the e-file
 why: Nd2-f1-g3 is the signature Italian manoeuvre. From g3 the knight can jump to f5 or h5 and support a kingside attack.
 
-quiz: piano-main 7
+quiz: piano-main 6
 q: Why play c3 here?
 a: It prepares d4 and gives the bishop a retreat square on c2
 w: It stops ...Nd4 forever
 w: It protects the e4 pawn
 why: c3 supports a d4 break and lets the c4 bishop drop back to b3 and then c2 if it's attacked.
+
+quiz: piano-main 26
+q: Why offer the bishop trade with 14.Be3?
+a: The a7 bishop is Black's best piece, aiming at f2
+w: To win a pawn on a7
+w: To open the f-file for your rook
+why: The bishop on a7 pins down f2 and supports Black's play. Trading it leaves Black's dark squares weak and makes your d4 break easier.
+
+quiz: piano-bg4-h5 14
+q: Black played ...h5, offering the g4 bishop. What do you do?
+a: Take with hxg4, and after ...hxg4 jump with Ng5, hitting f7
+w: Never take: the h-file opens and you get mated
+w: Take, and after ...hxg4 play Nh2 to block the file
+why: The ...h5 trap works when Black's king is safe. Here it's still on e8, so after hxg4 hxg4 Ng5 your attack on f7 comes first.
+
+quiz: piano-ng4 14
+q: Black's knight jumped to g4, hitting f2 twice. What's the best defence?
+a: Re2, guarding f2 along the second rank
+w: d4, opening the centre
+w: Be3, blocking the c5 bishop
+why: Re2 defends f2 calmly. After h3 the knight has to retreat, and you've gained time. Be3 loses to ...Nxe3, which ruins your pawns.
 
 quiz: blackburne 6
 q: Black just played 3...Nd4. Should you grab the e5 pawn with 4.Nxe5?
@@ -136,3 +225,10 @@ a: 4.Qe2: pin the knight on the e-file
 w: 4.Nxf7: win another pawn
 w: 4.d3: kick the knight
 why: 4.Qe2 pins the knight. If Black tries 4...Nf6?? then 5.Nc6+ wins the queen with a discovered check.
+
+quiz: blackburne-bc5 10
+q: Black answered 5.c3 with ...Bc5. How do you punish it?
+a: Bxf7 check: if the king takes, Qh5 check forks the king and the c5 bishop
+w: cxd4, winning the pawn back
+w: Qg4, attacking g7
+why: The c5 bishop is loose. After Bxf7+ Kxf7 Qh5+ and Qxc5 you win a pawn and Black can't castle. If Black plays ...Kf8 instead, you're still a pawn up.
