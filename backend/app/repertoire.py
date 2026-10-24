@@ -61,20 +61,23 @@ def match_course(eco: str | None, color: str | None) -> CourseIndex | None:
 def check_game(sans: list[str], player_color: str, game_id: str = "", opponent: str = "",
                course_ids: set[str] | None = None) -> dict | None:
     """Follow a game through every course for the player's side and report where it left the
-    deepest one: either the player played a different move than the course ("you_deviated"),
-    or the opponent played a move the course doesn't cover ("opponent_deviated")."""
-    best: dict | None = None
+    course that followed it furthest: either the player played a different move than the course
+    ("you_deviated"), or the opponent played a move the course doesn't cover ("opponent_deviated").
+
+    Only the furthest course counts: a London game shouldn't be reported as "you deviated from the
+    Jobava London at move 2" just because both start with 1.d4."""
+    deepest, best = -1, None
     for c in courses():
         if c.color != player_color or (course_ids is not None and c.id not in course_ids):
             continue
         learner = chess.WHITE if c.color == "white" else chess.BLACK
-        board, line_id = chess.Board(), None
+        board, line_id, note, depth = chess.Board(), None, None, len(sans)
         for ply, san in enumerate(sans):
             key = position_key(board)
-            note = None
             if board.turn == learner:
                 expected = c.learner.get(key)
                 if expected is None:
+                    depth = ply
                     break
                 line_id = expected[1]
                 if san != expected[0]:
@@ -82,14 +85,18 @@ def check_game(sans: list[str], player_color: str, game_id: str = "", opponent: 
             else:
                 covered = c.replies.get(key)
                 if not covered:
+                    depth = ply
                     break
                 if san in covered:
                     line_id = covered[san]
                 else:
                     note = {"kind": "opponent_deviated", "expected": None}
             if note:
-                if ply >= 2 and (best is None or ply > best["ply"]):
-                    best = {
+                depth = ply
+                if ply < 2:  # leaving at move 1 isn't news
+                    note = None
+                else:
+                    note = {
                         **note, "game_id": game_id, "opponent": opponent, "course_id": c.id,
                         "course_name": c.name, "line_id": line_id, "line_name": c.line_names.get(line_id, ""),
                         "ply": ply + 1, "played": san, "fen": board.fen(),
@@ -98,5 +105,9 @@ def check_game(sans: list[str], player_color: str, game_id: str = "", opponent: 
             try:
                 board.push_san(san)
             except ValueError:
+                depth = ply
                 break
+        # The course that followed the game furthest decides; on a tie, one with something to say.
+        if depth > deepest or (depth == deepest and best is None and note):
+            deepest, best = depth, note
     return best

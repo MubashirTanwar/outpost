@@ -1,117 +1,193 @@
 course: queens-gambit
 name: Queen's Gambit
 color: white
-eco: D06 D07 D08 D10 D11 D15 D20 D30 D31 D32 D35 D37 D43 D52 D53 D56 D58
+eco: D06 D07 D08 D10 D11 D12 D15 D20 D21 D26 D27 D30 D31 D32 D33 D34 D35 D37 D43 D45 D51 D52 D53 D56 D58
 tagline: The classical way to play 1.d4: pressure d5 and squeeze.
-description: 1.d4 d5 2.c4 offers a pawn to pull Black's centre apart. This course covers every serious reply: the Queen's Gambit Declined (Tartakower, Lasker, Cambridge Springs), the Tarrasch, the Slav and Semi-Slav, the Queen's Gambit Accepted, and the Albin, Chigorin and Baltic. You'll also learn the Elephant Trap and the Lasker Trap so you don't fall for them.
+description: 1.d4 d5 2.c4 offers a pawn to pull Black's centre apart. This course covers every serious reply, and above all it teaches the pawn structures that decide these games: the Carlsbad structure and the minority attack, the isolated queen's pawn, and hanging pawns. You'll learn the Queen's Gambit Declined (Orthodox, Tartakower, Lasker, Capablanca, Cambridge Springs, the Exchange structure and the Manhattan), the Tarrasch, the Slav, Semi-Slav and Noteboom, the Queen's Gambit Accepted, and the Albin, Chigorin, Baltic, Marshall and Symmetrical Defences. Along the way you'll learn the Elephant Trap and the Lasker Trap so you never fall for them.
 
 chapter: qgd
 title: Queen's Gambit Declined: 2...e6
-intro: Black supports d5 with ...e6. You develop with Nc3, pin with Bg5 and play e3 and Nf3. Your long-term plans are pressure on the c-file and the minority attack (b4-b5) against Black's queenside.
+intro: Black supports d5 with ...e6 and builds a rock-solid position. You develop with Nc3, pin the f6 knight with Bg5, and play e3 and Nf3. Black's problem piece is the c8 bishop, shut in behind the e6 pawn, and Black's whole game is about freeing it with ...b6, ...dxc4 and ...e5, or ...c5. Your long-term plans depend on the pawn structure. If d5 is exchanged and Black has pawns on c6 and d5, you get the Carlsbad structure, where the minority attack with b4 and b5 creates a weak black pawn on the queenside. If Black ends up with an isolated d-pawn or hanging pawns on c5 and d5, you blockade them and attack them with pieces.
 
 line: tartakower
 name: Tartakower: ...h6 and ...b6
-moves: 1.d4 d5 2.c4 {The Queen's Gambit: attack d5 from the side.} e6 3.Nc3 {Add a second attacker on d5.} Nf6 4.Bg5 {Pin the knight that defends d5.} Be7 5.e3 O-O 6.Nf3 h6 7.Bh4 {Keep the pin.} b6 {The Tartakower: Black's bishop goes to b7.} 8.cxd5 {Release the tension at the right moment.} Nxd5 9.Bxe7 Qxe7 10.Nxd5 exd5 11.Rc1 {Pressure on the c-file against c7 and c5.} Be6 12.Qa4 {Hit a7 and prepare to answer ...c5 with pressure.} c5 13.Qa3 {Pin the c5 pawn against the queen. Black's hanging pawns are a target.} Rc8 14.Be2
+moves: 1.d4 d5 2.c4 {The Queen's Gambit: you attack d5 from the side. If Black takes on c4, you'll win the pawn back with a strong centre.} e6 3.Nc3 {Add a second attacker on d5.} Nf6 4.Bg5 {Pin the knight that defends d5. This is the Orthodox approach.} Be7 {Black breaks the pin calmly.} 5.e3 {Open the way for the f1 bishop and keep d4 solid.} O-O 6.Nf3 h6 {Black asks the bishop where it is going.} 7.Bh4 {Keep the pin. Taking on f6 would hand Black the bishop pair for nothing.} b6 {The Tartakower: Black's problem bishop goes to b7, where it supports d5 and the ...c5 break.} 8.cxd5 {Release the tension now, before ...Bb7 adds more pressure on d5.} Nxd5 9.Bxe7 Qxe7 10.Nxd5 exd5 {Black has a solid centre, but the bishop on c8 is still blocked by its own d5 pawn.} 11.Rc1 {The rook goes to the half-open c-file, aiming at c7 and the c5 square.} Be6 12.Qa4 {Hit a7 and prepare to meet ...c5 with pressure on the pinned pawns.} c5 {Black gets hanging pawns on c5 and d5: active, but a target.} 13.Qa3 {Pin the c5 pawn against the queen on e7. The pawns can't move forward easily.} Rc8 14.Be2 {Castle next and pile up on c5 and d5 with Rfd1. If the pawns advance, the squares behind them, like d5 and e5, become outposts for your pieces.}
 
 line: lasker
 name: Lasker: ...Ne4
-moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7 5.e3 O-O 6.Nf3 h6 7.Bh4 Ne4 {The Lasker: Black trades pieces to free the position.} 8.Bxe7 Qxe7 9.Rc1 {Pressure on c7.} c6 10.Be2 Nxc3 11.Rxc3 dxc4 12.Bxc4 Nd7 13.O-O {Solid edge: you're better developed and Black still has to free the c8 bishop.}
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7 5.e3 O-O 6.Nf3 h6 7.Bh4 Ne4 {The Lasker Defence: Black trades two pairs of pieces to free the cramped position.} 8.Bxe7 Qxe7 9.Rc1 {Pressure on the c-file, aimed at c7.} c6 10.Be2 {A modest square: the bishop will recapture on c4 in one move.} Nxc3 11.Rxc3 {Recapture with the rook so it stays active on the third rank.} dxc4 12.Bxc4 Nd7 13.O-O {You're better developed, and Black still has to free the c8 bishop with ...e5.} e5 {Black's freeing break.} 14.Bb3 {Keep the bishop on the a2 to g8 diagonal, aiming at f7.} exd4 15.exd4 {You accept an isolated d-pawn. In return your pieces are active and the e-file is open.} Nf6 16.Re1 {Take the open e-file with tempo on the queen. With an isolated pawn you play for activity: Qd2 or Qd3, rooks on e1 and e3, and a kingside attack. Avoid trading pieces, because every trade makes the isolated pawn weaker.}
 
 line: capablanca
 name: ...Nbd7: Capablanca's freeing plan
-moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7 5.e3 O-O 6.Nf3 Nbd7 7.Rc1 {The rook gets to the c-file before the centre opens.} c6 8.Bd3 dxc4 9.Bxc4 Nd5 10.Bxe7 Qxe7 11.O-O Nxc3 12.Rxc3 e5 {Black finally frees the position.} 13.Bb3 {Keep the bishop aimed at f7. White is a little better.}
-
-line: cambridge
-name: 4...Nbd7 and the Elephant Trap
-moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Nbd7 {Sets the Elephant Trap: 5.cxd5 exd5 6.Nxd5?? Nxd5! 7.Bxd8 Bb4+ and Black wins a piece.} 5.e3 {Don't grab anything: just develop.} c6 6.Nf3 Qa5 {The Cambridge Springs: the queen pins your c3 knight.} 7.Nd2 {Defends c3 indirectly and unpins: your knight can recapture on c4 or b3.} Bb4 8.Qc2 O-O 9.Be2 {Castle next. White is solid and slightly better.}
-
-line: tarrasch
-name: 3...c5: the Tarrasch
-moves: 1.d4 d5 2.c4 e6 3.Nc3 c5 {Black accepts an isolated pawn in return for free development.} 4.cxd5 exd5 5.Nf3 Nc6 6.g3 {Put the bishop on g2, aimed straight at the isolated d5 pawn.} Nf6 7.Bg2 Be7 8.O-O O-O 9.Bg5 {Remove a defender of d5.}
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7 5.e3 O-O 6.Nf3 Nbd7 {The old main line of the Orthodox Defence.} 7.Rc1 {The rook gets to the c-file before the centre opens. It also takes away Black's best moment for ...dxc4, because you'd recapture with tempo later.} c6 8.Bd3 dxc4 {Black waits until your bishop has moved, so you lose a tempo recapturing.} 9.Bxc4 Nd5 {Capablanca's freeing manoeuvre: trade pieces to make room.} 10.Bxe7 Qxe7 11.O-O Nxc3 12.Rxc3 e5 {Black finally frees the c8 bishop.} 13.Bb3 {Keep the bishop aimed at f7.} exd4 14.exd4 Nf6 15.Re1 {Isolated d-pawn, but your rooks and bishops are much more active. Put the queen on d2 or d3, double rooks on the e-file, and look for the Ne5 jump and a kingside attack.}
 
 line: qgd-b6
 name: 6...b6 without ...h6
-moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7 5.e3 O-O 6.Nf3 b6 {Black heads for ...Bb7 straight away.} 7.cxd5 {Fix Black's structure.} exd5 8.Bd3 Bb7 9.O-O {Plans: Rc1, Qe2 and a kingside build-up, or Ne5.}
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7 5.e3 O-O 6.Nf3 b6 {Black heads for ...Bb7 straight away.} 7.cxd5 {Fix Black's structure before the bishop arrives on b7, so it bites on its own pawn.} exd5 8.Bd3 Bb7 9.O-O {Plans: Rc1 and Qe2, or Ne5 with f4 and a kingside attack. Black's ...c5 break gives hanging pawns, which you meet with dxc5 and pressure on the d-file.}
+
+line: cambridge
+name: 4...Nbd7: the Elephant Trap and Cambridge Springs
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Nbd7 {This sets the Elephant Trap. If you play 5.cxd5 exd5 6.Nxd5, thinking the f6 knight is pinned, Black replies 6...Nxd5. Then 7.Bxd8 Bb4 check wins a piece back with interest.} 5.e3 {Don't grab anything: just develop.} c6 6.Nf3 Qa5 {The Cambridge Springs: Black's queen pins your c3 knight and eyes the g5 bishop, which is only defended once.} 7.Nd2 {The key answer. It unpins against ...Ne4, guards c4, and stops tricks against g5 and c3.} Bb4 8.Qc2 {Defend c3 a second time.} O-O 9.Be2 {Castle next. White is solid and slightly better.} e5 {Black strikes in the centre.} 10.O-O exd4 11.Nb3 {Hit the queen on a5 with tempo.} Qb6 12.exd4 dxc4 13.Bxc4 {You have an isolated d-pawn but very active pieces. Plans: Bxf6 to wreck Black's kingside, Rae1, and play against Black's king.}
+
+line: cambridge-dxc4
+name: Cambridge Springs: 7...dxc4
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Nbd7 5.e3 c6 6.Nf3 Qa5 7.Nd2 dxc4 {Black takes on c4 at once, hoping to win time against the pinned knight.} 8.Bxf6 {Remove the f6 knight first, so Black can't play ...Ne4 or ...Nd5.} Nxf6 9.Nxc4 {Your knight recaptures with tempo on the queen.} Qc7 10.g3 {The bishop goes to g2, where it presses along the long diagonal against c6 and b7.} Be7 11.Bg2 O-O 12.O-O {Black has the bishop pair, but you have the centre and easier development. Plans: Rc1, Qb3, and the e4 push. Black's c8 bishop is still a problem piece.}
+
+line: qgd-carlsbad
+name: Exchange structure: the minority attack
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Nbd7 5.e3 c6 6.Nf3 Be7 {Black avoids the Cambridge Springs.} 7.cxd5 {Exchange on d5 now. You get the Carlsbad structure: Black's pawns on c6 and d5, yours on d4 and e3.} exd5 {Black's c8 bishop is free, but the queenside pawns are now a fixed target.} 8.Bd3 {The bishop aims at h7. It also stops ...Bf5, the easiest way for Black to trade off the bad bishop.} O-O 9.Qc2 {Queen and bishop line up on h7 and control f5.} Re8 10.O-O Nf8 {A typical Carlsbad regrouping: the knight goes to g6 or e6 to guard the kingside.} 11.Rab1 {Prepare the minority attack: b4 and b5. Your two queenside pawns will attack Black's three.} Ne4 {Black tries to trade pieces.} 12.Bxe7 Qxe7 13.b4 {The minority attack begins. The plan is b5 and bxc6. If Black recaptures with the b-pawn, c6 is a weak backward pawn on the open c-file. If Black takes on b5, d5 is isolated. Either way, you get a lasting target, and your rooks come to the c-file to attack it.}
+
+line: qgd-manhattan
+name: 4...Bb4: the Manhattan
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Bb4 {Black pins your knight in turn. It's a mix of the QGD and the Nimzo-Indian.} 5.cxd5 {Exchange on d5. You head for a Carlsbad structure.} exd5 6.e3 O-O 7.Bd3 c6 8.Nge2 {The knight goes to e2 so that ...Bxc3 can be met by Nxc3 without spoiling your pawns. From e2 it also supports the f3 and e4 plan.} Nbd7 9.Qc2 h6 10.Bh4 Re8 11.O-O Nf8 12.a3 {Ask the bishop to decide.} Bd6 13.h3 {A quiet move that stops ...Ng4 and ...Bxh2 check tricks once your bishop leaves h4. With the knight on e2, your plan is Botvinnik's: Rae1, f3 and then e4 to win the centre. If the centre stays closed, the minority attack with b4 and b5 is still available.}
+
+line: qgd-dxc4
+name: 4...dxc4: giving up the centre
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 dxc4 {Black gives up the centre to grab c4, a kind of Queen's Gambit Accepted.} 5.e3 {Win the pawn back with the bishop.} c5 6.Bxc4 cxd4 7.exd4 {You get an isolated queen's pawn on d4. It controls e5 and c5, and gives your pieces open lines.} Be7 8.Nf3 O-O 9.O-O Nc6 10.Re1 {The rook backs up a future d5 push and watches e6.} b6 11.a3 {Stop ...Nb4 and ...Bb4, keeping your pieces where they are.} Bb7 12.Qd3 {Queen and bishop can turn to the kingside. The IQP plan: Rad1, Ba2, and the d5 break when your pieces are ready. Black wants to blockade on d5 and trade pieces.}
 
 line: qgd-bb4
 name: 3...Bb4
-moves: 1.d4 d5 2.c4 e6 3.Nc3 Bb4 {Black pins at once.} 4.cxd5 exd5 5.Bf4 {Develop actively outside the chain.} Nf6 6.e3 O-O 7.Bd3 c5 8.Nge2 {The knight goes to e2 so ...Bxc3 doesn't damage your pawns.}
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Bb4 {Black pins at once.} 4.cxd5 exd5 5.Bf4 {Develop the bishop actively outside the pawn chain.} Nf6 6.e3 O-O 7.Bd3 c5 {Black accepts an isolated pawn to free the game.} 8.Nge2 {The knight goes to e2 so ...Bxc3 can be met by Nxc3, keeping your pawns healthy.} Nc6 9.O-O cxd4 10.Nxd4 {Black has the isolated d5 pawn now. Blockade it: a knight on d4 is ideal.} Re8 11.Rc1 {Take the open c-file. Your plan is simple: trade pieces, especially Black's active ones, and attack d5 with Nce2, Nf4, Bf3 and the queen. In an ending the isolated pawn becomes a real weakness.}
+
+line: alatortsev
+name: 3...Be7: the Alatortsev
+moves: 1.d4 d5 2.c4 e6 3.Nc3 Be7 {Black delays ...Nf6 so that the knight can't be pinned by Bg5.} 4.cxd5 {Now that Black can't recapture with the knight from f6, exchange on d5.} exd5 5.Bf4 {With no knight on f6 to pin, the bishop goes to f4.} c6 6.e3 Bf5 {Black brings out the problem bishop before you can play Bd3.} 7.g4 {The sharp, critical reply: chase the bishop and gain kingside space.} Be6 8.h3 {Support g4. Plans: Bd3, Nf3, Qc2 and castle queenside, then push your kingside pawns. Black's bishop on e6 is a little passive.}
+
+chapter: tarrasch
+title: The Tarrasch: the isolated queen's pawn
+intro: With 3...c5 Black accepts an isolated d-pawn in return for free and active piece play. This chapter teaches you the other side of IQP positions. A pawn on d5 that no other pawn can defend is a long-term weakness. Blockade it on d4 with a knight, put your bishop on g2 to aim at it, and trade pieces, because every exchange takes away Black's activity and leaves the weak pawn behind. If Black's pawns end up on c6 and d5 instead, they are hanging pawns, and the c5 square and the c-file become yours.
+
+line: tarrasch
+name: 3...c5: the Tarrasch
+moves: 1.d4 d5 2.c4 e6 3.Nc3 c5 {The Tarrasch: Black hits back in the centre at once.} 4.cxd5 exd5 {Black will end up with an isolated d-pawn.} 5.Nf3 Nc6 6.g3 {The Rubinstein setup: the bishop goes to g2, aimed straight at d5.} Nf6 7.Bg2 Be7 8.O-O O-O 9.Bg5 {Pin and threaten to remove the f6 knight, a key defender of d5.} cxd4 10.Nxd4 {Your knight blockades on d4, the square right in front of the isolated pawn.} h6 11.Be3 Re8 12.Rc1 {The rook takes the c-file.} Bf8 13.Nxc6 {Trade the knight so Black recaptures with the b-pawn.} bxc6 {Now Black has hanging pawns on c6 and d5. They control lots of squares, but they can be attacked.} 14.Na4 {The knight heads for c5, the hole in front of the c6 pawn. Your plan: occupy c5, press on c6 down the c-file with Qc2, and use the g2 bishop against d5.}
+
+line: tarrasch-be6
+name: Tarrasch: 9...Be6
+moves: 1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5 exd5 5.Nf3 Nc6 6.g3 Nf6 7.Bg2 Be7 8.O-O O-O 9.Bg5 Be6 {Black protects d5 with the bishop instead of taking on d4.} 10.dxc5 {Take on c5 so the d5 pawn is isolated for good.} Bxc5 11.Rc1 {Take the open c-file and line up against the c5 bishop.} Bb6 12.Na4 {Hit the b6 bishop. Then you put a piece on d4 to blockade, trade pieces, and press against d5. Every trade brings you closer to an ending where the pawn falls.}
 
 chapter: slav
 title: The Slav: 2...c6
-intro: Black keeps the c8 bishop free by supporting d5 with ...c6. You develop with Nf3 and Nc3. If Black takes on c4 you play a4 and win the pawn back with e3 and Bxc4, then build a big centre with e4.
+intro: Black defends d5 with ...c6, keeping the c8 bishop free to come out to f5 or g4. You develop with Nf3 and Nc3. If Black takes on c4 you play a4 to stop ...b5, then win the pawn back with e3 and Bxc4 and build a big centre with e4. If Black plays ...e6 first, it's the Semi-Slav, a very solid structure where you play calmly with e3 and Qc2 and prepare e4. If Black develops the bishop early, Qb3 hitting b7 is often the punishment.
 
 line: slav-main
 name: Main line: ...dxc4 and ...Bf5
-moves: 1.d4 d5 2.c4 c6 3.Nf3 {Develop first.} Nf6 4.Nc3 dxc4 {Black takes the pawn and will try to hold it with ...b5.} 5.a4 {Stop ...b5. You'll win the pawn back.} Bf5 6.e3 e6 7.Bxc4 {Material is level again.} Bb4 8.O-O O-O 9.Qe2 {Prepare e4.} Nbd7 10.e4 Bg6 11.Bd3 {A big centre. Your plan is e5 and a kingside attack.}
+moves: 1.d4 d5 2.c4 c6 3.Nf3 {Develop first. Nf3 controls e5 and keeps options open.} Nf6 4.Nc3 dxc4 {Black takes the pawn and will try to hold it with ...b5.} 5.a4 {Stop ...b5. You'll win the pawn back with e3 and Bxc4.} Bf5 {The Slav bishop comes out before ...e6 locks it in.} 6.e3 e6 7.Bxc4 {Material is level again.} Bb4 8.O-O O-O 9.Qe2 {Prepare e4, which also kicks the f5 bishop.} Nbd7 10.e4 Bg6 11.Bd3 {Defend e4 and aim at the kingside.} Bh5 {Black pins the f3 knight.} 12.e5 {Gain space and drive the f6 knight away from the kingside.} Nd5 13.Nxd5 cxd5 14.Qe3 {The queen swings toward the kingside. You have more space and a ready-made attack: Ng5, f4 and Qh3 are typical ideas. Black's counterplay is on the c-file.}
 
 line: chebanenko
 name: 4...a6: the Chebanenko
-moves: 1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 a6 {Black prepares ...b5.} 5.e3 b5 6.b3 {Keep the centre stable and don't let Black win c4.} Bg4 7.h3 Bxf3 8.Qxf3 e6 9.Bd2 {You have the bishop pair and a solid position.}
+moves: 1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 a6 {Black prepares ...b5.} 5.e3 {Solid: you protect c4 with the bishop, so taking on c4 is less attractive.} b5 6.b3 {Keep the centre stable and don't let Black win c4.} Bg4 7.h3 Bxf3 8.Qxf3 e6 9.Bd2 {You have the bishop pair and a solid position. Plans: Bd3, O-O and the e4 break, or c5 to clamp the queenside.}
 
 line: semi-slav
 name: 4...e6: the Semi-Slav
-moves: 1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 e6 {The Semi-Slav: very solid.} 5.e3 {The calm approach: no sharp Botvinnik or Moscow theory.} Nbd7 6.Qc2 {Prepare e4.} Bd6 7.Bd3 O-O 8.O-O dxc4 9.Bxc4 b5 10.Be2 {Next is e4 with a strong centre.}
+moves: 1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 e6 {The Semi-Slav: very solid, with ideas of ...dxc4 and ...b5.} 5.e3 {The calm approach: no sharp Botvinnik or Moscow theory.} Nbd7 6.Qc2 {The queen backs up e4 and stays out of the way of ...dxc4 tricks.} Bd6 7.Bd3 O-O 8.O-O dxc4 9.Bxc4 b5 {Black gains queenside space with tempo.} 10.Be2 {Retreat. The bishop is safe on e2 and doesn't block the d-file.} Bb7 11.e4 {Your central break: you claim the centre while Black's pieces are on the queenside.} e5 {Black hits back in the centre.} 12.Rd1 {Put the rook opposite Black's queen on the d-file.} exd4 13.Nxd4 {Recapture with the knight, keeping your pawn on e4. You have more central space. Plans: g3, Bf3 or f4 and e5. Watch out for ...b4 kicking your c3 knight.}
 
 line: slav-bf5-early
 name: 3...Bf5 too early
-moves: 1.d4 d5 2.c4 c6 3.Nf3 Bf5 {Develops the bishop before ...Nf6.} 4.cxd5 cxd5 5.Qb3 {Hits b7 and d5. Black's bishop left the queenside short of defenders.} Qb6 6.Qxb6 axb6 7.Nc3 {A pleasant ending: Black's doubled b-pawns are a long-term weakness.}
+moves: 1.d4 d5 2.c4 c6 3.Nf3 Bf5 {Develops the bishop before ...Nf6.} 4.cxd5 {Exchange first, so ...c6 can no longer guard b7 indirectly.} cxd5 5.Qb3 {Hits b7 and d5. Black's bishop left the queenside short of defenders.} Qb6 6.Qxb6 axb6 7.Nc3 {A pleasant ending: Black's doubled b-pawns are a long-term weakness, and Nb5 is coming.}
+
+line: slav-4bf5
+name: 4...Bf5: the Qb3 punishment
+moves: 1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 Bf5 {Black brings the bishop out without first taking on c4.} 5.cxd5 {Exchange so the c-file opens and b7 is weak.} cxd5 6.Qb3 {The same idea as against 3...Bf5: hit b7 and d5 at once.} Qb6 {If 6...Nc6, 7.Qxb7 wins a pawn. If 6...Bc8, Black has simply lost time.} 7.Qxb6 axb6 8.Nb5 {The knight threatens Nc7 check, forking king and rook.} Na6 9.a3 {Stop ...Nb4. Black's doubled b-pawns and weak c7 square give you a small but lasting edge. Next come Bf4 and e3.}
 
 line: slav-bg4
 name: 5...Bg4
-moves: 1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 dxc4 5.a4 Bg4 {Black develops the bishop to g4 instead of f5.} 6.Ne5 {Hit the bishop and go after c4.} Bh5 7.f3 Nfd7 8.Nxc4 e5 9.Ne4 {Not 9.dxe5?, which lets Black's pieces flood in with tempo. The knight heads for d6 or g5, and you've won the pawn back.}
+moves: 1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 dxc4 5.a4 Bg4 {Black develops the bishop to g4 instead of f5.} 6.Ne5 {Hit the bishop and go after c4.} Bh5 7.f3 {Shut the bishop out and prepare e4.} Nfd7 8.Nxc4 e5 9.Ne4 {Not 9.dxe5, which lets Black's pieces flood in with tempo. The knight heads for d6 or g5, and you've won the pawn back. Next, play to open the centre while Black's h5 bishop is far away.}
+
+line: slav-3dxc4
+name: 3...dxc4: grabbing at once
+moves: 1.d4 d5 2.c4 c6 3.Nf3 dxc4 {Black takes before you've played Nc3.} 4.e3 {Open the bishop to recapture.} b5 {Black tries to hold the extra pawn.} 5.a4 {Undermine the b5 pawn.} e6 6.axb5 cxb5 7.b3 {Hit the base of Black's chain. The c4 pawn can't be held.} Bb4+ 8.Bd2 Bxd2+ 9.Nbxd2 a5 10.bxc4 b4 {Black gets a protected passed b-pawn.} 11.Bd3 {You have a strong centre with c4 and d4. Plans: O-O, Qc2 and e4, or the c5 push to make a passed pawn of your own.}
+
+line: triangle-noteboom
+name: The Triangle and the Noteboom
+moves: 1.d4 d5 2.c4 e6 3.Nc3 c6 {The Triangle: Black's pawns on c6, d5 and e6. After 4...Nf6 this is the Semi-Slav.} 4.Nf3 {Develop and take the sting out of ...e5.} dxc4 {The Noteboom: Black grabs c4 and tries to keep it with ...b5.} 5.a4 {Attack the b5 support before it arrives.} Bb4 6.e3 b5 7.Bd2 {Unpin and prepare to win back material.} a5 8.axb5 Bxc3 9.Bxc3 cxb5 10.b3 {Undermine the c4 pawn.} Bb7 11.bxc4 b4 12.Bb2 {Material is level. Black has two connected passed pawns on the queenside, but you have a big centre and the bishop pair. Plans: Bd3, O-O, and the d5 or e4 push to attack Black's king.}
 
 chapter: qga
 title: Queen's Gambit Accepted: 2...dxc4
-intro: Black takes the pawn but can't keep it. Play e3 and Bxc4 to win it back with a lead in development and a free hand in the centre.
+intro: Black takes the pawn but can't keep it. Play e3 and Bxc4 to win it back with a lead in development. In most lines, Black then plays ...c5 and you end up with an isolated queen's pawn on d4. That's your weapon. It gives you space, the e5 square for a knight and open lines for an attack. Keep pieces on the board, aim at Black's king, and look for the d5 break.
 
 line: qga-main
 name: Main line: ...e6 and ...c5
-moves: 1.d4 d5 2.c4 dxc4 {Black takes the pawn.} 3.e3 {Opens the f1 bishop to recapture.} Nf6 4.Bxc4 {The pawn is back.} e6 5.Nf3 c5 6.O-O a6 7.a4 {Stop ...b5.} Nc6 8.Qe2 {Prepare Rd1 and pressure on the d-file.} cxd4 9.Rd1 Be7 10.exd4 O-O 11.Nc3 {An isolated d-pawn but very active pieces. Ideas: d5 or a kingside attack.}
+moves: 1.d4 d5 2.c4 dxc4 {Black takes the pawn.} 3.e3 {Opens the f1 bishop to recapture.} Nf6 4.Bxc4 {The pawn is back.} e6 5.Nf3 c5 {Black's natural break against d4.} 6.O-O a6 {Black wants ...b5 with tempo on the bishop.} 7.a4 {Stop ...b5.} Nc6 8.Qe2 {Prepare Rd1 and pressure on the d-file.} cxd4 9.Rd1 {Pin the d4 pawn instead of taking it at once.} Be7 10.exd4 O-O 11.Nc3 {An isolated d-pawn but very active pieces. Ideas: Bg5, Rd1 backing up d5, and a kingside attack with Bd3 and Qe4.}
+
+line: qga-iqp
+name: 6...cxd4: the IQP
+moves: 1.d4 d5 2.c4 dxc4 3.e3 Nf6 4.Bxc4 e6 5.Nf3 c5 6.O-O cxd4 {Black gives you an isolated d-pawn straight away.} 7.exd4 {Recapture with the pawn. The d4 pawn is isolated, but it controls e5 and c5.} Be7 8.Nc3 O-O 9.Re1 {The rook supports the d5 push and watches e6.} Nc6 10.a3 {Stop ...Nb4, which would blockade on d5.} b6 11.Qd3 Bb7 12.Ba2 {Tuck the bishop away from ...Na5 and keep it aimed at d5 and f7. Your plan is the d5 break: when it comes with pieces behind it, the centre explodes in your favour. If Black blockades, swing pieces to the kingside with Bg5, Rad1 and Ne5.}
+
+line: qga-c5
+name: 3...c5
+moves: 1.d4 d5 2.c4 dxc4 3.e3 c5 {Black strikes at d4 straight away.} 4.Bxc4 cxd4 5.exd4 {An isolated d-pawn again, with quick development.} Nf6 6.Nf3 e6 7.O-O Be7 8.Nc3 O-O 9.Re1 {This is the same position as the 6...cxd4 line. Your plan is the same: support d5, put a knight on e5 and attack.}
+
+line: qga-a6-b5
+name: 5...a6 and ...b5
+moves: 1.d4 d5 2.c4 dxc4 3.e3 Nf6 4.Bxc4 e6 5.Nf3 a6 {Black prepares ...b5.} 6.O-O b5 7.Bd3 {Keep the bishop aimed at h7.} Bb7 8.a4 {Strike at b5 so Black's queenside pawns become loose.} b4 9.Nbd2 {The knight heads for c4.} c5 10.Nc4 {The knight is excellent on c4, eyeing b6 and e5. Plans: Nce5, Qe2 and Rd1, or dxc5 and pressure on the d-file. Black's queenside pawns are overextended.}
 
 line: qga-e5
 name: 3...e5: the central counterattack
-moves: 1.d4 d5 2.c4 dxc4 3.e3 e5 {Black strikes back in the centre.} 4.Bxc4 {Win the pawn back first.} exd4 5.exd4 Nf6 6.Nf3 Be7 7.O-O O-O 8.h3 {Rule out ...Bg4. You have more active pieces.}
+moves: 1.d4 d5 2.c4 dxc4 3.e3 e5 {Black strikes back in the centre.} 4.Bxc4 {Win the pawn back first.} exd4 5.exd4 {A symmetrical structure, but your pieces develop faster.} Nf6 6.Nf3 Be7 7.O-O O-O 8.h3 {Rule out ...Bg4, so your f3 knight stays strong. You have more active pieces. Plans: Nc3, Re1 and Bg5, with pressure on f7 and the e-file.}
 
 line: qga-b5
 name: 3...b5?: holding the pawn
-moves: 1.d4 d5 2.c4 dxc4 3.e3 b5 {Black tries to keep the extra pawn. It doesn't work.} 4.a4 {Hit the support.} c6 5.axb5 cxb5 6.Qf3 {The long diagonal is open: your queen hits the rook on a8.} Nc6 7.Qxc6+ {The knight was the only blocker.} Bd7 8.Qf3 {You've won a whole piece.}
+moves: 1.d4 d5 2.c4 dxc4 3.e3 b5 {Black tries to keep the extra pawn. This is a mistake.} 4.a4 {Hit the support.} c6 5.axb5 cxb5 6.Qf3 {The long diagonal is open: your queen hits the rook on a8.} Nc6 7.Qxc6+ {The knight was the only blocker.} Bd7 8.Qf3 {You've won a whole piece. Remember the pattern: after ...b5, a4 and the long diagonal are the punishment.}
 
 chapter: offbeat
 title: Offbeat defences and traps
-intro: The Albin, Chigorin and Baltic try to catch you unprepared. Learn the one sensible setup against each, and the Lasker Trap in the Albin.
+intro: The Albin, Chigorin, Baltic, Marshall and Symmetrical try to catch you unprepared. Each one gives up something positional for activity, so learn one sensible setup against each and you'll be better. Watch out for the Lasker Trap in the Albin: never play an early e3 there.
 
 line: albin
 name: 2...e5: the Albin Countergambit
-moves: 1.d4 d5 2.c4 e5 {The Albin: a gambit with a well-known trap.} 3.dxe5 d4 {The d4 pawn cramps you. Avoid 4.e3?? Bb4+ 5.Bd2 dxe3! when 6.Bxb4?? exf2+ 7.Ke2 fxg1=N+! wins for Black: the Lasker Trap.} 4.Nf3 {Develop and keep the e5 pawn.} Nc6 5.g3 {The bishop goes to g2 to attack Black's queenside.} Be6 6.Nbd2 Qd7 7.Bg2 O-O-O 8.O-O {You're a pawn up with a safe king. Queenside attack next: Qa4, b4.}
+moves: 1.d4 d5 2.c4 e5 {The Albin: a gambit with a famous trap.} 3.dxe5 {Take the pawn.} d4 {The d4 pawn cramps you. Avoid 4.e3, which is a blunder: 4...Bb4 check 5.Bd2 dxe3, and if 6.Bxb4, exf2 check 7.Ke2 fxg1 makes a knight with check and Black wins. That is the Lasker Trap.} 4.Nf3 {Develop and keep the e5 pawn.} Nc6 5.g3 {The bishop goes to g2 to attack Black's queenside.} Be6 6.Nbd2 {The knight attacks d4 from b3 later and guards c4.} Qd7 7.Bg2 O-O-O 8.O-O {You're a pawn up with a safe king. Queenside attack next: Qa4, b4 and b5. Black's d4 pawn is a target for Nb3.}
+
+line: albin-nge7
+name: Albin: 5...Nge7
+moves: 1.d4 d5 2.c4 e5 3.dxe5 d4 4.Nf3 Nc6 5.g3 Nge7 {The modern try: the knight heads for g6 to win back e5.} 6.Bg2 Ng6 7.O-O Ngxe5 8.Nxe5 Nxe5 {Material is level, but Black's d4 pawn is overextended.} 9.Na3 {The knight heads for b5 or c2 to attack d4.} Be7 10.Nb5 {Hit d4 and c7.} c5 11.Bf4 {Pin the e5 knight and add pressure. Next comes e3 to break open the centre while Black's king is still in the middle.}
+
+line: albin-bg4
+name: Albin: 5...Bg4
+moves: 1.d4 d5 2.c4 e5 3.dxe5 d4 4.Nf3 Nc6 5.g3 Bg4 {Black pins the knight and plans queenside castling.} 6.Bg2 Qd7 7.O-O O-O-O 8.Qb3 {Your queen hits b7 and joins a fast queenside attack. Follow up with Rd1, Nbd2 and b4 and b5. You're a pawn up, and the race is yours.}
 
 line: chigorin
 name: 2...Nc6: the Chigorin
-moves: 1.d4 d5 2.c4 Nc6 {Black blocks the c-pawn and plays for piece activity.} 3.Nf3 Bg4 4.cxd5 Bxf3 5.gxf3 {Recapture with the pawn: the bishop pair and the centre are worth the slightly loose structure.} Qxd5 6.e3 e5 7.Nc3 Bb4 8.Bd2 Bxc3 9.bxc3 {Bishop pair and a strong centre.}
+moves: 1.d4 d5 2.c4 Nc6 {Black blocks the c-pawn and plays for piece activity.} 3.Nf3 {Control e5 and stop ...e5.} Bg4 4.cxd5 Bxf3 5.gxf3 {Recapture with the pawn: the bishop pair and the centre are worth the slightly loose structure.} Qxd5 6.e3 e5 7.Nc3 Bb4 8.Bd2 Bxc3 9.bxc3 {Bishop pair and a strong centre.} Qd6 10.Rb1 {The rook goes to the open b-file, hitting b7.} b6 11.f4 {Open lines for your bishops. Once the centre opens, the two bishops dominate Black's knights.}
+
+line: chigorin-e6
+name: Chigorin: 6...e6
+moves: 1.d4 d5 2.c4 Nc6 3.Nf3 Bg4 4.cxd5 Bxf3 5.gxf3 Qxd5 6.e3 e6 {A quieter setup for Black.} 7.Nc3 Qh5 {The queen hits f3 and h2.} 8.f4 {Shut the queen out. Next come Bg2 or Be2 and Bd2. Your bishop pair and big centre outweigh the gaps on the kingside, and the half-open g-file is useful for your rook.}
 
 line: baltic
 name: 2...Bf5: the Baltic
-moves: 1.d4 d5 2.c4 Bf5 {Black develops the bishop at once.} 3.cxd5 Bxb1 4.Qa4+ {Insert the check before recapturing.} c6 5.Rxb1 {Take the bishop back.} Qxd5 6.Nf3 Nd7 7.e3 {You have the bishop pair and an easy position.}
+moves: 1.d4 d5 2.c4 Bf5 {Black develops the bishop at once.} 3.cxd5 {Take the pawn: d5 is no longer protected.} Bxb1 4.Qa4+ {Insert the check before recapturing.} c6 5.Rxb1 {Take the bishop back.} Qxd5 6.Nf3 Nd7 7.e3 {You have the bishop pair and an easy position.} Ngf6 8.Bd2 {Connect your pieces. Beware the trick ...b5 against your queen on a4.} e6 9.Qc2 {Retreat the queen to safety. Next is Bc4 or Bd3, O-O and e4. The two bishops give you a long-term edge.}
+
+line: baltic-nf6
+name: Baltic: 3...Nf6
+moves: 1.d4 d5 2.c4 Bf5 3.cxd5 Nf6 {Black lets the pawn go for quick development.} 4.Nc3 {Defend d5 and develop.} Nxd5 5.Qb3 {Hit b7 at once. If 5...Nxc3, 6.Qxb7 wins a pawn and the rook on a8 is in trouble.} Nb6 6.e4 {Gain time on the f5 bishop and take the centre.} Bg6 7.Nf3 {You have a big centre and a lead in development. Plans: Be2, O-O, d5 and a4 to chase the b6 knight.}
+
+line: marshall
+name: 2...Nf6: the Marshall Defence
+moves: 1.d4 d5 2.c4 Nf6 {The Marshall Defence: Black lets you take on d5.} 3.cxd5 Nxd5 4.e4 {Take the whole centre with tempo on the knight.} Nf6 5.Nc3 e5 {A tricky gambit.} 6.dxe5 Qxd1+ 7.Kxd1 {Forced: Nxd1 would let Black win the e5 pawn back with a strong position.} Ng4 8.Ke1 Nxe5 9.f4 {Gain time on the knight. Your king is fine on e1 in an ending.} Nec6 10.Nf3 {You have a big central pawn majority. Plans: Bc4, Ke2, and later the e5 push. Black's pieces have no good outposts.}
+
+line: marshall-nb6
+name: Marshall: 4...Nb6
+moves: 1.d4 d5 2.c4 Nf6 3.cxd5 Nxd5 4.e4 Nb6 {The knight retreats to b6.} 5.Nc3 e5 {Black hits the centre.} 6.dxe5 Qxd1+ 7.Nxd1 {Here the knight recapture is best: the king stays safe and the knight can come back to e3.} Nc6 8.f4 {Hold the extra pawn on e5. You keep a healthy extra pawn in the ending. Next come Nf3, Ne3 and Bd2.}
 
 line: symmetrical
 name: 2...c5: the Symmetrical
-moves: 1.d4 d5 2.c4 c5 {Black copies you.} 3.cxd5 {Take first.} Nf6 4.e4 {Gain time on the knight.} Nxe4 5.dxc5 {You're ahead in development and Black's knight is loose.}
+moves: 1.d4 d5 2.c4 c5 {Black copies you.} 3.cxd5 {Take first.} Nf6 4.e4 {Gain time on the knight, and keep your extra pawn.} Nxe4 5.dxc5 {You're ahead in development and Black's knight is loose.} Qa5+ 6.Bd2 {Block with the bishop. Black wins nothing.} Nxd2 7.Qxd2 Qxd2+ 8.Nxd2 {You're a clean pawn up in the ending, with a passed d-pawn. Plans: Rc1, Bc4 and Ke2, and push the d-pawn when it's supported.}
 
 quiz: cambridge 8
 q: Black played 4...Nbd7. Can you win a pawn with 5.cxd5 exd5 6.Nxd5?
-a: No: 6...Nxd5! 7.Bxd8 Bb4+ and Black wins a piece (the Elephant Trap)
-w: Yes: the d5 pawn is pinned
+a: No. 6...Nxd5 7.Bxd8 Bb4 check wins a piece for Black: the Elephant Trap
+w: Yes, because the f6 knight is pinned
 w: Yes, and if 6...Nxd5 then 7.Bxd8 wins the queen for free
-why: The d7 knight blocks nothing important. After 6...Nxd5 7.Bxd8, the check 7...Bb4+ forces 8.Qd2 Bxd2+ 9.Kxd2 Kxd8, and Black is a piece up.
+why: The pin on f6 is not real. After 6...Nxd5 7.Bxd8, the check 7...Bb4 forces 8.Qd2 Bxd2 check 9.Kxd2 Kxd8, and Black is a piece up.
 
 quiz: albin 6
 q: In the Albin after 3...d4, what's wrong with 4.e3?
-a: 4...Bb4+ 5.Bd2 dxe3! and 6.Bxb4?? exf2+ 7.Ke2 fxg1=N+! is the Lasker Trap
-w: Nothing: it's the best move
+a: 4...Bb4 check 5.Bd2 dxe3, and 6.Bxb4 loses to exf2 check 7.Ke2 fxg1 promoting to a knight: the Lasker Trap
+w: Nothing, it's the best move
 w: It loses the e5 pawn to ...Nc6
 why: 4.e3 walks into one of the most famous traps in chess. 4.Nf3 develops a piece and avoids all of it.
 
-quiz: slav-main 9
+quiz: slav-main 8
 q: Why play 5.a4 after Black takes on c4?
 a: It stops ...b5, so Black can't hold onto the c4 pawn
 w: It prepares Ra3 and a rook lift
@@ -124,3 +200,24 @@ a: Pressure them with pieces on the c- and d-files so they have to advance or be
 w: Push e4 straight away
 w: Trade queens immediately
 why: Hanging pawns are strong if they stay side by side but weak once they're forced to advance. Rooks on the c- and d-files and a queen on a3 keep them under fire.
+
+quiz: qgd-carlsbad 24
+q: This is the Carlsbad structure: Black has pawns on c6 and d5, you have d4 and e3. What is your classic plan?
+a: The minority attack: push b4 and b5 to leave Black with a weak pawn on c6 or d5
+w: Push e4 at once to win the centre
+w: Castle queenside and storm with g4 and h4
+why: Your two queenside pawns attack Black's three. After b5 and bxc6, Black is left with a backward c-pawn on the open c-file or an isolated d-pawn, and your rooks attack it.
+
+quiz: qga-iqp 22
+q: You have an isolated pawn on d4. Which plan fits the position?
+a: Keep pieces on, play actively, and prepare the d5 break or a kingside attack
+w: Trade queens and head for the ending
+w: Push the d-pawn at once, whatever the cost
+why: An isolated pawn gives space and open lines but becomes weak in an ending. So you avoid trades, aim your pieces at the king, and break with d5 when your pieces support it.
+
+quiz: tarrasch 18
+q: Black has an isolated pawn on d5. Where do you want your knight?
+a: On d4, the square right in front of the isolated pawn, to blockade it
+w: On e5, to attack f7
+w: On a4, to chase the bishop
+why: The square in front of an isolated pawn can never be attacked by a pawn, so it's a perfect outpost. A knight on d4 blocks the pawn and watches key squares like c6, e6, b5 and f5.

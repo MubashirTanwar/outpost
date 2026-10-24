@@ -24,10 +24,10 @@ def test_endgame_course_is_built_and_valid():
     assert out.returncode == 0, out.stderr + out.stdout
 
 
-def test_six_courses_three_per_side():
+def test_the_courses():
     cs = repertoire.courses()
-    assert sorted(c.id for c in cs) == ["caro-kann", "french", "italian", "london", "queens-gambit", "scandinavian"]
-    assert sum(c.color == "white" for c in cs) == 3
+    assert sorted(c.id for c in cs) == ["caro-kann", "french", "italian", "jobava", "london", "queens-gambit", "scandinavian"]
+    assert sum(c.color == "white" for c in cs) == 4
 
 
 def test_check_game_finds_player_deviation():
@@ -39,9 +39,16 @@ def test_check_game_finds_player_deviation():
 
 
 def test_check_game_finds_uncovered_opponent_move():
-    # Caro-Kann: 1.e4 c6 2.d4 d5 3.e5 Bf5 4.g4?! isn't in the course.
-    note = repertoire.check_game("e4 c6 d4 d5 e5 Bf5 g4".split(), "black", "g2", "alice")
-    assert note["kind"] == "opponent_deviated" and note["course_id"] == "caro-kann" and note["played"] == "g4"
+    # Caro-Kann: 1.e4 c6 2.d4 d5 3.e5 Bf5 4.Be2 isn't in the course.
+    note = repertoire.check_game("e4 c6 d4 d5 e5 Bf5 Be2".split(), "black", "g2", "alice")
+    assert note["kind"] == "opponent_deviated" and note["course_id"] == "caro-kann" and note["played"] == "Be2"
+
+
+def test_check_game_reports_only_the_course_that_followed_furthest():
+    # Pure London: the Jobava (2.Nc3) is left at move 2, but the London follows the whole game.
+    assert repertoire.check_game("d4 d5 Bf4 Nf6 e3 e6 Nf3 c5 c3".split(), "white") is None
+    # And a Jobava game isn't reported as a London deviation.
+    assert repertoire.check_game("d4 d5 Nc3 Nf6 Bf4".split(), "white") is None
 
 
 def test_check_game_respects_studied_courses():
