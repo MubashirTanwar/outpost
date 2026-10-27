@@ -42,15 +42,17 @@ export default function CoachPage({ params }: { params: { username: string } }) 
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ stage: string; value: number } | null>(null);
   const [available, setAvailable] = useState<boolean | null>(null);
-  const bottom = useRef<HTMLDivElement>(null);
+  // The chat box follows new text only while you're at the bottom of it; it never scrolls the page.
+  const box = useRef<HTMLDivElement>(null);
+  const pinned = useRef(true);
 
   useEffect(() => {
     getHealth().then((h) => setAvailable(!!h));
   }, []);
-  // Braces matter: newer browsers return a Promise from scrollIntoView, and React would call it as a cleanup.
   useEffect(() => {
-    bottom.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    const b = box.current;
+    if (b && pinned.current) b.scrollTop = b.scrollHeight;
+  }, [messages, busy, progress]);
 
   // Patch the assistant message being written (always the last one while busy).
   const patchLast = (fn: (m: Msg) => Msg) => setMessages((all) => [...all.slice(0, -1), fn(all[all.length - 1])]);
@@ -59,6 +61,7 @@ export default function CoachPage({ params }: { params: { username: string } }) 
     if (!text.trim() || busy) return;
     const history = messages.map(({ role, content }) => ({ role, content }));
     const body = { username, message: text, fen: fen.trim() || null, history, tz_offset: tzOffset() };
+    pinned.current = true; // a new question always brings you to its answer
     setMessages((m) => [...m, { role: "user", content: text }, { role: "assistant", content: "" }]);
     setInput("");
     setBusy(true);
@@ -108,7 +111,15 @@ export default function CoachPage({ params }: { params: { username: string } }) 
   return (
     <div className="mx-auto flex h-[calc(100dvh-108px-env(safe-area-inset-bottom))] max-w-3xl flex-col p-2 sm:p-3 md:h-screen md:p-5">
       <h1 className="mb-2 hidden text-2xl font-extrabold sm:block md:mb-3">Coach Kittu</h1>
-      <div className="card flex-1 space-y-4 overflow-y-auto p-2.5 sm:p-4">
+      <div
+        ref={box}
+        onScroll={(e) => {
+          const b = e.currentTarget;
+          // Scrolled up to read? Stop following until you come back down.
+          pinned.current = b.scrollHeight - b.scrollTop - b.clientHeight < 60;
+        }}
+        className="card min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-2.5 sm:p-4"
+      >
         {messages.length === 0 && (
           <div className="py-8 text-center">
             <div className="mx-auto w-fit">
@@ -161,7 +172,6 @@ export default function CoachPage({ params }: { params: { username: string } }) 
             )}
           </div>
         )}
-        <div ref={bottom} />
       </div>
       <form
         className="mt-2 space-y-2 sm:mt-3"

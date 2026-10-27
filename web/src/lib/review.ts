@@ -79,6 +79,48 @@ function parseClock(comment: string | undefined): number | null {
 
 export type Analyser = (fen: string, depth: number, multipv: number, signal?: AbortSignal) => Promise<EngineLine[]>;
 
+export interface MoveToJudge {
+  before: string; // FEN before the move
+  uci: string;
+  san: string;
+  ply: number; // 0-based index of the move in the game
+  sans: string[]; // the game's moves so far from the starting position, this one included
+  inBook: boolean; // still in the opening book before this move
+  prev: Classification | null; // the previous move's class (the opponent's)
+  isRecapture: boolean;
+  best: EngineLine; // engine's top line before the move (side to move's view)
+  second?: EngineLine; // its second line, if any
+  afterBest: EngineLine; // engine's top line after the move (the opponent's view)
+}
+
+/**
+ * Classify one move from the engine's view of the positions before and after it. Shared by the
+ * game review and the live analysis board, so both judge moves the same way.
+ */
+export function judgeMove(m: MoveToJudge): { classification: Classification; winBefore: number; winAfter: number; loss: number; inBook: boolean } {
+  const playedBest = m.best.pv[0] === m.uci;
+  let winBefore = winPercent(m.best.cp);
+  let winAfter = winPercent(-m.afterBest.cp);
+  if (playedBest) winAfter = Math.max(winAfter, winBefore);
+  winBefore = Math.max(winBefore, winAfter);
+  const loss = winBefore - winAfter;
+  const isBookMove = openingBook().has(m.sans.join(" ")) && loss < 5;
+  const inBook = m.inBook && (isBookMove || (m.ply < 12 && loss < 3));
+  const classification = classify({
+    winBefore,
+    winAfter,
+    playedBest,
+    secondBestWin: m.second ? winPercent(m.second.cp) : null,
+    sacrifice: loss < 2 && !inBook && isSacrifice(m.before, m.uci, m.afterBest.pv),
+    isBook: inBook,
+    onlyMove: new Chess(m.before).moves().length === 1,
+    isRecapture: m.isRecapture,
+    givesMate: m.san.includes("#"),
+    prevOpponentClass: m.prev,
+  });
+  return { classification, winBefore, winAfter, loss, inBook };
+}
+
 export async function reviewPgn(
   pgn: string,
   analyse: Analyser,
@@ -103,7 +145,6 @@ export async function reviewPgn(
   }
   if (opts.signal?.aborted) throw new DOMException("Review cancelled", "AbortError");
 
-  const bookSet = openingBook();
   const sans: string[] = [];
   let inBook = true;
   let prev: Classification | null = null;
@@ -114,33 +155,25 @@ export async function reviewPgn(
     sans.push(mv.san);
     const [best, second] = analyses[i];
     const afterBest = analyses[i + 1][0];
-    const playedBest = best.pv[0] === uci;
-    let winBefore = winPercent(best.cp);
-    let winAfter = winPercent(-afterBest.cp);
-    if (playedBest) winAfter = Math.max(winAfter, winBefore);
-    winBefore = Math.max(winBefore, winAfter);
-    const loss = winBefore - winAfter;
-
-    const boardBefore = new Chess(mv.before);
-    const isBookMove = bookSet.has(sans.join(" ")) && loss < 5;
-    inBook = inBook && (isBookMove || (i < 12 && loss < 3));
-    const phase = gamePhase(boardBefore, i);
     const prevMove = i > 0 ? history[i - 1] : null;
-    const isRecapture = !!(prevMove?.captured && mv.captured && prevMove.to === mv.to);
-    const clock = parseClock(comments.get(mv.after));
-
-    const cls = classify({
-      winBefore,
-      winAfter,
-      playedBest,
-      secondBestWin: second ? winPercent(second.cp) : null,
-      sacrifice: loss < 2 && !inBook && isSacrifice(mv.before, uci, afterBest.pv),
-      isBook: inBook,
-      onlyMove: boardBefore.moves().length === 1,
-      isRecapture,
-      givesMate: mv.san.includes("#"),
-      prevOpponentClass: prev,
+    const j = judgeMove({
+      before: mv.before,
+      uci,
+      san: mv.san,
+      ply: i,
+      sans,
+      inBook,
+      prev,
+      isRecapture: !!(prevMove?.captured && mv.captured && prevMove.to === mv.to),
+      best,
+      second,
+      afterBest,
     });
+    const { winBefore, winAfter, loss, classification: cls } = j;
+    inBook = j.inBook;
+    const boardBefore = new Chess(mv.before);
+    const phase = gamePhase(boardBefore, i);
+    const clock = parseClock(comments.get(mv.after));
     const sign = new Chess(mv.after).turn() === "w" ? 1 : -1;
     moves.push({
       ply: i + 1,
