@@ -4,6 +4,7 @@ import { Lock, Star } from "lucide-react";
 import Link from "next/link";
 import { Kittu } from "@/components/Kittu";
 import { StatsBar } from "@/components/StatsBar";
+import { YourEndgames } from "@/components/YourEndgames";
 import { ALL_DRILLS, STAGES, type EndgameLesson } from "@/lib/endgames";
 import { useProgress } from "@/lib/useProgress";
 import type { Progress } from "@/lib/progress";
@@ -95,6 +96,8 @@ export default function EndgamesPage() {
           </section>
         );
       })}
+
+      <YourEndgames />
     </div>
   );
 }

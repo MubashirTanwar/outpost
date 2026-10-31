@@ -298,7 +298,9 @@ def compact_review(row: dict, review: dict) -> dict:
     return {
         "game": row,
         "summary": {c: {"accuracy": review["summary"][c]["accuracy"]} for c in ("white", "black")},
-        "moves": [{k: m.get(k) for k in INSIGHT_MOVE_FIELDS} for m in review["moves"]],
+        # Endgame moves also carry their position, for practising endgames from your games.
+        "moves": [{k: m.get(k) for k in INSIGHT_MOVE_FIELDS} | ({"fen_before": m.get("fen_before")} if m.get("phase") == "endgame" else {})
+                  for m in review["moves"]],
     }
 
 

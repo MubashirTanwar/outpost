@@ -250,3 +250,20 @@ def test_time_class_from_time_control():
 
     assert [_time_class(t) for t in ("60", "120+1", "180+2", "600", "900+10", "1/86400", "", "x")] == \
         ["bullet", "bullet", "blitz", "rapid", "rapid", "daily", "", ""]
+
+
+def test_reviews_endpoint_includes_positions_of_endgame_moves(fake_engine, memory_store):
+    import time
+
+    from app import main
+    from app.review import review_pgn
+
+    from .store_contract import _game
+
+    game = {**_game("black"), "end_time": int(time.time()) - 3600}
+    review = review_pgn(game["pgn"], fake_engine, depth=1, player_color="black")
+    review["moves"][-1]["phase"] = "endgame"
+    memory_store.save_review("coach_tester", game, review)
+    [g] = TestClient(main.app).get("/api/players/coach_tester/reviews?days=30").json()["games"]
+    assert g["moves"][-1]["fen_before"] == review["moves"][-1]["fen_before"]
+    assert "fen_before" not in g["moves"][0]

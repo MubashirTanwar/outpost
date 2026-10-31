@@ -1,14 +1,18 @@
 /** Rules for when an endgame drill is passed or failed. Pure functions, no data imports. */
 import { Chess } from "chess.js";
 
-export type Goal = "mate" | "promote" | "convert" | "draw";
+export type Goal = "mate" | "promote" | "convert" | "draw" | "win";
 
 export const GOAL_TEXT: Record<Goal, string> = {
   mate: "Deliver checkmate",
   promote: "Promote a pawn and stay winning",
   convert: "Win the material, then it's a basic mate",
   draw: "Hold the draw",
+  win: "Win it: reach a decisive advantage",
 };
+
+/** A "win" drill passes once the learner reaches this advantage (about six pawns) or mates. */
+export const DECISIVE = 600;
 
 /** Moves you must survive in a "draw" drill without the engine making progress. */
 export const HOLD_MOVES = 20;
@@ -65,6 +69,9 @@ export function judgeDrill(
     if (onlyKing(chess, them) && hasMatingMaterial(chess, me) && evalForUser !== null && evalForUser >= 400)
       return { done: true, ok: true, text: "Their last defender is gone. Drill complete." };
   }
+
+  if (goal === "win" && evalForUser !== null && userMoves >= 3 && evalForUser >= DECISIVE)
+    return { done: true, ok: true, text: "That's a decisive advantage: the rest is technique. Well converted!" };
 
   if (evalForUser !== null) {
     if (goal === "draw") {

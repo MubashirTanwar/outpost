@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight, Star, X } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DemoBoard } from "@/components/DemoBoard";
 import { DrillPlayer } from "@/components/DrillPlayer";
 import { Kittu, kittuSays } from "@/components/Kittu";
@@ -11,8 +11,21 @@ import { KittuBubble } from "@/components/KittuBubble";
 import { ALL_LESSONS, findLesson } from "@/lib/endgames";
 import { recordDrill } from "@/lib/progress";
 import { updateProgress, useProgress } from "@/lib/useProgress";
+import { NarrationControls } from "@/components/NarrationControls";
+import { speak, stopSpeaking, useNarration } from "@/lib/narrator";
 
 type Phase = { kind: "theory"; card: number } | { kind: "drill"; index: number; result: { stars: number; xp: number } | null } | { kind: "done" };
+
+/** Reads a theory card aloud when it opens, if the narrator is on. */
+function ReadAloud({ text }: { text: string }) {
+  const narration = useNarration();
+  useEffect(() => {
+    if (narration.on) void speak(text, narration);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, narration.on]);
+  useEffect(() => () => stopSpeaking(), []);
+  return null;
+}
 
 export default function EndgameLessonPage({ params }: { params: { lessonId: string } }) {
   const found = findLesson(params.lessonId);
@@ -72,9 +85,13 @@ export default function EndgameLessonPage({ params }: { params: { lessonId: stri
               )}
             </div>
             <div className="flex w-full flex-col gap-4 lg:w-[380px]">
-              <div className="text-xs font-extrabold uppercase tracking-wide text-muted">
-                Theory {phase.card + 1} / {lesson.theory.length}
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-xs font-extrabold uppercase tracking-wide text-muted">
+                  Theory {phase.card + 1} / {lesson.theory.length}
+                </div>
+                <NarrationControls />
               </div>
+              <ReadAloud text={card.text} />
               <KittuBubble mood={phase.card === 0 ? "smug" : "proud"} quip={phase.card === 0 ? "Pay attention. There will be a test." : undefined}>
                 <span className="text-[15px] leading-relaxed">{card.text}</span>
               </KittuBubble>

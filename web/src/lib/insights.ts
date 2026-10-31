@@ -16,6 +16,7 @@ export interface InsightMove {
   phase: string;
   motifs: string[];
   best_san: string | null;
+  fen_before?: string | null; // present on endgame moves
 }
 
 /** A review as the backend's /reviews endpoint sends it; a full local review fits too. */
