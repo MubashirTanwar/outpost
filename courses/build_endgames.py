@@ -131,7 +131,9 @@ def engine_check(stages: list[dict], command: str, depth: int) -> list[str]:
                 for d in ls["drills"]:
                     if d["known"]:
                         continue
-                    score = engine.analyse(chess.Board(d["fen"]), chess.engine.Limit(depth=depth))["score"].relative
+                    # game=: a fresh search (new game, cleared hash) per drill, so no drill's verdict
+                    # depends on which drills were checked before it.
+                    score = engine.analyse(chess.Board(d["fen"]), chess.engine.Limit(depth=depth), game=d["id"])["score"].relative
                     cp = score.score(mate_score=10000)
                     ok = cp >= -150 if d["goal"] == "draw" else cp >= 250
                     print(f"  {d['id']:18} {d['goal']:8} {cp:+6}  {'ok' if ok else 'CHECK'}", file=sys.stderr)
