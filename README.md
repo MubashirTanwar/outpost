@@ -39,7 +39,7 @@ A free, self-hosted alternative to chess.com's premium features. Enter your ches
 - **Your Puzzles**: every mistake you make becomes a puzzle, served with spaced repetition and filterable by theme (forks, hanging pieces, back-rank, missed mates…). Mates and tactics run several moves, your opponent always replies, and any move as good as the engine's counts.
 - **Progress**: an "Analyse my last 30 days" button reviews every recent game in the background (it keeps going if you leave the page; without a backend it runs in the open tab), then charts rating per time control, accuracy per game with a rolling average, and blunders per game over 30 days, 90 days or a year, with hover tooltips and a table view. It also shows your course and endgame progress. Click a point to open that game. An **Insights** section digs deeper: how often you convert winning positions, how often you punish mistakes, tilt after losses and in long sessions, mistakes by time left on the clock, results per opening, and your score against stronger and weaker players, with every example linked to its position.
 - **AI Coach chat**: ask things like "What went wrong in my latest game?", "Why did I lose rating yesterday?" or "What should I study from my last 10 games?". The coach reviews any games it hasn't seen yet, then answers with the exact numbers (record, rating change per time control), the turning point of each game, your recurring patterns, and a study plan linked to your puzzles, course lines and endgame lessons. Every game and move it mentions is a link with a hover preview, and the positions you got wrong are shown as boards under the answer. Answers stream in as the model writes them (server-sent events from a LangGraph custom stream). It also answers questions about your weaknesses, openings, or a specific position.
-- **Opening courses (Chessly/Duolingo-style)**: seven full repertoires (Italian, London, Jobava London and Queen's Gambit for White; Caro-Kann, French and Scandinavian for Black) with 262 lines, main lines to move 12-15 with the middlegame plans explained, and 52 hand-written quizzes. Every repertoire move is checked by Stockfish. Each lesson can be watched first as a narrated walkthrough (an optional narrator voice reads the explanations while arrows and highlights show the ideas), then learned with hints, then played from memory. After that, spaced-repetition reviews, a drill shuffle and quizzes keep it fresh. Progress shows as XP, levels, a streak, a daily goal and achievements.
+- **Opening courses**: your course library (courses, chapters, studies and lines) imported from your course database, learned with a guided pass, an optional narrated walkthrough, spaced-repetition reviews, drills, quizzes and practice games. Progress shows as XP, levels, a streak, a daily goal and achievements.
 - **Endgame Academy**: 4 stages (basic mates, king and pawn, rook endings, advanced), 13 lessons and 27 drills. Each lesson has theory cards with step-through demos, then several variations to play out against Stockfish for up to 3 stars.
 - **Analysis board**: Stockfish 17.1 running in your browser, with up to five lines (click one to play it), a move list you can step through with the arrow keys, PGN/FEN loading and copying, and a board editor to set up any position from scratch.
 
@@ -78,49 +78,28 @@ It reviews your recent games that chess.com has reviewed, prints both accuracies
 
 ## Opening courses
 
-Course content lives in `courses/*.course`, a plain-text format with PGN move text and `{comments}` that become the explanations shown during lessons:
+Courses come from your course database (SQLite: courses → chapters → studies → variations with
+their moves) and are imported locally. The content is never committed: the imported data files are
+git-ignored, so a fresh clone or a CI build has no courses until you import them.
 
-```
-chapter: advance
-title: Advance Variation: 3.e5
-intro: ...
-line: adv-short
-name: Short System: Nf3 and Be2
-moves: 1.e4 c6 {Prepare ...d5 ...} 2.d4 d5 3.e5 Bf5 {The key Caro-Kann move ...} ...
-quiz: adv-short 5
-q: White played 3.e5. What's the key idea now?
-a: 3...Bf5: develop the bishop before ...e6
-w: 3...e6 straight away
-why: ...
+```bash
+python courses/import_db.py path/to/chess.db   # writes backend/app/data/courses.json and web/src/data/courses.json
 ```
 
-`python courses/build.py` validates every course and writes `courses.json` for the backend and the web app. It checks that every move is legal, that every line ends on your move, that quiz positions exist, and that **every position where it's your turn has exactly one repertoire move across the whole course, including transpositions**, so drills are never ambiguous. Two more checks:
+The importer checks every move with python-chess, skips broken lines and empty courses (it prints
+what it skipped), and names each line after the move where it branches off its study's earlier
+lines ("Main line", "8...Qb6"). Run it again whenever the database changes, then restart the app.
 
-- `python courses/build.py --engine stockfish --depth 16 --threshold 90` flags any repertoire move that loses more than 0.9 pawns compared with Stockfish's choice. Add `--dry-run` to check without writing the JSON, and `--only <course>` to check one course.
-- `python courses/coverage.py` asks the Lichess opening explorer which opponent moves real club players make in each course position, and lists popular ones no line covers yet. The explorer may need a free `LICHESS_TOKEN`.
-
-**How learning works**
+In the app a course page shows chapter → study → lines. Every line can be learned in any order:
 
 | | |
 |---|---|
-| Watch | Optional: the line plays itself like a narrated video, both sides, with an arrow for each move and the squares the explanation mentions highlighted. Pause, step or skip at any time. Turn on the narrator (top of the lesson) to hear it read aloud; it picks your browser's best deep English voice, with voice, speed and depth settings. |
-| Learn | The board shows each move with an arrow and an explanation (also read aloud when the narrator is on), and you play it. Moves you already know from other lines are played for you. Then you replay the whole line from memory. |
+| Learn | Optionally watch the line first (narrated walkthrough), then play your moves with an arrow to guide you, then replay the whole line from memory. |
 | Review | No hints. A wrong move counts as a mistake and shows the right one. A perfect review moves the line up the ladder (4h, 1d, 3d, 1w, 2w, 1mo, 3mo, 6mo); a mistake drops it two steps. A line counts as *mastered* once it survives the one-week review. |
-| Drill shuffle / Quiz | Random learned lines, and multiple-choice questions: hand-written idea questions plus "find the repertoire move" positions from lines you've learned. |
-| Path | Each chapter is a Duolingo-style path. The next line unlocks when you finish the previous one, and each node shows new, learning (with a progress ring), mastered (crown) or due (clock). |
+| Drill shuffle / Quiz | Random learned lines, and "find the repertoire move" questions from lines you've learned. |
+| Practice vs Kittu | Play the opening against the bot, which answers with the course's replies; any move the course teaches in a position counts. |
 
-Progress is kept in your browser and, when the backend is running, synced to Neo4j as `(:Player)-[:STUDIED {stage, due}]->(:CourseLine)`, so it follows you across devices. The day review then checks your real games against the courses you study. It tells you where *you* left the course ("you played 5.d4, the course plays 5.d3: review this line"), or where your *opponent* played a move the course doesn't cover yet.
-
-### Growing the courses with real-game data
-
-`courses/expand.py` drafts new lines from the Lichess opening explorer. For every opponent move in a course it finds the popular replies (default ≥5% of club games) that no line answers. It then extends each one with your most popular move that Stockfish rates within 0.4 pawns of its own choice. Drafts land in `courses/drafts/` for you to review, comment and paste in:
-
-```bash
-python courses/expand.py --course caro-kann        # or --all; add LICHESS_TOKEN=... if the explorer asks
-python courses/build.py --engine stockfish        # validate + engine-check after pasting lines in
-```
-
-The endgame course lives in `courses/endgames.endgame` and is built with `python courses/build_endgames.py` (add `--engine stockfish` to check every drill is really won or drawn).
+Progress is kept in your browser and, when the backend is running, synced to Neo4j. The day review checks your real games against the courses you study and tells you where you, or your opponent, left the course.
 
 ## Run it locally (full stack)
 
@@ -181,7 +160,7 @@ cd backend && pytest                       # classifier, agents (fake engine), A
 STOCKFISH_PATH=/usr/games/stockfish pytest # + real-engine test
 NEO4J_TEST_URI=bolt://localhost:7687 pytest tests/test_neo4j.py
 cd ../web && npm test && npm run typecheck && npm run build
-python ../courses/build.py --check       # course data valid and JSON up to date
+python ../courses/build_endgames.py --check   # endgame data valid and JSON up to date
 ```
 
 CI (`.github/workflows/ci.yml`) runs all of these against real Stockfish and Neo4j.

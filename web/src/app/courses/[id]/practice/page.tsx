@@ -9,7 +9,7 @@ import { Board, type Arrow } from "@/components/Board";
 import { kittuSays, type KittuMood } from "@/components/Kittu";
 import { KittuBubble } from "@/components/KittuBubble";
 import { getCourse } from "@/lib/courses";
-import { bookReply, buildRepertoire, expectedMove } from "@/lib/repertoire";
+import { bookReply, buildRepertoire, expectedMove, learnerMoves } from "@/lib/repertoire";
 import { playSound, soundForMove } from "@/lib/sounds";
 import { getBrowserEngine } from "@/lib/stockfish";
 
@@ -122,7 +122,7 @@ export default function PracticePage({ params }: { params: { id: string } }) {
     playSound(soundForMove(mv));
     const expected = inBook ? expectedMove(rep, before) : null;
     if (expected) {
-      if (expected.uci === mv.from + mv.to + (mv.promotion ?? "")) {
+      if (learnerMoves(rep, before).some((r) => r.uci === mv.from + mv.to + (mv.promotion ?? ""))) {
         setBookMoves((n) => n + 1);
         setNote({ mood: bookMoves % 3 === 2 ? "proud" : "happy", text: `${mv.san} ✓ That's the course move.`, tone: "good" });
       } else {

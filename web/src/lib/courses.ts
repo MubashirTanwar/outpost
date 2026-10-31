@@ -13,6 +13,10 @@ export interface CourseLine {
   id: string;
   name: string;
   moves: CourseMove[];
+  /** Short name within its study, e.g. "Main line" or "8...Qb6" (where it branches off). */
+  label?: string;
+  study?: string;
+  studyId?: string;
 }
 
 export interface Quiz {
@@ -41,6 +45,8 @@ export interface Course {
   eco: string[];
   tagline: string;
   description: string;
+  shortName?: string | null;
+  tags?: string[];
   chapters: Chapter[];
   stats: { chapters: number; lines: number; quizzes: number; positions: number };
 }
@@ -55,6 +61,24 @@ export function getCourse(id: string): Course | undefined {
 export function allLines(course: Course): { chapter: Chapter; line: CourseLine; index: number }[] {
   const out: { chapter: Chapter; line: CourseLine; index: number }[] = [];
   for (const chapter of course.chapters) for (const line of chapter.lines) out.push({ chapter, line, index: out.length });
+  return out;
+}
+
+export interface Study {
+  id: string;
+  name: string;
+  lines: CourseLine[];
+}
+
+/** A chapter's lines grouped by study, in course order (lines without a study form one group). */
+export function studiesOf(chapter: Chapter): Study[] {
+  const out: Study[] = [];
+  for (const line of chapter.lines) {
+    const id = line.studyId ?? "lines";
+    let s = out.find((x) => x.id === id);
+    if (!s) out.push((s = { id, name: line.study ?? "Lines", lines: [] }));
+    s.lines.push(line);
+  }
   return out;
 }
 

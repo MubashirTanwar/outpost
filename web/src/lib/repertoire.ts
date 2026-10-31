@@ -9,7 +9,7 @@ export interface RepMove {
 }
 
 export interface Repertoire {
-  learner: Map<string, RepMove>; // position (no move counters) -> your move
+  learner: Map<string, RepMove[]>; // position (no move counters) -> your move(s), main one first
   replies: Map<string, RepMove[]>; // position -> opponent replies the course answers
 }
 
@@ -19,7 +19,7 @@ export function positionKey(fen: string): string {
 
 export function buildRepertoire(course: Pick<Course, "color" | "chapters">): Repertoire {
   const learnerColor = course.color === "white" ? "w" : "b";
-  const learner = new Map<string, RepMove>();
+  const learner = new Map<string, RepMove[]>();
   const replies = new Map<string, RepMove[]>();
   for (const chapter of course.chapters) {
     for (const line of chapter.lines) {
@@ -28,7 +28,9 @@ export function buildRepertoire(course: Pick<Course, "color" | "chapters">): Rep
         const key = positionKey(chess.fen());
         const move: RepMove = { san: m.san, uci: m.uci, lineId: line.id };
         if (chess.turn() === learnerColor) {
-          if (!learner.has(key)) learner.set(key, move);
+          const mine = learner.get(key) ?? [];
+          if (!mine.some((r) => r.uci === m.uci)) mine.push(move);
+          learner.set(key, mine);
         } else {
           const list = replies.get(key) ?? [];
           if (!list.some((r) => r.uci === m.uci)) list.push(move);
@@ -48,7 +50,12 @@ export function bookReply(rep: Repertoire, fen: string, random = Math.random): R
   return options[Math.floor(random() * options.length)];
 }
 
-/** Your repertoire move here, if the course has one. */
+/** Your repertoire move here (the main one, if the course teaches several), if the course has one. */
 export function expectedMove(rep: Repertoire, fen: string): RepMove | null {
-  return rep.learner.get(positionKey(fen)) ?? null;
+  return rep.learner.get(positionKey(fen))?.[0] ?? null;
+}
+
+/** Every move the course teaches you here: some courses cover more than one move order. */
+export function learnerMoves(rep: Repertoire, fen: string): RepMove[] {
+  return rep.learner.get(positionKey(fen)) ?? [];
 }

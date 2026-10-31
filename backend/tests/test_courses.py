@@ -1,63 +1,158 @@
+import json
+import sqlite3
 import subprocess
 import sys
 from pathlib import Path
 
+import chess
+import pytest
 from fastapi.testclient import TestClient
 
 from app import repertoire
 
 COURSES_DIR = Path(__file__).parents[2] / "courses"
+sys.path.insert(0, str(COURSES_DIR))
+import import_db  # noqa: E402
+
+SCHEMA = """
+create table courses (id text primary key, name text not null, short_name text, description text, color text, created_at integer);
+create table course_tags (course_id text, tag text, primary key (course_id, tag));
+create table chapters (id text primary key, course_id text not null, name text not null, idx integer not null);
+create table studies (id text primary key, chapter_id text not null, name text not null, idx integer not null);
+create table variations (id text primary key, study_id text not null, chapter_id text not null, idx integer, start_fen text, move_count integer);
+create table variation_moves (variation_id text not null, ply integer, fen text not null, san text not null, next_fen text not null,
+                              primary key (variation_id, fen));
+"""
 
 
-def test_course_json_is_built_and_valid():
-    """build.py re-validates every course (legality, one move per position) and checks the JSON is current."""
-    if not COURSES_DIR.exists():
-        return
-    out = subprocess.run([sys.executable, str(COURSES_DIR / "build.py"), "--check"], capture_output=True, text=True)
-    assert out.returncode == 0, out.stderr + out.stdout
+def _ep_fen(board: chess.Board) -> str:
+    """FENs as the course database writes them: always with the en-passant square after a double step."""
+    fen = board.fen().split()
+    last = board.peek() if board.move_stack else None
+    if last and board.piece_type_at(last.to_square) == chess.PAWN and abs(last.to_square - last.from_square) == 16:
+        fen[3] = chess.square_name((last.to_square + last.from_square) // 2)
+    return " ".join(fen)
+
+
+def _variation(con, vid, study, chapter, idx, sans):
+    board = chess.Board()
+    con.execute("insert into variations values (?, ?, ?, ?, ?, ?)", (vid, study, chapter, idx, chess.STARTING_FEN, len(sans)))
+    for ply, san in enumerate(sans):
+        before = _ep_fen(board)
+        try:
+            board.push_san(san)
+            after = _ep_fen(board)
+        except ValueError:
+            after = before  # an illegal move, to be rejected by the importer
+        con.execute("insert into variation_moves values (?, ?, ?, ?, ?)", (vid, ply, before, san, after))
+
+
+@pytest.fixture
+def course_db(tmp_path):
+    path = tmp_path / "chess.db"
+    con = sqlite3.connect(path)
+    con.executescript(SCHEMA)
+    con.execute("insert into courses values ('c1', 'The Italian Game', 'Italian', 'Fast development. Then attack.', 'W', 0)")
+    con.execute("insert into course_tags values ('c1', 'White Openings')")
+    con.execute("insert into courses values ('c2', 'Coming Soon Course', null, 'Soon.', 'B', 0)")
+    con.execute("insert into chapters values ('ch1', 'c1', 'Chapter 1: Main Lines', 0)")
+    con.execute("insert into studies values ('s1', 'ch1', 'Study 1: Black Plays 3...Bc5', 0)")
+    con.execute("insert into studies values ('s2', 'ch1', 'Study 2: Black Plays 3...Nf6', 1)")
+    _variation(con, "v1", "s1", "ch1", 0, ["e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5", "c3"])
+    _variation(con, "v2", "s1", "ch1", 1, ["e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5", "c3", "Nf6", "d4"])  # longer than v1
+    _variation(con, "v3", "s1", "ch1", 2, ["e4", "e5", "Nf3", "Nc6", "Bc4", "d6", "d4"])  # branches at 3...d6
+    _variation(con, "v4", "s2", "ch1", 0, ["e4", "e5", "Nf3", "Nc6", "Bc4", "Nf6", "d3"])
+    _variation(con, "bad", "s2", "ch1", 1, ["e4", "e5", "Ke3"])  # illegal
+    con.commit()
+    con.close()
+    return str(path)
+
+
+def test_import_builds_course_chapter_study_lines(course_db):
+    courses, problems = import_db.load(course_db)
+    assert [c["id"] for c in courses] == ["the-italian-game"]  # the empty course is skipped
+    c = courses[0]
+    assert (c["color"], c["tags"], c["tagline"], c["shortName"]) == ("white", ["White Openings"], "Fast development.", "Italian")
+    [ch] = c["chapters"]
+    assert ch["title"] == "Chapter 1: Main Lines" and ch["quizzes"] == []
+    lines = {l["id"]: l for l in ch["lines"]}
+    assert set(lines) == {"v1", "v2", "v3", "v4"}  # the illegal line is left out
+    assert [lines[v]["label"] for v in ("v1", "v2", "v3", "v4")] == ["Main line", "4...Nf6", "3...d6", "Main line"]
+    assert lines["v3"]["name"] == "Study 1: Black Plays 3...Bc5: 3...d6"
+    assert lines["v2"]["study"] == "Study 1: Black Plays 3...Bc5" and lines["v4"]["studyId"] == "s2"
+    first = lines["v1"]["moves"][0]
+    assert first == {"san": "e4", "uci": "e2e4", "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1", "note": None}
+    assert c["stats"]["lines"] == 4 and c["stats"]["chapters"] == 1
+    assert any("bad" in p for p in problems) and any("Coming Soon Course" in p for p in problems)
+
+
+def test_import_writes_the_data_files(course_db, tmp_path, monkeypatch):
+    out = [tmp_path / "a.json", tmp_path / "b.json"]
+    monkeypatch.setattr(import_db, "OUTPUTS", out)
+    monkeypatch.setattr(sys, "argv", ["import_db.py", course_db])
+    assert import_db.main() == 0
+    assert json.loads(out[0].read_text()) == json.loads(out[1].read_text())
+    assert len(json.loads(out[0].read_text())["courses"]) == 1
+
+
+@pytest.fixture
+def imported(course_db, tmp_path, monkeypatch):
+    """The sample database imported as the app's course data."""
+    courses, _ = import_db.load(course_db)
+    data = tmp_path / "courses.json"
+    data.write_text(json.dumps({"courses": courses}))
+    monkeypatch.setattr(repertoire, "DATA", data)
+    repertoire.courses.cache_clear()
+    yield courses
+    repertoire.courses.cache_clear()
+
+
+def test_check_game_finds_player_deviation(imported):
+    note = repertoire.check_game("e4 e5 Nf3 Nc6 Bc4 Bc5 Nc3".split(), "white", "g1", "bob")
+    assert note["kind"] == "you_deviated" and note["course_id"] == "the-italian-game"
+    assert (note["played"], note["expected"], note["ply"]) == ("Nc3", "c3", 7)
+
+
+def test_check_game_finds_uncovered_opponent_move(imported):
+    note = repertoire.check_game("e4 e5 Nf3 Nc6 Bc4 Be7".split(), "white", "g2", "alice")
+    assert note["kind"] == "opponent_deviated" and note["played"] == "Be7"
+
+
+def test_check_game_accepts_any_move_the_course_teaches(imported, tmp_path, monkeypatch):
+    # Two lines teaching different White moves in the same position: both count.
+    c = imported[0]
+    extra = dict(c["chapters"][0]["lines"][0])
+    board = chess.Board()
+    moves = []
+    for san in ["e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5", "O-O"]:
+        mv = board.parse_san(san)
+        board.push(mv)
+        moves.append({"san": san, "uci": mv.uci(), "fen": board.fen(), "note": None})
+    extra.update(id="v-castle", moves=moves)
+    c["chapters"][0]["lines"].append(extra)
+    repertoire.DATA.write_text(json.dumps({"courses": imported}))
+    repertoire.courses.cache_clear()
+    assert repertoire.check_game("e4 e5 Nf3 Nc6 Bc4 Bc5 O-O".split(), "white") is None
+    assert repertoire.check_game("e4 e5 Nf3 Nc6 Bc4 Bc5 c3".split(), "white") is None
+
+
+def test_check_game_respects_studied_courses(imported):
+    assert repertoire.check_game("e4 e5 Nf3 Nc6 Bc4 Bc5 Nc3".split(), "white", course_ids={"other"}) is None
+
+
+def test_no_course_data_means_no_notes(tmp_path, monkeypatch):
+    monkeypatch.setattr(repertoire, "DATA", tmp_path / "missing.json")
+    repertoire.courses.cache_clear()
+    try:
+        assert repertoire.courses() == []
+        assert repertoire.check_game("e4 e5".split(), "white") is None
+    finally:
+        repertoire.courses.cache_clear()
 
 
 def test_endgame_course_is_built_and_valid():
-    if not COURSES_DIR.exists():
-        return
     out = subprocess.run([sys.executable, str(COURSES_DIR / "build_endgames.py"), "--check"], capture_output=True, text=True)
     assert out.returncode == 0, out.stderr + out.stdout
-
-
-def test_the_courses():
-    cs = repertoire.courses()
-    assert sorted(c.id for c in cs) == ["caro-kann", "french", "italian", "jobava", "london", "queens-gambit", "scandinavian"]
-    assert sum(c.color == "white" for c in cs) == 4
-
-
-def test_check_game_finds_player_deviation():
-    # Italian: the course plays 4.c3 against 3...Bc5; here White played 4.Nc3.
-    note = repertoire.check_game("e4 e5 Nf3 Nc6 Bc4 Bc5 Nc3".split(), "white", "g1", "bob")
-    assert note["kind"] == "you_deviated"
-    assert note["course_id"] == "italian" and note["played"] == "Nc3" and note["expected"] == "c3"
-    assert note["ply"] == 7
-
-
-def test_check_game_finds_uncovered_opponent_move():
-    # Caro-Kann: 1.e4 c6 2.d4 d5 3.e5 Bf5 4.Be2 isn't in the course.
-    note = repertoire.check_game("e4 c6 d4 d5 e5 Bf5 Be2".split(), "black", "g2", "alice")
-    assert note["kind"] == "opponent_deviated" and note["course_id"] == "caro-kann" and note["played"] == "Be2"
-
-
-def test_check_game_reports_only_the_course_that_followed_furthest():
-    # Pure London: the Jobava (2.Nc3) is left at move 2, but the London follows the whole game.
-    assert repertoire.check_game("d4 d5 Bf4 Nf6 e3 e6 Nf3 c5 c3".split(), "white") is None
-    # And a Jobava game isn't reported as a London deviation.
-    assert repertoire.check_game("d4 d5 Nc3 Nf6 Bf4".split(), "white") is None
-
-
-def test_check_game_respects_studied_courses():
-    assert repertoire.check_game("e4 e5 Nf3 Nc6 Bc4 Bc5 Nc3".split(), "white", course_ids={"london"}) is None
-
-
-def test_match_course():
-    assert repertoire.match_course("B12", "black").id == "caro-kann"
-    assert repertoire.match_course("B12", "white") is None
 
 
 def test_progress_roundtrip(memory_store):
@@ -65,47 +160,7 @@ def test_progress_roundtrip(memory_store):
 
     client = TestClient(main.app)
     assert client.get("/api/players/Kim/progress").json() == {"progress": None}
-    body = {"version": 1, "xp": 40, "lines": {"italian/piano-main": {"stage": 2, "due": 1, "reviews": 1, "lapses": 0}}}
+    body = {"version": 1, "xp": 40, "lines": {"the-italian-game/v1": {"stage": 2, "due": 1, "reviews": 1, "lapses": 0}}}
     assert client.put("/api/players/kim/progress", json=body).json() == {"ok": True}
     assert client.get("/api/players/KIM/progress").json()["progress"]["xp"] == 40
     assert client.put("/api/players/kim/progress", json={"lines": "nope"}).status_code == 400
-
-
-def test_expand_drafts_uncovered_popular_replies(tmp_path):
-    """courses/expand.py with a fake explorer and engine: popular uncovered replies become draft lines."""
-    if not COURSES_DIR.exists():
-        return
-    sys.path.insert(0, str(COURSES_DIR))
-    import chess
-
-    from build import build_course
-    from expand import ExplorerMove, draft_lines, render
-
-    src = tmp_path / "mini.course"
-    src.write_text(
-        "course: mini\nname: Mini\ncolor: white\ntagline: t\ndescription: d\n"
-        "chapter: c\ntitle: C\nintro: i\n"
-        "line: main\nname: Main\nmoves: 1.e4 e5 2.Nf3\n"
-    )
-    course = build_course(src)
-
-    def explore(fen):
-        b = chess.Board(fen)
-        table = {
-            # after 1.e4 Black plays e5 (covered) and c5 (not covered, 30%)
-            "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1": [("e7e5", 700), ("c7c5", 300)],
-            "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2": [("g1f3", 500), ("b1c3", 400)],
-        }
-        return [ExplorerMove(b.san(chess.Move.from_uci(u)), u, n) for u, n in table.get(fen, [])]
-
-    def evaluate(board, ucis):
-        return {u: 30 for u in ucis}
-
-    drafts = draft_lines(course, explore, evaluate, min_share=5, min_games=100, plies=6, tolerance=40, max_lines=5)
-    assert [d["sans"] for d in drafts] == [["c5", "Nf3"]]
-    text = render(course, drafts)
-    assert "30% of 1000 games" in text
-    from build import parse_moves
-
-    moves_line = next(l for l in text.splitlines() if l.startswith("moves: "))
-    assert [m["san"] for m in parse_moves(moves_line[7:], "draft")] == ["e4", "c5", "Nf3"]

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Chess } from "chess.js";
-import { bookReply, buildRepertoire, expectedMove } from "./repertoire.ts";
+import { bookReply, buildRepertoire, expectedMove, learnerMoves } from "./repertoire.ts";
 
 function line(id: string, sans: string[]) {
   const c = new Chess();
@@ -24,4 +24,12 @@ test("learner moves and opponent replies come from every line", () => {
   const out = new Chess(); out.move("d4");
   assert.equal(bookReply(rep, out.fen()), null);
   assert.equal(expectedMove(rep, out.fen()), null);
+});
+
+test("a course may teach more than one move in a position", () => {
+  const two = { color: "white" as const, chapters: [{ id: "c", title: "", intro: "", quizzes: [], lines: [line("a", ["d4", "d5", "Bf4"]), line("b", ["d4", "d5", "Nf3"])] }] };
+  const rep = buildRepertoire(two);
+  const c = new Chess(); c.move("d4"); c.move("d5");
+  assert.equal(expectedMove(rep, c.fen())?.san, "Bf4");
+  assert.deepEqual(learnerMoves(rep, c.fen()).map((m) => m.san), ["Bf4", "Nf3"]);
 });

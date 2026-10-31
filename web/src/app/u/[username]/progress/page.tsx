@@ -328,6 +328,11 @@ function Training() {
   const tick = useNow();
   const now = tick || Date.now();
   const stars = ALL_DRILLS.reduce((n, d) => n + (p.drills[d.id]?.stars ?? 0), 0);
+  // Only the courses you've started (most learned first): there can be dozens.
+  const started = COURSES.map((c) => ({ c, s: courseSummary(p, c.id, lineIds(c), now) }))
+    .filter(({ s }) => s.learned > 0)
+    .sort((a, b) => b.s.learned - a.s.learned)
+    .slice(0, 8);
   return (
     <section className="mt-6">
       <h2 className="mb-3 text-xl font-extrabold">Training</h2>
@@ -340,8 +345,8 @@ function Training() {
             </Link>
           </div>
           <div className="flex flex-col gap-3">
-            {COURSES.map((c) => {
-              const s = courseSummary(p, c.id, lineIds(c), now);
+            {started.length === 0 && <p className="text-sm text-muted">No course started yet. Pick one in All courses.</p>}
+            {started.map(({ c, s }) => {
               return (
                 <Link key={c.id} href={`/courses/${c.id}`} className="group block">
                   <div className="mb-1 flex justify-between text-sm">

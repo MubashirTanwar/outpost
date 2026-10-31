@@ -22,7 +22,7 @@ class CourseIndex:
     name: str
     color: str
     eco: list[str]
-    learner: dict[str, tuple[str, str]]  # position -> (san, line id) when it's the learner's move
+    learner: dict[str, dict[str, str]]  # position -> {san: line id} the course plays there (first = main move)
     replies: dict[str, dict[str, str]]  # position -> {opponent san: line id} the course covers
     line_names: dict[str, str]
 
@@ -42,7 +42,7 @@ def courses() -> list[CourseIndex]:
                 for mv in line["moves"]:
                     key = position_key(board)
                     if board.turn == learner_color:
-                        idx.learner.setdefault(key, (mv["san"], line["id"]))
+                        idx.learner.setdefault(key, {}).setdefault(mv["san"], line["id"])
                     else:
                         idx.replies.setdefault(key, {}).setdefault(mv["san"], line["id"])
                     board.push_uci(mv["uci"])
@@ -79,9 +79,12 @@ def check_game(sans: list[str], player_color: str, game_id: str = "", opponent: 
                 if expected is None:
                     depth = ply
                     break
-                line_id = expected[1]
-                if san != expected[0]:
-                    note = {"kind": "you_deviated", "expected": expected[0]}
+                # Some courses teach more than one move here (different move orders): any of them is fine.
+                if san in expected:
+                    line_id = expected[san]
+                else:
+                    main_san, line_id = next(iter(expected.items()))
+                    note = {"kind": "you_deviated", "expected": main_san}
             else:
                 covered = c.replies.get(key)
                 if not covered:

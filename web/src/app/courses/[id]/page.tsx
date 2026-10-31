@@ -1,21 +1,13 @@
 "use client";
 
-import { BookOpen, Check, ChevronDown, Clock, Crown, Dumbbell, Lock, Play, RotateCcw, Shuffle, Swords } from "lucide-react";
+import { Check, ChevronDown, Clock, Crown, Dumbbell, Play, RotateCcw, Shuffle, Swords } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { useMemo, useState } from "react";
 import { StatsBar } from "@/components/StatsBar";
-import { allLines, countLearnerMoves, getCourse, lineIds, type Chapter, type Course, type CourseLine } from "@/lib/courses";
+import { allLines, countLearnerMoves, getCourse, lineIds, studiesOf, type Chapter, type Course, type CourseLine } from "@/lib/courses";
 import { MASTERED_STAGE, courseSummary, isDue, lineKey, lineStatus, type LineProgress, type Progress } from "@/lib/progress";
 import { useNow, useProgress } from "@/lib/useProgress";
-
-// Duolingo-style zig-zag.
-const OFFSETS = [0, 44, 72, 44, 0, -44, -72, -44];
-
-function unlocked(course: Course, chapter: Chapter, index: number, p: Progress): boolean {
-  if (index === 0) return true;
-  return (p.lines[lineKey(course.id, chapter.lines[index - 1].id)]?.stage ?? 0) > 0;
-}
 
 function relTime(ms: number): string {
   const h = ms / 3600_000;
@@ -24,26 +16,32 @@ function relTime(ms: number): string {
   return `${Math.round(h / 24)} days`;
 }
 
+function chapterSummary(course: Course, chapter: Chapter, p: Progress) {
+  let learned = 0;
+  let mastered = 0;
+  for (const line of chapter.lines) {
+    const status = lineStatus(p.lines[lineKey(course.id, line.id)]);
+    if (status !== "new") learned++;
+    if (status === "mastered") mastered++;
+  }
+  return { learned, mastered, total: chapter.lines.length };
+}
+
+/** Course -> chapters -> studies -> lines. Every line is open: learn them in any order. */
 export default function CoursePage({ params }: { params: { id: string } }) {
   const course = getCourse(params.id);
   const p = useProgress();
   const now = useNow() || Date.now();
-  const [open, setOpen] = useState<string | null>(null);
-  const [intro, setIntro] = useState<Record<string, boolean>>({});
   if (!course) notFound();
 
   const summary = courseSummary(p, course.id, lineIds(course), now);
-  const next = useMemo(
-    () =>
-      allLines(course).find(({ chapter, line }) => {
-        const idx = chapter.lines.indexOf(line);
-        return (p.lines[lineKey(course.id, line.id)]?.stage ?? 0) === 0 && unlocked(course, chapter, idx, p);
-      }),
-    [course, p],
-  );
+  const next = useMemo(() => allLines(course).find(({ line }) => (p.lines[lineKey(course.id, line.id)]?.stage ?? 0) === 0), [course, p]);
+  // The chapter with the next new line starts open.
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const isOpen = (ch: Chapter) => open[ch.id] ?? ch.id === (next?.chapter.id ?? course.chapters[0]?.id);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
+    <div className="mx-auto max-w-3xl px-3 py-5 sm:px-4 sm:py-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link href="/courses" className="text-sm text-muted hover:text-white">
           ← All courses
@@ -53,8 +51,13 @@ export default function CoursePage({ params }: { params: { id: string } }) {
 
       <div className="card mt-4 p-5">
         <div className="text-xs font-extrabold uppercase tracking-wide text-muted">Repertoire for {course.color}</div>
-        <h1 className="mt-1 text-3xl font-extrabold">{course.name}</h1>
-        <p className="mt-2 text-soft">{course.description}</p>
+        <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">{course.name}</h1>
+        {course.description && <p className="mt-2 text-soft">{course.description}</p>}
+        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs font-bold text-muted">
+          <span>{course.stats.chapters} chapters</span>
+          <span>{course.chapters.reduce((n, ch) => n + studiesOf(ch).length, 0)} studies</span>
+          <span>{course.stats.lines} lines</span>
+        </div>
         <div className="mt-4 h-3 overflow-hidden rounded-full bg-[#3c3a37]">
           <div className="relative h-full">
             <div className="absolute inset-y-0 left-0 bg-brand transition-all" style={{ width: `${(summary.learned / summary.total) * 100}%` }} />
@@ -81,7 +84,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
           <Link href={`/courses/review?course=${course.id}&shuffle=1`} className={`btn-secondary ${summary.learned ? "" : "pointer-events-none opacity-40"}`}>
             <Shuffle size={16} /> Drill shuffle
           </Link>
-          <Link href={`/courses/${course.id}/quiz`} className="btn-secondary">
+          <Link href={`/courses/${course.id}/quiz`} className={`btn-secondary ${summary.learned ? "" : "pointer-events-none opacity-40"}`}>
             <Dumbbell size={16} /> Quiz
           </Link>
           <Link href={`/courses/${course.id}/practice`} className="btn-secondary">
@@ -90,138 +93,88 @@ export default function CoursePage({ params }: { params: { id: string } }) {
         </div>
       </div>
 
-      {course.chapters.map((chapter, ci) => (
-        <section key={chapter.id} className="mt-8">
-          <button
-            className="flex w-full items-center gap-3 rounded-xl bg-brand px-5 py-4 text-left shadow-btn"
-            onClick={() => setIntro((s) => ({ ...s, [chapter.id]: !s[chapter.id] }))}
-          >
-            <div className="flex-1">
-              <div className="text-xs font-extrabold uppercase text-white/75">Chapter {ci + 1}</div>
-              <div className="text-lg font-extrabold">{chapter.title}</div>
-            </div>
-            <BookOpen size={22} />
-            <ChevronDown size={18} className={`transition ${intro[chapter.id] ? "rotate-180" : ""}`} />
-          </button>
-          {intro[chapter.id] && <p className="mt-2 rounded-lg bg-panel p-4 text-sm leading-relaxed text-soft">{chapter.intro}</p>}
+      {course.chapters.map((chapter, ci) => {
+        const cs = chapterSummary(course, chapter, p);
+        const expanded = isOpen(chapter);
+        return (
+          <section key={chapter.id} className="mt-4">
+            <button
+              className={`flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-left sm:px-5 ${cs.learned === cs.total ? "bg-[#f7c631] text-[#2b1a0a]" : "bg-brand"} shadow-btn`}
+              onClick={() => setOpen((o) => ({ ...o, [chapter.id]: !expanded }))}
+              aria-expanded={expanded}
+            >
+              <div className="min-w-0 flex-1">
+                <div className="text-xs font-extrabold uppercase opacity-75">
+                  Chapter {ci + 1} · {cs.learned}/{cs.total} lines
+                </div>
+                <div className="text-base font-extrabold leading-snug sm:text-lg">{chapter.title.replace(/^Chapter \d+:\s*/i, "")}</div>
+              </div>
+              <ChevronDown size={20} className={`shrink-0 transition ${expanded ? "rotate-180" : ""}`} />
+            </button>
 
-          <div className="mt-6 flex flex-col items-center gap-5">
-            {chapter.lines.map((line, i) => (
-              <PathNode
-                key={line.id}
-                course={course}
-                line={line}
-                lp={p.lines[lineKey(course.id, line.id)]}
-                locked={!unlocked(course, chapter, i, p)}
-                isNext={next?.line.id === line.id}
-                offset={OFFSETS[i % OFFSETS.length]}
-                open={open === line.id}
-                onToggle={() => setOpen(open === line.id ? null : line.id)}
-                now={now}
-              />
-            ))}
-          </div>
-        </section>
-      ))}
+            {expanded && (
+              <div className="mt-3 space-y-3">
+                {chapter.intro && <p className="rounded-lg bg-panel p-4 text-sm leading-relaxed text-soft">{chapter.intro}</p>}
+                {studiesOf(chapter).map((study) => (
+                  <div key={study.id} className="card overflow-hidden">
+                    <h3 className="border-b border-line px-4 py-2.5 text-sm font-extrabold">{study.name}</h3>
+                    <ul className="divide-y divide-line/60">
+                      {study.lines.map((line) => (
+                        <LineRow key={line.id} course={course} line={line} lp={p.lines[lineKey(course.id, line.id)]} isNext={next?.line.id === line.id} now={now} />
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
     </div>
   );
 }
 
-function PathNode({
-  course,
-  line,
-  lp,
-  locked,
-  isNext,
-  offset,
-  open,
-  onToggle,
-  now,
-}: {
-  course: Course;
-  line: CourseLine;
-  lp: LineProgress | undefined;
-  locked: boolean;
-  isNext: boolean;
-  offset: number;
-  open: boolean;
-  onToggle: () => void;
-  now: number;
-}) {
+function LineRow({ course, line, lp, isNext, now }: { course: Course; line: CourseLine; lp: LineProgress | undefined; isNext: boolean; now: number }) {
   const status = lineStatus(lp);
   const due = isDue(lp, now);
-  const color = status === "mastered" ? "#f7c631" : status === "learning" ? "#81b64c" : locked ? "#4b4847" : "#81b64c";
-  const shadow = status === "mastered" ? "#b8901a" : status === "learning" || !locked ? "#45753c" : "#2b2926";
-  const ring = lp ? Math.min(1, lp.stage / MASTERED_STAGE) : 0;
   const href = `/courses/${course.id}/learn/${line.id}`;
-
+  const ring = lp ? Math.min(1, lp.stage / MASTERED_STAGE) : 0;
   return (
-    <div className="relative flex flex-col items-center" style={{ transform: `translateX(${offset}px)` }}>
-      {isNext && !open && (
-        <div className="animate-bounce mb-1 rounded-lg border-2 border-line bg-panel px-3 py-1 text-xs font-extrabold text-brand-light">START</div>
-      )}
-      <button
-        onClick={onToggle}
-        aria-label={line.name}
-        className="relative flex h-[72px] w-[72px] items-center justify-center rounded-full transition active:translate-y-1"
-        style={{ background: color, boxShadow: `0 6px 0 0 ${shadow}` }}
+    <li className={`flex items-center gap-3 px-4 py-2.5 ${isNext ? "bg-brand/10" : ""}`}>
+      <span
+        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+        style={{ background: status === "mastered" ? "#f7c631" : status === "learning" ? "#81b64c" : "#3c3a37" }}
+        title={status === "mastered" ? "Mastered" : status === "learning" ? "Learning" : "New"}
       >
         {status === "learning" && (
-          <svg className="absolute -inset-2 -rotate-90" viewBox="0 0 88 88">
-            <circle cx="44" cy="44" r="41" fill="none" stroke="#3c3a37" strokeWidth="5" />
-            <circle cx="44" cy="44" r="41" fill="none" stroke="#a3d160" strokeWidth="5" strokeLinecap="round" strokeDasharray={`${ring * 257.6} 257.6`} />
+          <svg className="absolute -inset-1 -rotate-90" viewBox="0 0 44 44">
+            <circle cx="22" cy="22" r="20" fill="none" stroke="#a3d160" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${ring * 125.7} 125.7`} />
           </svg>
         )}
-        {status === "mastered" ? (
-          <Crown size={32} fill="#fff6d5" className="text-white" />
-        ) : status === "learning" ? (
-          <Check size={34} strokeWidth={3.5} className="text-white" />
-        ) : locked ? (
-          <Lock size={28} className="text-[#7a7774]" />
-        ) : (
-          <Play size={30} fill="white" className="ml-1 text-white" />
-        )}
-        {due && (
-          <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#ffa459] ring-2 ring-page">
-            <Clock size={14} className="text-[#2b1a0a]" />
-          </span>
-        )}
-      </button>
-      <span className="mt-3 max-w-[180px] text-center text-xs font-bold text-soft">{line.name}</span>
-
-      {open && (
-        <div className="animate-pop absolute top-[110px] z-20 w-72 rounded-xl p-4 shadow-2xl" style={{ background: locked ? "#3c3a37" : color, color: locked ? "#bababa" : "#1f2a12" }}>
-          <div className="font-extrabold">{line.name}</div>
-          <div className="mt-1 text-sm font-semibold opacity-80">
-            {countLearnerMoves(course, line)} moves to learn ·{" "}
-            {status === "new"
-              ? locked
-                ? "finish the previous lesson to unlock"
-                : "new"
-              : due
-                ? "review due now"
-                : `next review in ${relTime(lp!.due - now)}`}
-          </div>
-          {!locked && (
-            <div className="mt-3 flex gap-2">
-              {status === "new" ? (
-                <Link href={href} className="flex-1 rounded-lg bg-white px-3 py-2 text-center font-extrabold text-[#2b4a14] shadow">
-                  Learn · +20 XP
-                </Link>
-              ) : (
-                <>
-                  <Link href={`${href}?mode=review`} className="flex-1 rounded-lg bg-white px-3 py-2 text-center font-extrabold text-[#2b4a14] shadow">
-                    Review · +10 XP
-                  </Link>
-                  <Link href={href} className="flex items-center rounded-lg bg-black/20 px-3 py-2 font-bold text-white" title="Learn it again with hints">
-                    <RotateCcw size={16} />
-                  </Link>
-                </>
-              )}
-            </div>
-          )}
+        {status === "mastered" ? <Crown size={18} fill="#fff6d5" className="text-white" /> : status === "learning" ? <Check size={18} strokeWidth={3.5} className="text-white" /> : <Play size={15} fill="#bababa" className="ml-0.5 text-[#bababa]" />}
+        {due && <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-[#ffa459] ring-2 ring-panel" />}
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-bold">{line.label ?? line.name}</div>
+        <div className="text-xs text-muted">
+          {countLearnerMoves(course, line)} moves
+          {status !== "new" && <> · {due ? <span className="text-[#ffa459]">review due</span> : `review in ${relTime(lp!.due - now)}`}</>}
+        </div>
+      </div>
+      {status === "new" ? (
+        <Link href={href} className={`shrink-0 rounded-lg px-3 py-1.5 text-sm font-extrabold ${isNext ? "bg-brand text-white shadow-btn" : "bg-[#3c3a37] text-white hover:bg-[#4b4847]"}`}>
+          Learn
+        </Link>
+      ) : (
+        <div className="flex shrink-0 gap-1.5">
+          <Link href={`${href}?mode=review`} className={`rounded-lg px-3 py-1.5 text-sm font-extrabold ${due ? "bg-[#ffa459] text-[#2b1a0a]" : "bg-[#3c3a37] text-white hover:bg-[#4b4847]"}`}>
+            Review
+          </Link>
+          <Link href={href} className="rounded-lg bg-[#3c3a37] px-2 py-1.5 text-white hover:bg-[#4b4847]" title="Learn it again with hints" aria-label="Learn again">
+            <RotateCcw size={16} />
+          </Link>
         </div>
       )}
-    </div>
+    </li>
   );
 }

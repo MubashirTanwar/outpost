@@ -1,6 +1,8 @@
 "use client";
 
+import { Search } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { StatsBar } from "@/components/StatsBar";
 import { COURSES, lineIds, type Course } from "@/lib/courses";
 import { ACHIEVEMENTS, courseSummary } from "@/lib/progress";
@@ -9,6 +11,9 @@ import { useNow, useProgress } from "@/lib/useProgress";
 export default function CoursesPage() {
   const p = useProgress();
   const now = useNow() || Date.now();
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+  const shown = COURSES.filter((c) => !q || `${c.name} ${c.description}`.toLowerCase().includes(q));
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
@@ -20,14 +25,29 @@ export default function CoursesPage() {
         <StatsBar />
       </div>
 
-      {(["white", "black"] as const).map((color) => (
+      {COURSES.length === 0 ? (
+        <div className="card mt-8 p-6 text-soft">
+          <h2 className="text-lg font-extrabold text-white">No courses imported yet</h2>
+          <p className="mt-2">
+            Courses come from your course database and stay on this machine. Import them with{" "}
+            <code className="rounded bg-panel2 px-1.5">python courses/import_db.py path/to/chess.db</code>, then restart the app.
+          </p>
+        </div>
+      ) : (
+        <label className="relative mt-6 block">
+          <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+          <input className="input w-full pl-10" placeholder={`Search ${COURSES.length} courses`} value={query} onChange={(e) => setQuery(e.target.value)} />
+        </label>
+      )}
+
+      {(["white", "black"] as const).filter((color) => shown.some((c) => c.color === color)).map((color) => (
         <section key={color} className="mt-8">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-muted">
             <span className={`h-3 w-3 rounded-sm ${color === "white" ? "bg-white" : "bg-[#1a1a1a] ring-1 ring-[#666]"}`} />
-            Repertoire for {color}
+            Repertoire for {color} · {shown.filter((c) => c.color === color).length}
           </h2>
-          <div className="grid gap-4 md:grid-cols-3">
-            {COURSES.filter((c) => c.color === color).map((c) => (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {shown.filter((c) => c.color === color).map((c) => (
               <CourseCard key={c.id} course={c} summary={courseSummary(p, c.id, lineIds(c), now)} />
             ))}
           </div>
@@ -69,7 +89,7 @@ function CourseCard({ course, summary }: { course: Course; summary: ReturnType<t
         </svg>
         <div className="min-w-0">
           <h3 className="text-lg font-extrabold leading-tight group-hover:text-brand-light">{course.name}</h3>
-          <p className="mt-1 text-sm text-soft">{course.tagline}</p>
+          <p className="mt-1 line-clamp-3 text-sm text-soft">{course.tagline}</p>
         </div>
       </div>
       <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-xs font-bold text-muted">
