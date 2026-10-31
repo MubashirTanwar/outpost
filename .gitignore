@@ -19,6 +19,3 @@ next-env.d.ts
 # Saved in-memory graph store
 backend/.data/
 
-# Opening courses: imported locally from the course database (courses/import_db.py), never committed
-backend/app/data/courses.json
-web/src/data/courses.json

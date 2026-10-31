@@ -1,4 +1,4 @@
-// The opening courses are imported locally (python courses/import_db.py <db>) and never committed.
+// The opening courses are imported from the course database (python courses/import_db.py <db>).
 // Where no import has been done (CI, a fresh clone), create an empty course list so the app builds.
 import { existsSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

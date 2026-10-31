@@ -79,8 +79,7 @@ It reviews your recent games that chess.com has reviewed, prints both accuracies
 ## Opening courses
 
 Courses come from your course database (SQLite: courses → chapters → studies → variations with
-their moves) and are imported locally. The content is never committed: the imported data files are
-git-ignored, so a fresh clone or a CI build has no courses until you import them.
+their moves). Import them, then commit the two data files to publish them on the site.
 
 ```bash
 python courses/import_db.py path/to/chess.db   # writes backend/app/data/courses.json and web/src/data/courses.json

@@ -8,8 +8,8 @@ python-chess, and writes the app's course data for the backend and the web app:
     backend/app/data/courses.json
     web/src/data/courses.json
 
-Both files are git-ignored: the course content stays on this machine and is never committed.
-Run it again whenever the database changes; it replaces the previous import.
+Run it again whenever the database changes; it replaces the previous import. Commit both files to
+publish the courses on the site.
 
 Structure in the app: course -> chapters -> lines, where each line remembers its study, so the
 course page shows chapter -> study -> lines. Each line is named after the move where it branches
