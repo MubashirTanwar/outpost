@@ -135,7 +135,7 @@ export default function Dashboard({ params }: { params: { username: string } }) 
         </div>
       </div>
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_320px]">
+      <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-5">
           {/* Run card */}
           <div className="card p-5">

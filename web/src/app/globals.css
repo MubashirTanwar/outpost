@@ -12,6 +12,15 @@ body {
   color: #fff;
 }
 
+/* Grid and flex children default to min-width: auto, so one long unbreakable line (an opening
+   name, a FEN) can stretch a whole column past the screen on phones. Let them shrink instead. */
+@layer base {
+  .grid > *,
+  .flex-1 {
+    min-width: 0;
+  }
+}
+
 @layer components {
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 text-lg font-extrabold text-white shadow-btn transition hover:bg-brand-light active:translate-y-[2px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-60;
