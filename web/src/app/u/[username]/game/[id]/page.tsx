@@ -3,7 +3,7 @@
 import { Chess, type Square } from "chess.js";
 import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, ExternalLink, Lightbulb, RefreshCcw, RotateCcw, Sparkles } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Board, type Arrow } from "@/components/Board";
 import { CapturedPieces } from "@/components/CapturedPieces";
 import { CLS_COLORS, CLS_LABELS, ClassificationIcon } from "@/components/ClassificationIcon";
@@ -282,6 +282,26 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
     </div>
   );
 
+  const navButtons = (
+    <div className="grid grid-cols-5 gap-1">
+      <NavBtn onClick={() => goTo(0)} label="First move">
+        <ChevronFirst />
+      </NavBtn>
+      <NavBtn onClick={stepBack} label="Previous move">
+        <ChevronLeft />
+      </NavBtn>
+      <NavBtn onClick={stepForward} label="Next move" primary>
+        <ChevronRight />
+      </NavBtn>
+      <NavBtn onClick={() => goTo(moves.length)} label="Last move">
+        <ChevronLast />
+      </NavBtn>
+      <NavBtn onClick={() => setFlipped((f) => !f)} label="Flip board">
+        <RefreshCcw size={18} />
+      </NavBtn>
+    </div>
+  );
+
   return (
     <div className="mx-auto flex max-w-[1250px] flex-col gap-4 p-3 lg:flex-row lg:p-5">
       {/* Board column */}
@@ -302,6 +322,11 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
           </div>
         </div>
         <PlayerBar c={bottom} />
+        {/* Phones: the moves and the arrows right under the board, like the analysis board. */}
+        <div className="mt-2 space-y-2 lg:hidden">
+          <MoveStrip moves={moves} current={exploring ? -1 : ply} onSelect={goTo} />
+          {navButtons}
+        </div>
       </div>
 
       {/* Review panel */}
@@ -473,24 +498,43 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-5 gap-1 bg-panel2 p-2">
-          <NavBtn onClick={() => goTo(0)} label="First move">
-            <ChevronFirst />
-          </NavBtn>
-          <NavBtn onClick={stepBack} label="Previous move">
-            <ChevronLeft />
-          </NavBtn>
-          <NavBtn onClick={stepForward} label="Next move" primary>
-            <ChevronRight />
-          </NavBtn>
-          <NavBtn onClick={() => goTo(moves.length)} label="Last move">
-            <ChevronLast />
-          </NavBtn>
-          <NavBtn onClick={() => setFlipped((f) => !f)} label="Flip board">
-            <RefreshCcw size={18} />
-          </NavBtn>
-        </div>
+        {/* On phones these sit under the board instead. */}
+        <div className="hidden bg-panel2 p-2 lg:block">{navButtons}</div>
       </div>
+    </div>
+  );
+}
+
+/** One scrolling row of the game's moves (with their classification), for phones. */
+function MoveStrip({ moves, current, onSelect }: { moves: MoveReview[]; current: number; onSelect: (ply: number) => void }) {
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const b = box.current;
+    const el = b?.querySelector<HTMLElement>("[data-current]");
+    if (!b) return;
+    // Scroll only the strip itself, never the page.
+    if (el) b.scrollTo({ left: Math.max(0, el.offsetLeft - b.clientWidth / 2 + el.offsetWidth / 2), behavior: "smooth" });
+    else if (current === 0) b.scrollTo({ left: 0 });
+  }, [current]);
+  return (
+    <div ref={box} className="relative flex h-10 items-center gap-0.5 overflow-x-auto whitespace-nowrap rounded-md bg-panel2 px-2 text-sm [scrollbar-width:none]">
+      {moves.map((m) => {
+        const isCurrent = m.ply === current;
+        const notable = !["best", "excellent", "good", "book", "forced"].includes(m.classification);
+        return (
+          <span key={m.ply} className="flex shrink-0 items-center">
+            {m.color === "white" && <span className="pl-1 pr-0.5 text-muted tabular-nums">{m.move_number}.</span>}
+            <button
+              onClick={() => onSelect(m.ply)}
+              data-current={isCurrent ? "" : undefined}
+              className={`flex items-center gap-1 rounded px-1.5 py-1 font-semibold ${isCurrent ? "bg-[#4b4847] text-white" : "text-soft"}`}
+            >
+              {notable && <ClassificationIcon cls={m.classification} size={14} />}
+              {m.san}
+            </button>
+          </span>
+        );
+      })}
     </div>
   );
 }
