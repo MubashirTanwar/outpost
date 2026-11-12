@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { EMPTY_SETUP, START_SETUP, placementFromFen, placementToFen, possibleCastling, setupFromFen, setupToFen, validateSetup } from "./position.ts";
+import { EMPTY_SETUP, START_SETUP, boardResult, placementFromFen, placementToFen, possibleCastling, setupFromFen, setupToFen, validateSetup } from "./position.ts";
 
 test("FEN round trip and the starting position", () => {
   const fen = "r3k2r/pp3ppp/2n5/3q4/8/2N5/PP3PPP/R3K2R b Kq - 0 1";
@@ -28,4 +28,12 @@ test("validation catches positions an engine can't handle", () => {
   assert.match(validateSetup(setupFromFen("4k3/8/8/8/8/8/8/R3K3 w - - 0 1")).join(), /^$/);
   assert.match(validateSetup(setupFromFen("4k3/8/8/8/8/8/8/4R1K1 w - - 0 1")).join(), /Black is in check but it's White's move/);
   assert.deepEqual(validateSetup(setupFromFen("4k3/8/8/8/8/8/8/4R1K1 b - - 0 1")), []);
+});
+
+test("boardResult reads mate and draws off the board", () => {
+  assert.equal(boardResult("r1bqkb1r/pppp1Qpp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4"), "1-0");
+  assert.equal(boardResult("rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3"), "0-1");
+  assert.equal(boardResult("7k/5Q2/6K1/8/8/8/8/8 b - - 0 1"), "½-½");
+  assert.equal(boardResult("8/8/8/4k3/8/8/8/4K3 w - - 0 1"), "½-½");
+  assert.equal(boardResult("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"), null);
 });

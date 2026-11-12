@@ -136,9 +136,8 @@ export default function AnalysisPage() {
     }
   };
 
-  // Game over: the bar shows the result, not the last search.
-  const mated = status?.startsWith("Checkmate") ? (fen.split(" ")[1] === "w" ? -1 : 1) : 0;
-  const shownBar = mated ? { cp: mated, mate: 0 } : status ? { cp: 0, mate: null } : bar;
+  // Game over: the bar shows the result (it reads it off the board), not the last search.
+  const shownBar = status ? { cp: 0, mate: null } : bar;
 
   const arrows = useMemo<Arrow[]>(() => (top?.pv[0] ? [[top.pv[0].slice(0, 2) as Square, top.pv[0].slice(2, 4) as Square, BEST_ARROW]] : []), [top]);
 
@@ -168,7 +167,7 @@ export default function AnalysisPage() {
     <div className="mx-auto flex max-w-[1250px] flex-col gap-3 p-2 sm:p-3 lg:flex-row lg:gap-5 lg:p-5">
       <div className="mx-auto w-full max-w-[min(80vh,680px)] lg:flex-1">
         <div className="flex gap-2">
-          <EvalBar {...shownBar} orientation={orientation} />
+          <EvalBar {...shownBar} fen={fen} orientation={orientation} />
           <div className="min-w-0 flex-1">
             <SideBar c={orientation === "white" ? "black" : "white"} fen={fen} />
             <Board

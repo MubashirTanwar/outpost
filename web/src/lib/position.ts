@@ -106,3 +106,16 @@ export function validateSetup(s: Setup): string[] {
   }
   return errors;
 }
+
+/** The result if the game is over on the board ("1-0", "0-1", "½-½"), else null. */
+export function boardResult(fen: string): "1-0" | "0-1" | "½-½" | null {
+  let c: Chess;
+  try {
+    c = new Chess(fen);
+  } catch {
+    return null;
+  }
+  if (c.isCheckmate()) return c.turn() === "w" ? "0-1" : "1-0";
+  if (c.isStalemate() || c.isInsufficientMaterial()) return "½-½";
+  return null;
+}

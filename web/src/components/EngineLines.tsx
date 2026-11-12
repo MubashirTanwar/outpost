@@ -4,6 +4,7 @@ import { Chess } from "chess.js";
 import { Cpu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { formatEval } from "@/lib/format";
+import { boardResult } from "@/lib/position";
 import { getBrowserEngine } from "@/lib/stockfish";
 import type { EngineLine } from "@/lib/types";
 
@@ -89,6 +90,7 @@ export function EngineLines({
   }, [fen, on, multipv]);
 
   const turn = fen.split(" ")[1] === "w" ? 1 : -1;
+  const over = boardResult(fen);
   const depth = lines.reduce((d, l) => Math.max(d, l.depth ?? 0), 0);
 
   return (
@@ -96,7 +98,7 @@ export function EngineLines({
       <div className="flex items-center gap-2 border-b border-line px-3 py-2 text-xs font-bold text-muted">
         <Cpu size={14} />
         <span>Stockfish 17.1</span>
-        {on && <span className="w-14 text-soft tabular-nums">depth {depth || "…"}</span>}
+        {on && !over && <span className="w-14 text-soft tabular-nums">depth {depth || "…"}</span>}
         <div className="ml-auto flex items-center gap-1">
           {[3, 5].map((n) => (
             <button
@@ -120,7 +122,12 @@ export function EngineLines({
         </div>
       </div>
       {enabled && hidden && <div className="px-3 py-2 text-[13px] text-muted">Engine lines are hidden while you look for the move.</div>}
-      {on && (
+      {on && over && (
+        <div className="px-3 py-2.5 text-[13px] font-bold text-soft">
+          {over === "½-½" ? "Draw: the game is over (½-½)." : `Checkmate: ${over === "1-0" ? "White" : "Black"} wins (${over}).`}
+        </div>
+      )}
+      {on && !over && (
         <div className="divide-y divide-line/60">
           {/* Always exactly `multipv` one-line rows, so updates never change the panel's height. */}
           {Array.from({ length: multipv }, (_, i) => lines[i] ?? null).map((l, i) => {

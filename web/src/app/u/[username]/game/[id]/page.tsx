@@ -308,7 +308,7 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
       <div className="mx-auto w-full max-w-[min(88vh,720px)] lg:mx-0 lg:flex-1">
         <PlayerBar c={top} />
         <div className="flex gap-2">
-          <EvalBar cp={evalCp} mate={evalMate} orientation={orientation} />
+          <EvalBar cp={evalCp} mate={evalMate} fen={fen} orientation={orientation} />
           <div className="flex-1">
             <Board
               fen={fen}

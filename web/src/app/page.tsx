@@ -15,7 +15,7 @@ const FEATURES = [
   { icon: LineChart, title: "Day Review", text: "Every game you played today, reviewed move by move: brilliant, best, mistake, blunder." },
   { icon: Bot, title: "Coach Kittu", text: "A sassy AI cat coach (LangGraph agents) who remembers your patterns across games. Roasts your moves, never you." },
   { icon: Puzzle, title: "Your Puzzles", text: "Every mistake you make becomes a puzzle, with spaced repetition so it sticks." },
-  { icon: BookOpen, title: "Opening Courses", text: "Six full repertoires, Duolingo-style: learn every line, earn XP, keep your streak." },
+  { icon: BookOpen, title: "Opening Courses", text: "50 courses for White and Black, Duolingo-style: learn every line, earn XP, keep your streak." },
   { icon: Crown, title: "Endgames", text: "Lucena, Philidor, basic mates: play them out against Stockfish." },
 ];
 
