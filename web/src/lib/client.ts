@@ -11,6 +11,7 @@ import { reviewPgn } from "./review";
 import type { InsightSource } from "./insights";
 import type { RawGame } from "./stats";
 import { getBrowserEngine } from "./stockfish";
+import { store } from "./store";
 import { CLASSIFICATIONS, type Classification, type DayOverview, type GameMeta, type Puzzle, type Review } from "./types";
 
 export type Progress = (stage: string, fraction: number) => void;
@@ -18,6 +19,12 @@ export type Progress = (stage: string, fraction: number) => void;
 const BROWSER_DEPTH = 12;
 const LS_PREFIX = "cc-review:";
 const PASTED_PREFIX = "cc-pasted:"; // games pasted as PGN, kept until they're reviewed
+
+/** Save a review here and in the database (when there is one). */
+function saveReview(review: Review) {
+  saveLocal(review);
+  void store.putReview(review);
+}
 
 function saveLocal(review: Review) {
   try {
@@ -46,9 +53,18 @@ async function browserReview(game: GameMeta, progress?: Progress, signal?: Abort
     // chess.com's own accuracy appears once the game is reviewed there: carry it into the cache.
     if (game.chesscom_white_accuracy != null && cached.game?.chesscom_white_accuracy == null) {
       cached.game = { ...game, pgn: undefined };
-      saveLocal(cached);
+      saveReview(cached);
     }
     return cached;
+  }
+  // Reviewed before on another device: take it from the database instead of analysing again.
+  const saved = await store.getReview(game.id);
+  if (saved) {
+    if (game.chesscom_white_accuracy != null && saved.game?.chesscom_white_accuracy == null) {
+      saved.game = { ...game, pgn: undefined };
+      saveReview(saved);
+    } else saveLocal(saved);
+    return saved;
   }
   const engine = getBrowserEngine();
   const review = await reviewPgn(game.pgn!, (fen, depth, multipv, sig) => engine.analyse(fen, { depth, multipv, signal: sig }), {
@@ -58,7 +74,7 @@ async function browserReview(game: GameMeta, progress?: Progress, signal?: Abort
     onProgress: (d, t) => progress?.(`Analyzing move ${d}/${t}`, d / t),
   });
   review.game = { ...game, pgn: undefined };
-  saveLocal(review);
+  saveReview(review);
   return review;
 }
 
@@ -67,14 +83,9 @@ export async function getHistory(username: string, days = 365): Promise<RawGame[
   if (await isBackendMode()) return (await api.history(username, days)).games;
   const me = username.toLowerCase();
   const out: RawGame[] = [];
-  let keys: string[] = [];
-  try {
-    keys = Object.keys(localStorage).filter((k) => k.startsWith(LS_PREFIX));
-  } catch {}
-  for (const key of keys) {
+  for (const review of await savedReviews(username, days, false)) {
     // One unreadable entry (old format, corrupted) skips just that game.
     try {
-      const review: Review = JSON.parse(localStorage.getItem(key)!);
       const g = review.game;
       if (!g || ![g.white, g.black].some((n) => n.toLowerCase() === me)) continue;
       const color = g.white.toLowerCase() === me ? "white" : "black";
@@ -91,19 +102,29 @@ export async function getInsightSources(username: string, days = 365): Promise<I
   const me = username.toLowerCase();
   const since = Date.now() / 1000 - days * 86400;
   const out: InsightSource[] = [];
-  let keys: string[] = [];
-  try {
-    keys = Object.keys(localStorage).filter((k) => k.startsWith(LS_PREFIX));
-  } catch {}
-  for (const key of keys) {
+  for (const review of await savedReviews(username, days, true)) {
     try {
-      const review: Review = JSON.parse(localStorage.getItem(key)!);
       const g = review.game;
       if (!g || g.end_time < since || ![g.white, g.black].some((n) => n.toLowerCase() === me)) continue;
       out.push({ ...review, game: { ...g, player_color: g.white.toLowerCase() === me ? "white" : "black" } });
     } catch {}
   }
   return out;
+}
+
+/** This browser's reviews plus the database's (summaries only unless `full`), one per game. */
+async function savedReviews(username: string, days: number, full: boolean): Promise<Review[]> {
+  const byId = new Map<string, Review>();
+  for (const r of (await store.playerReviews(username, days, full)) ?? []) if (r?.game) byId.set(r.game.id, r);
+  try {
+    for (const key of Object.keys(localStorage).filter((k) => k.startsWith(LS_PREFIX))) {
+      try {
+        const r: Review = JSON.parse(localStorage.getItem(key)!);
+        if (r?.game) byId.set(r.game.id, r);
+      } catch {}
+    }
+  } catch {}
+  return [...byId.values()];
 }
 
 export async function isBackendMode(): Promise<boolean> {
@@ -129,8 +150,10 @@ export async function locateGame(username: string, input: GameInput): Promise<st
     const meta = metaFromPgn(input.pgn, username);
     try {
       localStorage.setItem(PASTED_PREFIX + meta.id, JSON.stringify(meta));
+      void store.putPasted(meta);
     } catch {
-      throw new Error("Couldn't save the PGN in this browser (storage full?).");
+      // Browser storage full: the database copy is enough to open it.
+      if (!(await store.putPasted(meta))) throw new Error("Couldn't save the PGN in this browser (storage full?).");
     }
     return base + encodeURIComponent(meta.id);
   }
@@ -147,7 +170,7 @@ export async function locateGame(username: string, input: GameInput): Promise<st
 }
 
 export async function getReview(username: string, gameId: string, progress?: Progress, day?: string, signal?: AbortSignal): Promise<Review> {
-  const pasted = loadPasted(gameId);
+  let pasted = loadPasted(gameId);
   if (await isBackendMode()) {
     try {
       return await api.getReview(gameId, username);
@@ -162,6 +185,12 @@ export async function getReview(username: string, gameId: string, progress?: Pro
   }
   const local = loadLocalReview(gameId);
   if (local) return local;
+  const saved = await store.getReview(gameId);
+  if (saved) {
+    saveLocal(saved);
+    return saved;
+  }
+  pasted ??= await store.getPasted(gameId);
   if (pasted) return browserReview(pasted, progress, signal);
   if (!day) throw new Error("Game not reviewed yet: open it from the day overview.");
   const game = (await fetchDayGames(username, day)).find((g) => g.id === gameId);
@@ -288,6 +317,7 @@ function puzzleSolution(pv: string[], motifs: string[]): string[] {
 const PZ_KEY = "cc-puzzles:";
 
 function savePuzzles(username: string, puzzles: Puzzle[]) {
+  void store.addPuzzles(username, puzzles);
   try {
     const existing: Puzzle[] = JSON.parse(localStorage.getItem(PZ_KEY + username.toLowerCase()) || "[]");
     const ids = new Set(existing.map((p) => p.id));
@@ -298,7 +328,11 @@ function savePuzzles(username: string, puzzles: Puzzle[]) {
 export async function getPuzzles(username: string, motif?: string): Promise<Puzzle[]> {
   if (await isBackendMode()) return (await api.puzzles(username, motif)).puzzles;
   try {
-    const all: Puzzle[] = JSON.parse(localStorage.getItem(PZ_KEY + username.toLowerCase()) || "[]");
+    let local: Puzzle[] = [];
+    try {
+      local = JSON.parse(localStorage.getItem(PZ_KEY + username.toLowerCase()) || "[]");
+    } catch {}
+    const all = mergePuzzles(local, (await store.getPuzzles(username)) ?? []);
     return all.filter((p) => !motif || p.motifs.includes(motif)).sort((a, b) => {
       const sa = a.attempt ? (a.attempt.solved ? 2 : 1) : 0;
       const sb = b.attempt ? (b.attempt.solved ? 2 : 1) : 0;
@@ -309,8 +343,19 @@ export async function getPuzzles(username: string, motif?: string): Promise<Puzz
   }
 }
 
+/** One entry per puzzle; where both copies exist, the one attempted most recently wins. */
+export function mergePuzzles(a: Puzzle[], b: Puzzle[]): Puzzle[] {
+  const byId = new Map<string, Puzzle>();
+  for (const p of [...a, ...b]) {
+    const prev = byId.get(p.id);
+    if (!prev || (p.attempt?.last_at ?? 0) > (prev.attempt?.last_at ?? 0)) byId.set(p.id, p);
+  }
+  return [...byId.values()];
+}
+
 export async function recordAttempt(username: string, puzzle: Puzzle, solved: boolean) {
   if (await isBackendMode()) return api.attempt(puzzle.id, username, solved);
+  void store.attempt(username, puzzle.id, solved);
   try {
     const key = PZ_KEY + username.toLowerCase();
     const all: Puzzle[] = JSON.parse(localStorage.getItem(key) || "[]");

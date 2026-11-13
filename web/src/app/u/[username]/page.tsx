@@ -14,6 +14,7 @@ import { api, getHealth } from "@/lib/api";
 import { TimeClassIcon, timeClassName } from "@/components/TimeClassIcon";
 import { fetchGamesBetween, localDay, playerResult, tzOffset } from "@/lib/chesscom";
 import { reviewDay } from "@/lib/client";
+import { store } from "@/lib/store";
 import { prettyMotif } from "@/lib/format";
 import { playSound } from "@/lib/sounds";
 import type { DayOverview, GameMeta, Profile } from "@/lib/types";
@@ -58,13 +59,24 @@ export default function Dashboard({ params }: { params: { username: string } }) 
     setGamesError(null);
     setError(null);
     setProgress(null);
+    let cancelled = false;
+    let cachedHere = false;
     try {
       const cached = localStorage.getItem(cacheKey(username, day));
+      cachedHere = !!cached;
       setOverview(cached ? JSON.parse(cached) : null);
     } catch {
       setOverview(null);
     }
-    let cancelled = false;
+    // Reviewed this day on another device? The database has it.
+    if (!cachedHere)
+      void store.getDay(username, day).then((o) => {
+        if (!o || cancelled) return;
+        setOverview((cur) => cur ?? o);
+        try {
+          localStorage.setItem(cacheKey(username, day), JSON.stringify(o));
+        } catch {}
+      });
     const start = new Date(`${day}T00:00:00`).getTime();
     fetchGamesBetween(username, start - LOOKBACK_MS, start + 86400_000)
       .then((all) => ({ all, today: all.filter((g) => g.end_time * 1000 >= start) }))
@@ -97,6 +109,7 @@ export default function Dashboard({ params }: { params: { username: string } }) 
       try {
         localStorage.setItem(cacheKey(username, day), JSON.stringify(result));
       } catch {}
+      void store.putDay(username, day, result);
       if (ctrl.signal.aborted) return;
       setOverview(result);
       playSound("notify");

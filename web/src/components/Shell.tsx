@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
 import { getHealth, type Health } from "@/lib/api";
 import { isMuted, setMuted } from "@/lib/sounds";
+import { syncBrowserData } from "@/lib/storeSync";
 import { useRememberedUser } from "@/lib/user";
 
 /** Bottom tabs on phones; everything else sits under "More". */
@@ -23,6 +24,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
     getHealth().then(setHealth);
     setMutedState(isMuted());
   }, []);
+
+  // Copy anything this browser saved before (or without) the database up to it, once per item.
+  useEffect(() => {
+    if (!user) return;
+    const t = setTimeout(() => void syncBrowserData(), 2000);
+    return () => clearTimeout(t);
+  }, [user]);
 
   const u = user ? `/u/${encodeURIComponent(user)}` : null;
   const links = [

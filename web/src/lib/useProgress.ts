@@ -1,13 +1,14 @@
 "use client";
 
 /**
- * Course progress store: localStorage on this device, synced to the backend knowledge graph
- * (per chess.com username) when a backend is available, so progress follows you across devices.
+ * Course progress store: localStorage on this device, synced per chess.com username to the backend
+ * knowledge graph when it runs, else to the app's database, so progress follows you across devices.
  */
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { API_URL, getHealth } from "./api";
 import { COURSES, lineIds } from "./courses";
 import { checkAchievements, emptyProgress, mergeProgress, type Achievement, type Progress } from "./progress";
+import { store, storeEnabled } from "./store";
 
 const KEY = "cc-progress";
 const USER_KEY = "cc-username";
@@ -70,13 +71,21 @@ function persist() {
   syncTimer = setTimeout(() => void pushToServer(), 1500);
 }
 
+/** The server copy: from the Python backend when it's running, else from the app's database. */
+async function serverProgress(u: string): Promise<Progress | null> {
+  if (await getHealth()) {
+    const res = await fetch(`${API_URL}/api/players/${encodeURIComponent(u)}/progress`);
+    if (!res.ok) return null;
+    return ((await res.json()) as { progress: Progress | null }).progress;
+  }
+  return store.getProgress<Progress>(u);
+}
+
 async function pullFromServer() {
   const u = user();
-  if (!u || !(await getHealth())) return;
+  if (!u) return;
   try {
-    const res = await fetch(`${API_URL}/api/players/${encodeURIComponent(u)}/progress`);
-    if (!res.ok) return;
-    const { progress } = (await res.json()) as { progress: Progress | null };
+    const progress = await serverProgress(u);
     if (progress) {
       state = mergeProgress(state, progress);
       try {
@@ -89,15 +98,19 @@ async function pullFromServer() {
 
 async function pushToServer() {
   const u = user();
-  if (!u || !(await getHealth())) return;
+  if (!u) return;
+  const backend = !!(await getHealth());
+  if (!backend && !(await storeEnabled())) return;
   // Merge in the server's copy first, so progress from another device is never overwritten.
   await pullFromServer();
   try {
-    await fetch(`${API_URL}/api/players/${encodeURIComponent(u)}/progress`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(state),
-    });
+    if (backend)
+      await fetch(`${API_URL}/api/players/${encodeURIComponent(u)}/progress`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(state),
+      });
+    else await store.putProgress(u, state);
   } catch {}
 }
 
@@ -157,4 +170,10 @@ export function useNow(intervalMs = 60_000): number {
     [intervalMs],
   );
   return useSyncExternalStore(subscribeTick, () => Math.floor(Date.now() / intervalMs) * intervalMs, () => 0);
+}
+
+/** Merge this device's progress with the server copy and save the result there (e.g. on first sync). */
+export async function syncProgressNow(): Promise<void> {
+  load();
+  await pushToServer();
 }

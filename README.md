@@ -135,7 +135,11 @@ NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
 1. Import the repo in Vercel and set **Root Directory** to `web`.
 2. Optionally set `NEXT_PUBLIC_API_URL` to a backend you host (any machine running the Docker image, or your own computer through a tunnel such as `cloudflared tunnel --url http://localhost:8000`). Set `CORS_ORIGINS` on the backend to your Vercel URL.
 
-With no backend, the Vercel deploy runs in **browser-only mode**. Game and day reviews run with Stockfish WASM in your browser and are stored in `localStorage`, and puzzles from your mistakes, the opening and endgame trainers and the analysis board all work. The AI coach and the cross-game pattern graph need the backend.
+3. Set `DATABASE_URL` to a Postgres database to save everything there: reviews, pasted games, puzzles and their attempts, day overviews, and course and endgame progress. With Supabase, use the **Transaction pooler** URL from Supabase → Connect. The direct `db.<ref>.supabase.co` host is IPv6-only and Vercel can't reach it. The tables are created on the first request, and [`web/db/schema.sql`](web/db/schema.sql) has the same SQL if you'd rather run it yourself. Open `/api/store/health` to check: it should say `"connected": true`.
+
+With no backend, the Vercel deploy runs in **browser-only mode**. Game and day reviews run with Stockfish WASM in your browser, and puzzles from your mistakes, the opening and endgame trainers and the analysis board all work. Without `DATABASE_URL`, everything is saved in `localStorage` on that device. With it, every save also goes to Postgres, so any device with the same chess.com username picks it up, and reviews are never analysed twice. Anything a browser saved before the database existed is uploaded the next time it opens the app. The AI coach and the cross-game pattern graph need the backend.
+
+Every table has row-level security on with no policies. The app's server connects as the database owner and isn't affected, but Supabase's public REST and GraphQL APIs (the anon key) can't read or write these tables.
 
 ## Configuration (backend)
 
