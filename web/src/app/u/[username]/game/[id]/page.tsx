@@ -14,7 +14,7 @@ import { EvalGraph } from "@/components/EvalGraph";
 import { MoveList } from "@/components/MoveList";
 import { Progress } from "@/components/Progress";
 import { AccuracyBadge, ClassificationTable, GameRatingRow } from "@/components/ReviewSummary";
-import { gameRating } from "@/lib/gameRating";
+import { gameRating, ratingClass } from "@/lib/gameRating";
 import { api } from "@/lib/api";
 import { getReview, isBackendMode } from "@/lib/client";
 import { formatClock, formatEval, prettyMotif, uciToMove } from "@/lib/format";
@@ -480,8 +480,8 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
           </div>
 
           <GameRatingRow
-            white={gameRating(moves, "white", review.start_eval, ratingNum("white"))}
-            black={gameRating(moves, "black", review.start_eval, ratingNum("black"))}
+            white={gameRating(moves, "white", review.start_eval, ratingNum("white"), ratingClass(meta?.time_class, h.TimeControl))}
+            black={gameRating(moves, "black", review.start_eval, ratingNum("black"), ratingClass(meta?.time_class, h.TimeControl))}
             whiteActual={ratingNum("white")}
             blackActual={ratingNum("black")}
           />

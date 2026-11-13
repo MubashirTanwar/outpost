@@ -80,7 +80,7 @@ export function GameRatingRow({ white, black, whiteActual, blackActual }: { whit
     </div>
   );
   return (
-    <div className="flex items-start justify-center gap-6" title="Estimated from each side's average centipawn loss; short games lean on the player's real rating.">
+    <div className="flex items-start justify-center gap-6" title="Estimated from how much each side lost per move, calibrated on 300k rated Lichess games and put on chess.com's scale. Starts from the real rating and moves as far as this game justifies.">
       {cell(white, whiteActual, true)}
       <span className="pt-2.5 text-xs font-bold text-muted">Game Rating</span>
       {cell(black, blackActual, false)}
