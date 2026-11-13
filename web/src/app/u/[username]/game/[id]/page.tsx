@@ -13,7 +13,8 @@ import { Kittu, kittuSays, moodForClassification, type KittuMood } from "@/compo
 import { EvalGraph } from "@/components/EvalGraph";
 import { MoveList } from "@/components/MoveList";
 import { Progress } from "@/components/Progress";
-import { AccuracyBadge, ClassificationTable } from "@/components/ReviewSummary";
+import { AccuracyBadge, ClassificationTable, GameRatingRow } from "@/components/ReviewSummary";
+import { gameRating } from "@/lib/gameRating";
 import { api } from "@/lib/api";
 import { getReview, isBackendMode } from "@/lib/client";
 import { formatClock, formatEval, prettyMotif, uciToMove } from "@/lib/format";
@@ -224,6 +225,10 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
   const bottom = orientation;
   const name = (c: "white" | "black") => (c === "white" ? meta?.white ?? h.White : meta?.black ?? h.Black);
   const rating = (c: "white" | "black") => (c === "white" ? meta?.white_rating ?? h.WhiteElo : meta?.black_rating ?? h.BlackElo);
+  const ratingNum = (c: "white" | "black") => {
+    const r = Number(rating(c));
+    return Number.isFinite(r) && r > 0 ? r : null;
+  };
   const clockFor = (c: "white" | "black") => {
     for (let i = ply - 1; i >= 0; i--) if (moves[i].color === c) return moves[i].clock;
     return null;
@@ -473,6 +478,13 @@ function ReviewPage({ params }: { params: { username: string; id: string } }) {
             <span className="pb-3 text-xs font-bold text-muted">Accuracy</span>
             <AccuracyBadge label={name("black")} value={review.summary.black.accuracy} chesscom={meta?.chesscom_black_accuracy} />
           </div>
+
+          <GameRatingRow
+            white={gameRating(moves, "white", review.start_eval, ratingNum("white"))}
+            black={gameRating(moves, "black", review.start_eval, ratingNum("black"))}
+            whiteActual={ratingNum("white")}
+            blackActual={ratingNum("black")}
+          />
 
           <ClassificationTable left={review.summary.white.counts} right={review.summary.black.counts} />
 

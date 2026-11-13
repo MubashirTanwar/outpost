@@ -65,3 +65,25 @@ export function AccuracyBadge({ value, label, light, chesscom }: { value: number
     </div>
   );
 }
+
+/** The rating each side played at in this game (see lib/gameRating), next to their real rating. */
+export function GameRatingRow({ white, black, whiteActual, blackActual }: { white: number | null; black: number | null; whiteActual?: number | null; blackActual?: number | null }) {
+  if (white === null && black === null) return null;
+  const cell = (v: number | null, actual: number | null | undefined, light: boolean) => (
+    <div className="w-[96px] text-center">
+      <div className={`rounded-md px-3 py-1.5 text-xl font-extrabold tabular-nums ${light ? "bg-white text-[#312e2b]" : "bg-[#403d39] text-white"}`}>{v ?? "–"}</div>
+      {actual ? (
+        <div className="mt-1 text-xs text-muted">
+          rated <span className="font-bold text-soft">{actual}</span>
+        </div>
+      ) : null}
+    </div>
+  );
+  return (
+    <div className="flex items-start justify-center gap-6" title="Estimated from each side's average centipawn loss; short games lean on the player's real rating.">
+      {cell(white, whiteActual, true)}
+      <span className="pt-2.5 text-xs font-bold text-muted">Game Rating</span>
+      {cell(black, blackActual, false)}
+    </div>
+  );
+}
