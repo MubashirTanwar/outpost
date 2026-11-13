@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     "chess endgames",
     "chess training",
   ],
-  authors: [{ name: "Mubashir Tanwar", url: "https://www.mubashirtanwar.com" }],
+  authors: [{ name: "Mubashir Tanwar", url: "https://tanwar.vercel.app" }],
   creator: "Mubashir Tanwar",
   openGraph: {
     type: "website",
@@ -54,7 +54,7 @@ const jsonLd = {
   applicationCategory: "GameApplication",
   operatingSystem: "Any (web browser)",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-  author: { "@type": "Person", name: "Mubashir Tanwar", url: "https://www.mubashirtanwar.com" },
+  author: { "@type": "Person", name: "Mubashir Tanwar", url: "https://tanwar.vercel.app" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
