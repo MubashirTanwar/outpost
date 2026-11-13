@@ -3,8 +3,10 @@ import postgres from "postgres";
 
 /**
  * Postgres for everything the app saves (reviews, pasted games, puzzles, progress, day overviews).
- * Set DATABASE_URL on the server; without it the app stays browser-only.
+ * Set DATABASE_URL (or POSTGRES_URL, from the Supabase/Neon Vercel integrations) on the server;
+ * without it the app stays browser-only.
  */
+import { databaseConfig } from "./dbUrl";
 import { SCHEMA } from "./schema";
 
 export { SCHEMA };
@@ -13,15 +15,16 @@ let client: postgres.Sql | null = null;
 let ready: Promise<void> | null = null;
 
 export function dbEnabled(): boolean {
-  return !!process.env.DATABASE_URL;
+  return databaseConfig(process.env) !== null;
 }
 
 /** The shared client, with the schema in place. Throws if DATABASE_URL isn't set. */
 export async function db(): Promise<postgres.Sql> {
   if (!client) {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error("DATABASE_URL is not set");
-    client = postgres(url, {
+    const config = databaseConfig(process.env);
+    if (!config) throw new Error("DATABASE_URL is not set");
+    client = postgres(config.url, {
+      ...(config.ssl !== undefined ? { ssl: config.ssl } : {}),
       max: 3,
       idle_timeout: 20,
       // Transaction poolers (Supabase :6543, PgBouncer, Neon's pooled URL) can't keep prepared statements.
