@@ -33,6 +33,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const u = user ? `/u/${encodeURIComponent(user)}` : null;
+  // The admin panel has its own layout.
+  if (path?.startsWith("/admin")) return <>{children}</>;
   const links = [
     { href: "/", label: "Home", icon: Home },
     { href: u ?? "/", label: "Review", icon: LineChart, needsUser: true },

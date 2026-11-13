@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --experimental-strip-types src/lib/classify.test.ts src/lib/progress.test.ts src/lib/endgame-rules.test.ts src/lib/linkify.test.ts src/lib/repertoire.test.ts src/lib/stats.test.ts src/lib/variation.test.ts src/lib/material.test.ts src/lib/sse.test.ts src/lib/timecontrol.test.ts src/lib/insights.test.ts src/lib/gamelink.test.ts src/lib/analysisLine.test.ts src/lib/position.test.ts src/lib/stockfish.test.ts src/lib/narration.test.ts src/lib/liveClassify.test.ts src/lib/endgamePractice.test.ts src/lib/gameRating.test.ts src/lib/server/schema.test.ts",
+    "test": "node --test --experimental-strip-types src/lib/classify.test.ts src/lib/progress.test.ts src/lib/endgame-rules.test.ts src/lib/linkify.test.ts src/lib/repertoire.test.ts src/lib/stats.test.ts src/lib/variation.test.ts src/lib/material.test.ts src/lib/sse.test.ts src/lib/timecontrol.test.ts src/lib/insights.test.ts src/lib/gamelink.test.ts src/lib/analysisLine.test.ts src/lib/position.test.ts src/lib/stockfish.test.ts src/lib/narration.test.ts src/lib/liveClassify.test.ts src/lib/endgamePractice.test.ts src/lib/gameRating.test.ts src/lib/server/schema.test.ts src/lib/reviewStats.test.ts",
     "predev": "node scripts/ensure-courses.mjs",
     "prebuild": "node scripts/ensure-courses.mjs",
     "pretypecheck": "node scripts/ensure-courses.mjs"
@@ -18,6 +18,7 @@
     "chess.js": "1.4.0",
     "lucide-react": "0.468.0",
     "next": "14.2.35",
+    "next-auth": "4.24.11",
     "postgres": "3.4.5",
     "react": "18.3.1",
     "react-chessboard": "4.7.3",

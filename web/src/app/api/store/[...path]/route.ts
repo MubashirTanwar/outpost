@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { reviewStats, type ReviewStats } from "@/lib/reviewStats";
 import { db, dbEnabled } from "@/lib/server/db";
+import type { Review } from "@/lib/types";
 
 /**
  * The app's storage API, backed by Postgres (see lib/server/db.ts):
@@ -69,10 +71,16 @@ async function handle(req: NextRequest, { params }: Ctx): Promise<NextResponse> 
         const review = await body<{ game?: { id?: string; white?: string; black?: string; end_time?: number } }>(req);
         const g = review?.game;
         if (!g || g.id !== id || !g.white || !g.black) return bad("expected a review with its game");
+        let stats: ReviewStats | null = null;
+        try {
+          stats = reviewStats(review as Review);
+        } catch {}
         await sql`
-          insert into reviews (game_id, white, black, end_time, review)
-          values (${id}, ${g.white}, ${g.black}, ${Math.floor(g.end_time ?? 0)}, ${sql.json(review as never)})
-          on conflict (game_id) do update set review = excluded.review, end_time = excluded.end_time, updated_at = now()`;
+          insert into reviews (game_id, white, black, end_time, review, player, stats)
+          values (${id}, ${g.white}, ${g.black}, ${Math.floor(g.end_time ?? 0)}, ${sql.json(review as never)},
+                  ${stats?.player ?? null}, nullif(${sql.json((stats ?? null) as never)}::jsonb, 'null'::jsonb))
+          on conflict (game_id) do update set review = excluded.review, end_time = excluded.end_time,
+            player = excluded.player, stats = excluded.stats, updated_at = now()`;
         return json({ ok: true });
       }
     } else {

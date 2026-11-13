@@ -139,6 +139,12 @@ NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
 
 With no backend, the Vercel deploy runs in **browser-only mode**. Game and day reviews run with Stockfish WASM in your browser, and puzzles from your mistakes, the opening and endgame trainers and the analysis board all work. Without `DATABASE_URL`, everything is saved in `localStorage` on that device. With it, every save also goes to Postgres, so any device with the same chess.com username picks it up, and reviews are never analysed twice. Anything a browser saved before the database existed is uploaded the next time it opens the app. The AI coach and the cross-game pattern graph need the backend.
 
+4. For the admin panel at `/admin`, set `ADMIN_PASSWORD` and `NEXTAUTH_SECRET` (any long random string, for example `openssl rand -base64 32`). It needs `DATABASE_URL` too, and has these pages:
+   - **Overview:** players active today, this week and this month; games reviewed per day; accuracy; puzzles; XP; time controls and openings.
+   - **History:** every review, day, puzzle attempt and progress save, filterable by kind and player.
+   - **Players:** sortable by games, accuracy, Game Rating, rating, XP, puzzles and last active, with a page per player showing their games, trends, puzzles by theme, streak and achievements.
+   - **Records:** best accuracy, biggest overperformance, most brilliant moves, biggest blunder, longest game, and the most games, XP, puzzles and longest streak.
+
 Every table has row-level security on with no policies. The app's server connects as the database owner and isn't affected, but Supabase's public REST and GraphQL APIs (the anon key) can't read or write these tables.
 
 ## Configuration (backend)

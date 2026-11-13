@@ -6,6 +6,11 @@ create table if not exists reviews (
   review     jsonb not null,
   updated_at timestamptz not null default now()
 );
+alter table reviews add column if not exists player text;          -- whose review (lowercase)
+alter table reviews add column if not exists stats jsonb;           -- lib/reviewStats.ts, for the admin pages
+alter table reviews add column if not exists created_at timestamptz not null default now();
+create index if not exists reviews_player on reviews (player, end_time desc);
+create index if not exists reviews_created on reviews (created_at desc);
 create index if not exists reviews_white on reviews (lower(white), end_time desc);
 create index if not exists reviews_black on reviews (lower(black), end_time desc);
 
